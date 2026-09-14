@@ -19,6 +19,18 @@ PYTHON  := python3
 QEMU  := qemu-system-$(ARCH)
 BOCHS := bochs
 
+GRUB_FILE := $(TOOLCHAIN)grub-file
+GRUB_MKRESCUE := $(TOOLCHAIN)grub-mkrescue
+
+# arch family
+ifeq ($(ARCH),$(filter $(ARCH),i386 x86_64))
+    ARCH_FAMILY := x86
+else ifeq ($(ARCH),$(filter $(ARCH),riscv32 riscv64))
+    ARCH_FAMILY := riscv
+else
+    $(error unsupported ARCH '$(ARCH)' — valid: i386, x86_64, riscv32, riscv64)
+endif
+
 # arch flags
 ifeq ($(ARCH),i386)
     CFLAGS_ARCH  := -m32 -march=i686
@@ -33,8 +45,10 @@ else ifeq ($(ARCH),riscv32)
     CFLAGS_ARCH  := -march=rv32ima -mabi=ilp32
     ASFLAGS_ARCH :=
     LDFLAGS_ARCH := -m elf32lriscv
-else
-    $(error unsupported ARCH '$(ARCH)' — valid: i386, x86_64, riscv)
+else ifeq ($(ARCH),riscv64)
+    CFLAGS_ARCH  := -march=rv64gc -mabi=lp64
+    ASFLAGS_ARCH :=
+    LDFLAGS_ARCH := -m elf64lriscv
 endif
 
 # libgcc provides arch runtime helpers
@@ -65,7 +79,10 @@ else
 endif
 
 # include paths
-CFLAGS_INC := -I include -I include/arch/$(ARCH)
+CFLAGS_INC := -I include
+CFLAGS_INC += -I include/lib/libc
+CFLAGS_INC += -I include/arch/$(ARCH)
+CFLAGS_INC += -I include/arch/$(ARCH_FAMILY)
 
 # flags
 CFLAGS  := -std=gnu11 $(CFLAGS_FREESTANDING) $(CFLAGS_ARCH) \
