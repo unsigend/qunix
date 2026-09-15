@@ -15,4 +15,4 @@
 #define CONFIG_VERSION_PATCH 0
 #define CONFIG_PAGESIZE 4096
 
-#endif /* QUNIX_CONFIG_H */
+#endif

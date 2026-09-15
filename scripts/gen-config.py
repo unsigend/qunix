@@ -33,7 +33,7 @@ H_HEADER = """\
 """
 
 H_FOOTER = """\
-#endif /* QUNIX_CONFIG_H */
+#endif
 """
 
 
