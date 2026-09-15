@@ -29,6 +29,29 @@ struct vga_dev {
 
 static struct vga_dev vga_dev;
 
+static uint8_t vga_color(enum tty_color color)
+{
+    switch (color) {
+    case TTY_COLOR_BLACK: return VGA_COLOR_BLACK;
+    case TTY_COLOR_BLUE: return VGA_COLOR_BLUE;
+    case TTY_COLOR_GREEN: return VGA_COLOR_GREEN;
+    case TTY_COLOR_CYAN: return VGA_COLOR_CYAN;
+    case TTY_COLOR_RED: return VGA_COLOR_RED;
+    case TTY_COLOR_MAGENTA: return VGA_COLOR_MAGENTA;
+    case TTY_COLOR_BROWN: return VGA_COLOR_BROWN;
+    case TTY_COLOR_LGREY: return VGA_COLOR_LIGHT_GREY;
+    case TTY_COLOR_DGREY: return VGA_COLOR_DARK_GREY;
+    case TTY_COLOR_LBLUE: return VGA_COLOR_LIGHT_BLUE;
+    case TTY_COLOR_LGREEN: return VGA_COLOR_LIGHT_GREEN;
+    case TTY_COLOR_LCYAN: return VGA_COLOR_LIGHT_CYAN;
+    case TTY_COLOR_LRED: return VGA_COLOR_LIGHT_RED;
+    case TTY_COLOR_LMAG: return VGA_COLOR_LIGHT_MAGENTA;
+    case TTY_COLOR_YELLOW: return VGA_COLOR_YELLOW;
+    case TTY_COLOR_WHITE: return VGA_COLOR_WHITE;
+    default: return VGA_COLOR_BLACK;
+    }
+}
+
 static void update_cursor(void *data, uint32_t x, uint32_t y)
 {
     (void)data;
@@ -41,21 +64,21 @@ static void update_cursor(void *data, uint32_t x, uint32_t y)
     outb(VGA_DATA_REG, (uint8_t)((pos >> 8) & 0xFF));
 }
 
-static void putc(void *data, uint32_t x, uint32_t y, struct tty_color color,
-                 char c)
+static void putc(void *data, uint32_t x, uint32_t y,
+                 struct tty_color_attr color, char c)
 {
-    uint8_t attr = color.fg | color.bg << 4;
+    uint8_t attr = vga_color(color.fg) | vga_color(color.bg) << 4;
     struct vga_dev *dev = (struct vga_dev *)data;
     dev->buf[y * VGA_WIDTH + x] = (uint16_t)(uint8_t)c | ((uint16_t)attr << 8);
 }
 
-static void clear(void *data, struct tty_color color)
+static void clear(void *data, struct tty_color_attr color)
 {
     for (uint32_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++)
         putc(data, i % VGA_WIDTH, i / VGA_WIDTH, color, ' ');
 }
 
-static void scroll(void *data, uint32_t lines, struct tty_color color)
+static void scroll(void *data, uint32_t lines, struct tty_color_attr color)
 {
     if (lines == 0)
         return;

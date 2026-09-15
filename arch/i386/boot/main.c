@@ -6,16 +6,21 @@
  */
 
 #include <boot/multiboot2.h>
+#include <driver/vga.h>
+#include <qunix/kernel.h>
 #include <stdint.h>
 
 int boot_main(uint32_t magic, uintptr_t mbi);
 
 int boot_main(uint32_t magic, uintptr_t mbi)
 {
-    (void)magic;
     (void)mbi;
 
-    /* TODO: later */
+    vga_init((void *)VGA_BUFBASE);
+    printk("[INIT] VGA display driver initialized successfully\n");
+
+    if (magic != MULTIBOOT2_BOOTLOADER_MAGIC)
+        panic("Invalid multiboot2 magic number: 0x%x\n", magic);
 
     while (1)
         ;
