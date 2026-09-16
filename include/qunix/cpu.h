@@ -13,4 +13,7 @@
 /* Halt the CPU. */
 CONTRACT extern void cpu_halt(void) __attribute__((noreturn));
 
+/* Initialize the CPU. */
+CONTRACT extern void cpu_init(void);
+
 #endif

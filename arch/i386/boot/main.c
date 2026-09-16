@@ -14,16 +14,13 @@ int boot_main(uint32_t magic, uintptr_t mbi);
 
 int boot_main(uint32_t magic, uintptr_t mbi)
 {
-    (void)mbi;
-
     vga_init((void *)VGA_BUFBASE);
     printk("[INIT] VGA display driver initialized successfully\n");
 
     if (magic != MULTIBOOT2_BOOTLOADER_MAGIC)
         panic("Invalid multiboot2 magic number: 0x%x\n", magic);
 
-    while (1)
-        ;
+    kernel_main((void *)mbi);
 
     return 0;
 }

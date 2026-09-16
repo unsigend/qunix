@@ -5,10 +5,15 @@
  * For full terms see the included LICENSE file.
  */
 
-int main(int argc, char *argv[])
+#include <qunix/cpu.h>
+#include <qunix/kernel.h>
+
+int kernel_main(void *ctx)
 {
-    (void)argc;
-    (void)argv;
+    (void)ctx;
+
+    cpu_init();
+    printk("[INIT] CPU initialized successfully\n");
 
     return 0;
 }

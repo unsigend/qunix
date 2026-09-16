@@ -46,4 +46,7 @@ static inline uint32_t inl(uint16_t port)
     return value;
 }
 
+static inline void cli(void) { asm volatile("cli"); }
+static inline void sti(void) { asm volatile("sti"); }
+
 #endif

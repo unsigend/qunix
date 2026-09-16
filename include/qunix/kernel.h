@@ -18,4 +18,8 @@ __attribute__((format(printf, 1, 2))) extern int printk(const char *fmt, ...);
 __attribute__((format(printf, 1, 2))) extern void panic(const char *fmt, ...)
     __attribute__((noreturn));
 
+/* qunix kernel main function, the ctx is the hardware specific context
+ * pointer ignored by the kernel. */
+extern int kernel_main(void *ctx);
+
 #endif
