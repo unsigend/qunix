@@ -58,8 +58,8 @@ _start:
     /* push magic number */
     pushl %eax
 
-    /* boot_main(uint32_t magic, multiboot_info_t *mbi) */
-    call boot_main
+    /* bootmain(uint32_t magic, multiboot_info_t *mbi) */
+    call bootmain
 loop:
     hlt
     jmp loop

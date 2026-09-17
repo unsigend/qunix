@@ -9,10 +9,8 @@
 #define ARCH_I386_ASM_GDT_H
 
 /* Global Descriptor Table for i386 architecture, for all macros the naming
- * convention is: SEG for segment descriptor and SEGS for segment
- * selector.
- * Reference: https://wiki.osdev.org/Global_Descriptor_Table.
- */
+ * convention is: SEG for segment descriptor and SEGS for segment selector.
+ * Reference: https://wiki.osdev.org/Global_Descriptor_Table. */
 
 #define SEG_MAX_ENTRIES 5 /* Maximum number of entries in the GDT */
 

@@ -10,9 +10,9 @@
 #include <qunix/kernel.h>
 #include <stdint.h>
 
-int boot_main(uint32_t magic, uintptr_t mbi);
+int bootmain(uint32_t magic, uintptr_t mbi);
 
-int boot_main(uint32_t magic, uintptr_t mbi)
+int bootmain(uint32_t magic, uintptr_t mbi)
 {
     vga_init((void *)VGA_BUFBASE);
     printk("[INIT] VGA display driver initialized successfully\n");
