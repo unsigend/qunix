@@ -24,16 +24,16 @@
 #include <stdint.h>
 
 struct idt_entry {
-    uint16_t offset_low;  /* Offset[0:15] */
-    uint16_t selector;    /* Selector */
-    uint8_t reserved;     /* Reserved */
+    uint16_t offset_low;  /* offset[0:15] */
+    uint16_t selector;    /* selector */
+    uint8_t reserved;     /* reserved */
     uint8_t flags;        /* P, DPL, Gate type */
-    uint16_t offset_high; /* Offset[16:31] */
+    uint16_t offset_high; /* offset[16:31] */
 } __attribute__((packed));
 
 struct idtr {
-    uint16_t size; /* The size of the IDT table in bytes subtracted by 1 */
-    uint32_t base; /* Base address of the IDT */
+    uint16_t size; /* the size of the IDT table in bytes subtracted by 1 */
+    uint32_t base; /* base address of the IDT */
 } __attribute__((packed));
 
 extern void idt_init(void);

@@ -23,3 +23,5 @@ void idt_entry_set(struct idt_entry *entry, uint32_t offset, uint16_t selector,
     entry->flags = flags;
     entry->offset_high = (offset >> 16) & 0xFFFF;
 }
+
+void idt_init(void) { /* TODO: Implement this */ }

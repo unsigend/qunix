@@ -66,17 +66,17 @@
 #include <stdint.h>
 
 struct gdt_entry {
-    uint16_t limit_low;  /* Limit[0:15] */
-    uint16_t base_low;   /* Base[0:15] */
-    uint8_t base_mid;    /* Base[16:23] */
+    uint16_t limit_low;  /* limit[0:15] */
+    uint16_t base_low;   /* base[0:15] */
+    uint8_t base_mid;    /* base[16:23] */
     uint8_t access;      /* P, DPL, S, Type */
-    uint8_t granularity; /* G, D/B, L, AVL, Limit[16:19] */
-    uint8_t base_high;   /* Base[24:31] */
+    uint8_t granularity; /* G, D/B, L, AVL, limit[16:19] */
+    uint8_t base_high;   /* base[24:31] */
 } __attribute__((packed));
 
 struct gdtr {
-    uint16_t size; /* The size of the GDT table in bytes subtracted by 1 */
-    uint32_t base; /* Base address of the GDT */
+    uint16_t size; /* the size of the GDT table in bytes subtracted by 1 */
+    uint32_t base; /* base address of the GDT */
 } __attribute__((packed));
 
 typedef uint16_t seg_selector_t;
