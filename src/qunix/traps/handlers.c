@@ -17,65 +17,65 @@ void trap_handler_divide(struct trap_frame *frame)
 void trap_handler_debug(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for debug");
 }
 
 void trap_handler_nmi(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for NMI");
 }
 
 void trap_handler_brkpt(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for breakpoint");
 }
 
 void trap_handler_illegal(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for illegal instruction");
 }
 
 void trap_handler_align(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for alignment check");
 }
 
 void trap_handler_pgflt(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for page fault");
 }
 
 void trap_handler_gpflt(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for general protection fault");
 }
 
 void trap_handler_fperr(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for floating point exception");
 }
 
 void trap_handler_mchk(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for machine check");
 }
 
 void trap_handler_dblflt(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for double fault");
 }
 
 void trap_handler_stack(struct trap_frame *frame)
 {
     (void)frame;
-    panic("Not implemented");
+    panic("Not implemented trap handler for stack segment fault");
 }

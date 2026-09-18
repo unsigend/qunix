@@ -28,6 +28,13 @@ multiboot_header:
 
 multiboot_header_tag:
 
+    /* memory map request */
+    .short MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST
+    .short 0
+    .long 12
+    .long MULTIBOOT_TAG_TYPE_MMAP
+    .long 0 /* padding */
+
     /* end tag */
     .short MULTIBOOT_HEADER_TAG_END
     .short 0

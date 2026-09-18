@@ -54,5 +54,4 @@ void idt_init(void)
     idt_entry_set(&idt[X86_TRAP_MCHK], (uint32_t)&isr18, code_sel, int_flags);
 
     idtr_write(&idtr);
-    sti(); /* enable interrupts */
 }

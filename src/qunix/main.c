@@ -7,13 +7,15 @@
 
 #include <qunix/cpu.h>
 #include <qunix/kernel.h>
+#include <qunix/mm/mm.h>
 
 int kernel_main(void *ctx)
 {
-    (void)ctx;
-
     cpu_init();
     printk("[INIT] CPU initialized successfully\n");
+
+    mm_init(ctx);
+    printk("[INIT] Memory Manager initialized successfully\n");
 
     return 0;
 }
