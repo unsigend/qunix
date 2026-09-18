@@ -16,9 +16,9 @@ static int map_trapnum(int trapnum)
     case X86_TRAP_DEBUG: return TRAP_DEBUG;
     case X86_TRAP_NMI: return TRAP_NMI;
     case X86_TRAP_BRKPT: return TRAP_BRKPT;
+    case X86_TRAP_ILLOP: return TRAP_ILLEGAL;
     case X86_TRAP_DBLFLT: return TRAP_DBLFLT;
     case X86_TRAP_STACK: return TRAP_STACK;
-    case X86_TRAP_ILLOP: return TRAP_ILLEGAL;
     case X86_TRAP_GPFLT: return TRAP_GPFLT;
     case X86_TRAP_PGFLT: return TRAP_PGFLT;
     case X86_TRAP_FPERR: return TRAP_FPERR;

@@ -14,9 +14,71 @@
 .section .text
 
 .global isr0
+.global isr1
+.global isr2
+.global isr3
+.global isr6
+.global isr8
+.global isr12
+.global isr13
+.global isr14
+.global isr16
+.global isr17
+.global isr18
+
 isr0:
     pushl $FAKE_ERRNO
     pushl $X86_TRAP_DIVIDE
+    jmp isr_handler
+
+isr1:
+    pushl $FAKE_ERRNO
+    pushl $X86_TRAP_DEBUG
+    jmp isr_handler
+
+isr2:
+    pushl $FAKE_ERRNO
+    pushl $X86_TRAP_NMI
+    jmp isr_handler
+
+isr3:
+    pushl $FAKE_ERRNO
+    pushl $X86_TRAP_BRKPT
+    jmp isr_handler
+
+isr6:
+    pushl $FAKE_ERRNO
+    pushl $X86_TRAP_ILLOP
+    jmp isr_handler
+
+isr8:
+    pushl $X86_TRAP_DBLFLT
+    jmp isr_handler
+
+isr12:
+    pushl $X86_TRAP_STACK
+    jmp isr_handler
+
+isr13:
+    pushl $X86_TRAP_GPFLT
+    jmp isr_handler
+
+isr14:
+    pushl $X86_TRAP_PGFLT
+    jmp isr_handler
+
+isr16: 
+    pushl $FAKE_ERRNO
+    pushl $X86_TRAP_FPERR
+    jmp isr_handler
+
+isr17:
+    pushl $X86_TRAP_ALIGN
+    jmp isr_handler
+
+isr18:
+    pushl $FAKE_ERRNO
+    pushl $X86_TRAP_MCHK
     jmp isr_handler
 
 isr_handler:

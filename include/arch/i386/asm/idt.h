@@ -8,6 +8,11 @@
 #ifndef ARCH_I386_ASM_IDT_H
 #define ARCH_I386_ASM_IDT_H
 
+/* Trap Gates and Interrupt Gates are similar, and their descriptors are
+ * structurally the same, differing only in the Gate Type field. The difference
+ * is that for Interrupt Gates, interrupts are automatically disabled upon entry
+ * and reenabled upon IRET, whereas this does not occur for Trap Gates.*/
+
 #define GATE_TYPE_TASK 0x05   /* Task gate */
 #define GATE_TYPE_INT16 0x06  /* 16-bit interrupt gate */
 #define GATE_TYPE_TRAP16 0x07 /* 16-bit trap gate */

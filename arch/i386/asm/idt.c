@@ -41,7 +41,18 @@ void idt_init(void)
     (void)trap_flags; /* used later */
 
     idt_entry_set(&idt[X86_TRAP_DIVIDE], (uint32_t)&isr0, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_DEBUG], (uint32_t)&isr1, code_sel, trap_flags);
+    idt_entry_set(&idt[X86_TRAP_NMI], (uint32_t)&isr2, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_BRKPT], (uint32_t)&isr3, code_sel, trap_flags);
+    idt_entry_set(&idt[X86_TRAP_ILLOP], (uint32_t)&isr6, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_DBLFLT], (uint32_t)&isr8, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_STACK], (uint32_t)&isr12, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_GPFLT], (uint32_t)&isr13, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_PGFLT], (uint32_t)&isr14, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_FPERR], (uint32_t)&isr16, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_ALIGN], (uint32_t)&isr17, code_sel, int_flags);
+    idt_entry_set(&idt[X86_TRAP_MCHK], (uint32_t)&isr18, code_sel, int_flags);
 
     idtr_write(&idtr);
-    sti(); /* open interrupts */
+    sti(); /* enable interrupts */
 }
