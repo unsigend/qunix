@@ -5,7 +5,11 @@
  * For full terms see the included LICENSE file.
  */
 
+#include <asm.h>
+#include <asm/gdt.h>
 #include <asm/idt.h>
+#include <asm/isr.h>
+#include <asm/traps.h>
 
 void idtr_write(const struct idtr *idtr)
 {
@@ -24,4 +28,20 @@ void idt_entry_set(struct idt_entry *entry, uint32_t offset, uint16_t selector,
     entry->offset_high = (offset >> 16) & 0xFFFF;
 }
 
-void idt_init(void) { /* TODO: Implement this */ }
+static struct idt_entry idt[IDT_MAX_ENTRIES];
+
+void idt_init(void)
+{
+    struct idtr idtr = {.size = sizeof(idt) - 1, .base = (uint32_t)idt};
+    uint16_t code_sel =
+        SEGS_MAKE(SEG_KER_CODE_IDX, SEGS_TI_GDT, SEGS_RPL_RING0);
+    uint8_t trap_flags = GATE_MAKE_FLAGS(1, GATE_DPL_RING0, GATE_TYPE_TRAP32);
+    uint8_t int_flags = GATE_MAKE_FLAGS(1, GATE_DPL_RING0, GATE_TYPE_INT32);
+
+    (void)trap_flags; /* used later */
+
+    idt_entry_set(&idt[X86_TRAP_DIVIDE], (uint32_t)&isr0, code_sel, int_flags);
+
+    idtr_write(&idtr);
+    sti(); /* open interrupts */
+}

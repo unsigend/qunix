@@ -6,6 +6,7 @@
  */
 
 #include <asm/gdt.h>
+#include <asm/idt.h>
 #include <qunix/cpu.h>
 #include <qunix/kernel.h>
 
@@ -19,4 +20,8 @@ void cpu_init(void)
 {
     gdt_init();
     printk("[INIT] Global Descriptor Table (GDT) initialized successfully\n");
+
+    idt_init();
+    printk(
+        "[INIT] Interrupt Descriptor Table (IDT) initialized successfully\n");
 }

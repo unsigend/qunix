@@ -19,6 +19,8 @@
 #define GATE_DPL_RING2 2 /* Ring 2 */
 #define GATE_DPL_RING3 3 /* Ring 3 */
 
+#define IDT_MAX_ENTRIES 256 /* Maximum number of entries in the IDT */
+
 #ifndef ASM_FILE
 
 #include <stdint.h>

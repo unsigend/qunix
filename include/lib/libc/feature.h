@@ -50,8 +50,6 @@
 #else
 #define __USE_ISO_C23 0
 #endif
-#else
-#error "qlibc: ISO C Standard is not defined"
 #endif
 
 /* Feature support macros, these macros are used to enable or disable features.
