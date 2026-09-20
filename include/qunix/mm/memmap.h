@@ -8,6 +8,7 @@
 #ifndef QUNIX_MM_MMAP_H
 #define QUNIX_MM_MMAP_H
 
+#include <qunix/macros.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -49,5 +50,8 @@ extern const struct mem_map_entry *mem_map_find_range(uint64_t addr,
  * NULL if not found. */
 extern const struct mem_map_entry *
 mem_map_find_type(uint64_t addr, uint64_t len, enum mem_map_type type);
+
+/* Hardware specific memory map initialization. */
+CONTRACT extern void memmap_init(void);
 
 #endif

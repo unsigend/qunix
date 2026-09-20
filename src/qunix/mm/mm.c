@@ -5,17 +5,12 @@
  * For full terms see the included LICENSE file.
  */
 
-#include <qunix/cpu.h>
 #include <qunix/kernel.h>
+#include <qunix/mm/memmap.h>
 #include <qunix/mm/mm.h>
 
-int kernel_main(void)
+void mm_init(void)
 {
-    cpu_init();
-    printk("[INIT] CPU initialized successfully\n");
-
-    mm_init();
-    printk("[INIT] Memory Manager initialized successfully\n");
-
-    return 0;
+    memmap_init();
+    printk("[INIT] Memory map initialized successfully\n");
 }

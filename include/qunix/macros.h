@@ -14,6 +14,7 @@
 #define CONTRACT
 
 #define ALIGN(x, align) (((x) + (align - 1)) & ~(align - 1))
+#define IS_ALIGNED(x, align) (((x) & (align - 1)) == 0)
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 

@@ -10,6 +10,6 @@
 
 #include <qunix/macros.h>
 
-CONTRACT extern void mm_init(void *ctx);
+extern void mm_init(void);
 
 #endif

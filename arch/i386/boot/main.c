@@ -5,22 +5,23 @@
  * For full terms see the included LICENSE file.
  */
 
-#include <boot/multiboot2.h>
+#include <boot/mb2.h>
 #include <driver/vga.h>
 #include <qunix/kernel.h>
 #include <stdint.h>
 
-int bootmain(uint32_t magic, uintptr_t mbi);
+/* Forward declarations: only boot.S calls this function */
+int bootmain(uint32_t, uintptr_t);
 
 int bootmain(uint32_t magic, uintptr_t mbi)
 {
     vga_init((void *)VGA_BUFBASE);
     printk("[INIT] VGA display driver initialized successfully\n");
 
-    if (magic != MULTIBOOT2_BOOTLOADER_MAGIC)
-        panic("Invalid multiboot2 magic number: 0x%x\n", magic);
+    mb2_validate(magic, mbi);
+    mb2_set_mbi(mbi);
 
-    kernel_main((void *)mbi);
+    kernel_main();
 
     return 0;
 }
