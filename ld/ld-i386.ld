@@ -12,6 +12,7 @@ SECTIONS
 {
     /* kernel start address at 1MB */
     . = 1M;
+    _kernel_phys_start = .;
 
     .text BLOCK(4K) : ALIGN(4K)
     {
@@ -34,4 +35,5 @@ SECTIONS
         *(COMMON)
         *(.bss)
     }
+    _kernel_phys_end = .;
 }

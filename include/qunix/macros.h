@@ -18,4 +18,10 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+#define ROUND_UP(x, ceil) ALIGN(x, ceil)
+#define ROUND_DOWN(x, floor) ((x) & ~((floor) - 1))
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 #endif

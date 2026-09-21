@@ -66,6 +66,15 @@ const struct mem_map_entry *mem_map_find_range(uint64_t addr, uint64_t len)
     return NULL;
 }
 
+phys_addr_t mem_map_get_max_phys(void)
+{
+    phys_addr_t max_phys = 0;
+    for (size_t i = 0; i < num_entries; i++)
+        if (entries[i].addr + entries[i].len > max_phys)
+            max_phys = entries[i].addr + entries[i].len;
+    return max_phys;
+}
+
 /* Return 1 if the two entries overlap, 0 otherwise. */
 static inline int overlaps(const struct mem_map_entry *e1,
                            const struct mem_map_entry *e2)

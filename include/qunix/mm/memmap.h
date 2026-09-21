@@ -9,6 +9,7 @@
 #define QUNIX_MM_MMAP_H
 
 #include <qunix/macros.h>
+#include <qunix/mm/types.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -31,6 +32,9 @@ extern size_t mem_map_get_size(void);
 extern uint64_t mem_map_get_available(void);
 extern uint64_t mem_map_get_reserved(void);
 extern uint64_t mem_map_get_kernel(void);
+
+/* Return the maximum physical address exclusively. */
+extern phys_addr_t mem_map_get_max_phys(void);
 
 /* Append a new memory map entry to the memory map, return -errno on failure. If
  * the type is MEMMAP_KERNEL, the range must be within the MEMMAP_AVAILABLE
