@@ -7,15 +7,15 @@
 
 #include <qunix/cpu.h>
 #include <qunix/kernel.h>
+#include <qunix/log.h>
 #include <qunix/mm/mm.h>
 
 int kernel_main(void)
 {
     cpu_init();
-    printk("[INIT] CPU initialized successfully\n");
-
     mm_init();
-    printk("[INIT] Memory Manager initialized successfully\n");
+
+    LOGM(LOG_LEVEL_INFO, "KERNEL", "Kernel initialized successfully");
 
     return 0;
 }

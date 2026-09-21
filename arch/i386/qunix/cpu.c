@@ -8,7 +8,7 @@
 #include <asm/gdt.h>
 #include <asm/idt.h>
 #include <qunix/cpu.h>
-#include <qunix/kernel.h>
+#include <qunix/log.h>
 
 void cpu_halt(void)
 {
@@ -19,9 +19,7 @@ void cpu_halt(void)
 void cpu_init(void)
 {
     gdt_init();
-    printk("[INIT] Global Descriptor Table (GDT) initialized successfully\n");
-
     idt_init();
-    printk(
-        "[INIT] Interrupt Descriptor Table (IDT) initialized successfully\n");
+
+    LOGM(LOG_LEVEL_INFO, "CPU", "CPU initialized successfully");
 }

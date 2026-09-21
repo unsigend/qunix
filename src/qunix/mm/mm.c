@@ -6,11 +6,12 @@
  */
 
 #include <qunix/kernel.h>
+#include <qunix/log.h>
 #include <qunix/mm/memmap.h>
 #include <qunix/mm/mm.h>
 
 void mm_init(void)
 {
     memmap_init();
-    printk("[INIT] Memory map initialized successfully\n");
+    LOGM(LOG_LEVEL_INFO, "MM", "Memory Manager initialized successfully");
 }

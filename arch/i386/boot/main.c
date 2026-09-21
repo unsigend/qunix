@@ -8,6 +8,7 @@
 #include <boot/mb2.h>
 #include <driver/vga.h>
 #include <qunix/kernel.h>
+#include <qunix/log.h>
 #include <stdint.h>
 
 /* Forward declarations: only boot.S calls this function */
@@ -16,7 +17,7 @@ int bootmain(uint32_t, uintptr_t);
 int bootmain(uint32_t magic, uintptr_t mbi)
 {
     vga_init((void *)VGA_BUFBASE);
-    printk("[INIT] VGA display driver initialized successfully\n");
+    LOGM(LOG_LEVEL_INFO, "VGA", "VGA driver initialized successfully");
 
     mb2_validate(magic, mbi);
     mb2_set_mbi(mbi);

@@ -7,7 +7,7 @@
 
 #include <asm.h>
 #include <asm/gdt.h>
-#include <stdint.h>
+#include <qunix/log.h>
 
 void gdtr_write(const struct gdtr *gdtr)
 {
@@ -71,4 +71,6 @@ void gdt_init(void)
     gdtr_write(&gdtr);
     reload_segments(SEGS_MAKE(SEG_KER_CODE_IDX, SEGS_TI_GDT, SEGS_RPL_RING0),
                     SEGS_MAKE(SEG_KER_DATA_IDX, SEGS_TI_GDT, SEGS_RPL_RING0));
+
+    LOGM(LOG_LEVEL_INFO, "GDT", "GDT initialized successfully");
 }

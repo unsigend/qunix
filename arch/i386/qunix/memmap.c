@@ -7,9 +7,10 @@
 
 #include <boot/mb2.h>
 #include <boot/multiboot2.h>
+#include <qunix/fmt.h>
 #include <qunix/kernel.h>
+#include <qunix/log.h>
 #include <qunix/mm/memmap.h>
-#include <stdint.h>
 
 void memmap_init(void)
 {
@@ -35,4 +36,10 @@ void memmap_init(void)
             }
         }
     }
+
+    char buf[64];
+    fmt_mem(buf, sizeof(buf), mem_map_get_available());
+
+    LOGM(LOG_LEVEL_INFO, "MEMMAP", "Memory Map initialized successfully");
+    LOGM(LOG_LEVEL_INFO, "MEMMAP", "Available memory: %s", buf);
 }
