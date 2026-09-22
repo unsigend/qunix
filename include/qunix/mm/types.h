@@ -13,4 +13,7 @@
 typedef uintptr_t phys_addr_t;
 typedef uintptr_t virt_addr_t;
 
+/* An opaque pointer representing a page table */
+typedef uintptr_t pagetable_t;
+
 #endif

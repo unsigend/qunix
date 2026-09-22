@@ -9,6 +9,7 @@
 #define QUNIX_MM_PAGE_H
 
 #include <qunix/config.h>
+#include <qunix/macros.h>
 
 #define DEFAULT_PAGE_SIZE 4096
 #define DEFAULT_PAGE_SHIFT 12
@@ -24,5 +25,7 @@
 #else
 #define PAGE_SHIFT CONFIG_PAGESHIFT
 #endif
+
+CONTRACT extern void page_init(void);
 
 #endif

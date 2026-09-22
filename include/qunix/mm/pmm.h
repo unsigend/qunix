@@ -12,8 +12,6 @@
 
 struct pmm_page; /* A opaque struct representing a phyiscal page */
 
-/* TODO: add a statistics function to memcpy the internal statistics */
-
 extern void pmm_init(void);
 
 /* Allocate or free a page based on the order of the page, namely 2^order pages.
