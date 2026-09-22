@@ -11,9 +11,9 @@
 #include <qunix/mm/types.h>
 #include <stdint.h>
 
-#define PHYS_OFFSET(va) ((va) & 0xFFF)
-#define PHYS_PD_IDX(va) ((va) >> 22)
-#define PHYS_PT_IDX(va) (((va) >> 12) & 0x3FF)
+#define VIRTADDR_OFFSET(va) ((va) & 0xFFF)
+#define VIRTADDR_PGDIR_IDX(va) ((va) >> 22)
+#define VIRTADDR_PGTABLE_IDX(va) (((va) >> 12) & 0x3FF)
 
 /* Set or get the page directory root address in CPU. */
 extern void page_set_pagedir(uintptr_t pagedir);

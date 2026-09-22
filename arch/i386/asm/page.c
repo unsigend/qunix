@@ -7,6 +7,10 @@
 
 #include <asm/page.h>
 #include <qunix/mm/page.h>
+#include <qunix/mm/types.h>
+
+static pde_t _kernel_pagedir[1024] __attribute__((aligned(PAGE_SIZE)));
+pagetable_t kernel_pagetable = (pagetable_t)_kernel_pagedir;
 
 static inline void enable_paging(void)
 {
@@ -52,6 +56,21 @@ pde_t pde_make(phys_addr_t pa, uint32_t flags)
 pte_t pte_make(phys_addr_t pa, uint32_t flags)
 {
     return (pa & PG_ADDR_MASK) | flags;
+}
+
+void page_flush_tlb_all(void)
+{
+    uintptr_t cr3;
+    asm volatile("movl %%cr3, %0\n\t"
+                 "movl %0, %%cr3"
+                 : "=r"(cr3)
+                 :
+                 : "memory");
+}
+
+void page_flush_tlb_one(virt_addr_t va)
+{
+    asm volatile("invlpg (%0)" : : "r"(va) : "memory");
 }
 
 void page_init(void)

@@ -18,16 +18,19 @@
 #define VM_PERM_EXEC 0x04
 #define VM_PERM_USER 0x08
 
-/* Map one page of physical page to virtual page, return 0 on success -errno on
- * error, if alloc is set, then allocate necessary tables. */
-CONTRACT extern int vm_map_page(pagetable_t pagetable, virt_addr_t va,
-                                phys_addr_t pa, uint32_t perm, int alloc);
+/* Allocate a new page table, return NULL on failure */
+CONTRACT extern pagetable_t vm_alloc_pagetable(void);
 
-/* Unmap the page at virtual address  */
-CONTRACT extern void vm_unmap_page(pagetable_t pagetable, virt_addr_t va);
+/* Map one page of physical page to virtual page, return 0 on success -errno on
+ * error */
+CONTRACT extern int vm_map_page(pagetable_t pagetable, virt_addr_t va,
+                                phys_addr_t pa, uint32_t perm);
+
+/* Unmap the page at virtual address, return 0 on success -errno on error */
+CONTRACT extern int vm_unmap_page(pagetable_t pagetable, virt_addr_t va);
 
 extern int vm_map_pages(pagetable_t pagetable, virt_addr_t va, phys_addr_t pa,
-                        size_t n, uint32_t perm, int alloc);
-extern void vm_unmap_pages(pagetable_t pagetable, virt_addr_t va, size_t n);
+                        size_t n, uint32_t perm);
+extern int vm_unmap_pages(pagetable_t pagetable, virt_addr_t va, size_t n);
 
 #endif
