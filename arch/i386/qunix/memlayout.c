@@ -9,6 +9,13 @@
 
 extern char _kernel_phys_start[];
 extern char _kernel_phys_end[];
+extern char _kernel_virt_start[];
+extern char _kernel_virt_end[];
 
-const uintptr_t kernel_phys_start = (uintptr_t)_kernel_phys_start;
-const uintptr_t kernel_phys_end = (uintptr_t)_kernel_phys_end;
+const phys_addr_t kernel_phys_start = (phys_addr_t)_kernel_phys_start;
+const phys_addr_t kernel_phys_end = (phys_addr_t)_kernel_phys_end;
+
+const virt_addr_t kernel_virt_start = (virt_addr_t)_kernel_virt_start;
+const virt_addr_t kernel_virt_end = (virt_addr_t)_kernel_virt_end;
+
+const size_t kernel_virt_max = 1UL << 30; /* 1GB space: 3GB - 4GB */

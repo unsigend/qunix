@@ -6,31 +6,26 @@
  */
 
 #include <asm/page.h>
+#include <qunix/fmt.h>
+#include <qunix/log.h>
+#include <qunix/mm/memlayout.h>
+#include <qunix/mm/memmap.h>
 #include <qunix/mm/page.h>
 #include <qunix/mm/types.h>
+#include <qunix/mm/vm.h>
+#include <stddef.h>
 
 static pde_t _kernel_pagedir[1024] __attribute__((aligned(PAGE_SIZE)));
 pagetable_t kernel_pagetable = (pagetable_t)_kernel_pagedir;
 
-static inline void enable_paging(void)
-{
-    uint32_t cr0;
-    asm volatile("movl %%cr0, %0\n\t"
-                 "orl $0x80000001, %0\n\t"
-                 "movl %0, %%cr0"
-                 : "=r"(cr0)
-                 :
-                 : "memory");
-}
-
-void page_set_pagedir(uintptr_t pagedir)
+void page_set_pagedir(phys_addr_t pagedir)
 {
     asm volatile("movl %0, %%cr3" : : "r"(pagedir) : "memory");
 }
 
-uintptr_t page_get_pagedir(void)
+phys_addr_t page_get_pagedir(void)
 {
-    uintptr_t pagedir;
+    phys_addr_t pagedir;
     asm volatile("movl %%cr3, %0" : "=r"(pagedir));
     return pagedir;
 }
@@ -75,9 +70,30 @@ void page_flush_tlb_one(virt_addr_t va)
 
 void page_init(void)
 {
-    /* TODO: initialize page tables and page directory */
+    phys_addr_t max_phys = mem_map_get_max_phys();
+    if (max_phys >
+        KERNEL_VIRT_MAX) /* current mapping strategy can maximum maps 0-1GB
+                            physical memory to 3GB-4GB virtual memory. */
+    {
+        char phy_buf[64];
+        char max_buf[64];
+        fmt_mem(phy_buf, sizeof(phy_buf), mem_map_get_max_phys());
+        fmt_mem(max_buf, sizeof(max_buf), KERNEL_VIRT_MAX);
+        panic("the amount of physical memory %s is greater than the current "
+              "maximum virtual space for kernel %s",
+              phy_buf, max_buf);
+    }
 
-    /* TODO: load page directory into CR3 register */
+    /* maps all the physical memory from 0-PHYS_MAX to 3GB-4GB virtual memory */
+    int err = 0;
+    size_t n = ROUND_DOWN(max_phys, PAGE_SIZE) / PAGE_SIZE;
 
-    enable_paging();
+    if ((err = vm_map_pages(kernel_pagetable, KERNEL_VIRT_BASE, 0, n,
+                            VM_PERM_READ | VM_PERM_WRITE | VM_PERM_EXEC)) < 0)
+        panic("failed to map physical memory to kernel virtual memory");
+
+    /* load kernel page directory into CR3 register */
+    page_set_pagedir(virt_to_phys(kernel_pagetable));
+
+    LOGM(LOG_LEVEL_INFO, "PAGE", "Paging initialized successfully");
 }

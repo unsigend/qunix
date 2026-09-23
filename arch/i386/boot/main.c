@@ -9,6 +9,7 @@
 #include <driver/vga.h>
 #include <qunix/kernel.h>
 #include <qunix/log.h>
+#include <qunix/mm/memlayout.h>
 #include <stdint.h>
 
 /* Forward declarations: only boot.S calls this function */
@@ -16,7 +17,7 @@ int bootmain(uint32_t, uintptr_t);
 
 int bootmain(uint32_t magic, uintptr_t mbi)
 {
-    vga_init((void *)VGA_BUFBASE);
+    vga_init((void *)phys_to_virt(VGA_BUFBASE));
     LOGM(LOG_LEVEL_INFO, "VGA", "VGA driver initialized successfully");
 
     mb2_validate(magic, mbi);

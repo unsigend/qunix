@@ -18,7 +18,7 @@ void memmap_init(void)
     struct multiboot_tag *tag =
         mb2_find_tag(mb2_get_mbi(), MULTIBOOT_TAG_TYPE_MMAP);
     if (!tag)
-        panic("Missing memory map tag in multiboot2 information");
+        panic("missing memory map tag in multiboot2 information");
 
     struct multiboot_tag_mmap *mmap = (struct multiboot_tag_mmap *)tag;
 

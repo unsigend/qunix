@@ -4,9 +4,9 @@
  * This file is part of qunix, distributed under the GNU GPL v3.
  * For full terms see the included LICENSE file.
  */
-#include "bits/errno.h"
 #include <asm/page.h>
 #include <qunix/error.h>
+#include <qunix/mm/memlayout.h>
 #include <qunix/mm/page.h>
 #include <qunix/mm/pmm.h>
 #include <qunix/mm/vm.h>
@@ -20,6 +20,8 @@ int vm_map_page(pagetable_t pagetable, virt_addr_t va, phys_addr_t pa,
     size_t pde_idx, pte_idx;
     pde_t *pde;
     pte_t *pte;
+    phys_addr_t pte_base_phy;
+    virt_addr_t pte_base_virt;
 
     if (!pagetable)
         return -EINVAL;
@@ -40,14 +42,18 @@ int vm_map_page(pagetable_t pagetable, virt_addr_t va, phys_addr_t pa,
         struct pmm_page *phy_page = pmm_alloc_page();
         if (!phy_page)
             return -ENOMEM;
-        phys_addr_t phy_addr = pmm_page_to_phys(phy_page);
-        memset((void *)phy_addr, 0, PAGE_SIZE);
-        *pde = pde_make(phy_addr, flags);
-        pte = &((pte_t *)phy_addr)[pte_idx];
+        pte_base_phy = pmm_page_to_phys(phy_page);
+        pte_base_virt = pmm_page_to_virt(phy_page);
+
+        memset((void *)pte_base_virt, 0, PAGE_SIZE);
+        *pde = pde_make(pte_base_phy, flags);
+        pte = &((pte_t *)pte_base_virt)[pte_idx];
         *pte = pte_make(pa, flags);
     } else {
-        phys_addr_t phy_addr = *pde & PG_ADDR_MASK;
-        pte = &((pte_t *)phy_addr)[pte_idx];
+        pte_base_phy = *pde & PG_ADDR_MASK;
+        pte_base_virt = phys_to_virt(pte_base_phy);
+
+        pte = &((pte_t *)pte_base_virt)[pte_idx];
         if (*pte & PG_P_MASK) /* remapping */
             return -EEXIST;
         *pte = pte_make(pa, flags);
@@ -61,7 +67,8 @@ int vm_unmap_page(pagetable_t pagetable, virt_addr_t va)
     size_t pde_idx, pte_idx;
     pde_t *pde;
     pte_t *pte;
-    phys_addr_t pte_base;
+    phys_addr_t pte_base_phy;
+    virt_addr_t pte_base_virt;
 
     if (!pagetable)
         return -EINVAL;
@@ -72,12 +79,13 @@ int vm_unmap_page(pagetable_t pagetable, virt_addr_t va)
     pte_idx = VIRTADDR_PGTABLE_IDX(va);
 
     pde = &((pde_t *)pagetable)[pde_idx];
-    pte_base = *pde & PG_ADDR_MASK;
+    pte_base_phy = *pde & PG_ADDR_MASK;
+    pte_base_virt = phys_to_virt(pte_base_phy);
 
     if (!(*pde & PG_P_MASK))
         return -ENOENT;
 
-    pte = &((pte_t *)pte_base)[pte_idx];
+    pte = &((pte_t *)pte_base_virt)[pte_idx];
     if (!(*pte & PG_P_MASK))
         return -ENOENT;
 
@@ -92,7 +100,8 @@ pagetable_t vm_alloc_pagetable(void)
     struct pmm_page *phy_page = pmm_alloc_page();
     if (!phy_page)
         return (pagetable_t)NULL;
-    pagetable = (pagetable_t)pmm_page_to_phys(phy_page);
+
+    pagetable = (pagetable_t)pmm_page_to_virt(phy_page);
     memset((void *)pagetable, 0, PAGE_SIZE);
     return pagetable;
 }

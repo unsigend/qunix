@@ -9,11 +9,13 @@
 #include <qunix/log.h>
 #include <qunix/mm/memmap.h>
 #include <qunix/mm/mm.h>
+#include <qunix/mm/page.h>
 #include <qunix/mm/pmm.h>
 
 void mm_init(void)
 {
     memmap_init();
     pmm_init();
+    page_init();
     LOGM(LOG_LEVEL_INFO, "MM", "Memory Manager initialized successfully");
 }

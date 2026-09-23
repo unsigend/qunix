@@ -8,6 +8,7 @@
 #ifndef QUNIX_MM_PMM_H
 #define QUNIX_MM_PMM_H
 
+#include <qunix/mm/memlayout.h>
 #include <qunix/mm/types.h>
 
 struct pmm_page; /* A opaque struct representing a phyiscal page */
@@ -21,6 +22,11 @@ extern void pmm_free_pages(struct pmm_page *page, uint32_t order);
 
 extern phys_addr_t pmm_page_to_phys(struct pmm_page *page);
 extern struct pmm_page *pmm_phys_to_page(phys_addr_t phys);
+
+static inline virt_addr_t pmm_page_to_virt(struct pmm_page *page)
+{
+    return phys_to_virt(pmm_page_to_phys(page));
+}
 
 extern struct pmm_page *pmm_alloc_page(void);
 extern void pmm_free_page(struct pmm_page *page);

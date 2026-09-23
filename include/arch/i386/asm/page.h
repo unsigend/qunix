@@ -16,8 +16,8 @@
 #define VIRTADDR_PGTABLE_IDX(va) (((va) >> 12) & 0x3FF)
 
 /* Set or get the page directory root address in CPU. */
-extern void page_set_pagedir(uintptr_t pagedir);
-extern uintptr_t page_get_pagedir(void);
+extern void page_set_pagedir(phys_addr_t pagedir);
+extern phys_addr_t page_get_pagedir(void);
 
 typedef uint32_t pte_t; /* page table entry */
 typedef uint32_t pde_t; /* page directory entry */

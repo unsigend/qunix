@@ -25,9 +25,9 @@ multiboot_info_t mb2_get_mbi(void) { return mb2_info; }
 void mb2_validate(uint32_t magic, multiboot_info_t mbi)
 {
     if (magic != MULTIBOOT2_BOOTLOADER_MAGIC)
-        panic("Invalid multiboot2 magic number: 0x%x\n", magic);
+        panic("invalid multiboot2 magic number: 0x%x\n", magic);
     if (!IS_ALIGNED(mbi, MULTIBOOT_INFO_ALIGN))
-        panic("Invalid alignment of multiboot2 information: 0x%lx\n", mbi);
+        panic("invalid alignment of multiboot2 information: 0x%lx\n", mbi);
 }
 
 struct multiboot_tag *mb2_next_tag(const struct multiboot_tag *tag)

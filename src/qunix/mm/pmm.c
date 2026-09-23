@@ -5,6 +5,7 @@
  * For full terms see the included LICENSE file.
  */
 
+#include "qunix/mm/types.h"
 #include <qunix/kernel.h>
 #include <qunix/log.h>
 #include <qunix/mm/memlayout.h>
@@ -39,15 +40,15 @@ void pmm_init(void)
 {
     phys_addr_t max_phys = mem_map_get_max_phys();
     pool.page_count = max_phys >> PAGE_SHIFT;
-    pool.page_array = (struct pmm_page *)(uintptr_t)KERNEL_PHYS_END;
+    pool.page_array = (struct pmm_page *)phys_to_virt(KERNEL_PHYS_END);
     pool.page_array_sz =
         ROUND_UP(pool.page_count * sizeof(struct pmm_page), PAGE_SIZE);
 
     memset((void *)pool.page_array, 0, pool.page_array_sz);
 
-    if (mem_map_add((uint64_t)(uintptr_t)pool.page_array, pool.page_array_sz,
-                    MEMMAP_KERNEL) < 0)
-        panic("Failed to add pmm page array to memmap");
+    if (mem_map_add(virt_to_phys((virt_addr_t)pool.page_array),
+                    pool.page_array_sz, MEMMAP_KERNEL) < 0)
+        panic("failed to add pmm page array to memmap");
 
     for (size_t i = 0; i < mem_map_get_size(); i++) {
         const struct mem_map_entry *e = &mem_map_get()[i];
