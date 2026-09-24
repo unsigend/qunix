@@ -8,6 +8,7 @@
 #ifndef ARCH_I386_ASM_PAGE_H
 #define ARCH_I386_ASM_PAGE_H
 
+#include <asm/i386.h>
 #include <qunix/mm/types.h>
 #include <stdint.h>
 
@@ -16,8 +17,15 @@
 #define VIRTADDR_PGTABLE_IDX(va) (((va) >> 12) & 0x3FF)
 
 /* Set or get the page directory root address in CPU. */
-extern void page_set_pagedir(phys_addr_t pagedir);
-extern phys_addr_t page_get_pagedir(void);
+static inline void page_set_pagedir(phys_addr_t pagedir)
+{
+    cr3_write((uint32_t)(pagedir));
+}
+
+static inline phys_addr_t page_get_pagedir(void)
+{
+    return (phys_addr_t)cr3_read();
+}
 
 typedef uint32_t pte_t; /* page table entry */
 typedef uint32_t pde_t; /* page directory entry */

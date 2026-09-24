@@ -9,6 +9,7 @@
 #define QUNIX_TRAPS_H
 
 #include <qunix/macros.h>
+#include <qunix/mm/types.h>
 
 /* Generic kernel trap numbers, architecture-independent. Each architecture must
  * provide a mapper from its hardware vectors to these logical trap numbers */
@@ -36,5 +37,8 @@ extern void trap_handler(struct trap_frame *frame);
 
 /* Get the trap number from the trap frame */
 CONTRACT int trap_getnum(const struct trap_frame *frame);
+
+/* Faulting virtual address for page faults and other faults */
+CONTRACT virt_addr_t trap_fault_addr(void);
 
 #endif

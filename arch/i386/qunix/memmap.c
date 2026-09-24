@@ -43,7 +43,7 @@ void memmap_init(void)
     LOGM(LOG_LEVEL_INFO, "MEMMAP", "Total available memory: %s", buf);
 
     if (mem_map_add(KERNEL_PHYS_START, KERNEL_PHYS_SIZE, MEMMAP_KERNEL) < 0)
-        panic("failed to add kernel memory map entry 0x%.8lx - 0x%.8lx",
+        panic("failed to add kernel memory map entry 0x%.8zx - 0x%.8zx",
               KERNEL_PHYS_START, KERNEL_PHYS_START + KERNEL_PHYS_SIZE);
     fmt_mem(buf, sizeof(buf), mem_map_get_kernel());
     LOGM(LOG_LEVEL_INFO, "MEMMAP", "Kernel memory: %s", buf);

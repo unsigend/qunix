@@ -5,6 +5,7 @@
  * For full terms see the included LICENSE file.
  */
 
+#include <asm/i386.h>
 #include <asm/traps.h>
 #include <qunix/traps.h>
 
@@ -32,3 +33,5 @@ int trap_getnum(const struct trap_frame *frame)
 {
     return map_trapnum(frame->trapnum);
 }
+
+virt_addr_t trap_fault_addr(void) { return (virt_addr_t)cr2_read(); }

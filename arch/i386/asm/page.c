@@ -18,18 +18,6 @@
 static pde_t _kernel_pagedir[1024] __attribute__((aligned(PAGE_SIZE)));
 pagetable_t kernel_pagetable = (pagetable_t)_kernel_pagedir;
 
-void page_set_pagedir(phys_addr_t pagedir)
-{
-    asm volatile("movl %0, %%cr3" : : "r"(pagedir) : "memory");
-}
-
-phys_addr_t page_get_pagedir(void)
-{
-    phys_addr_t pagedir;
-    asm volatile("movl %%cr3, %0" : "=r"(pagedir));
-    return pagedir;
-}
-
 uint32_t pde_make_flag(int present, int write, int user)
 {
     return (present ? PG_P_MASK : 0) | (write ? PG_RW_MASK : 0) |

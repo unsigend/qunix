@@ -68,14 +68,10 @@ void pmm_init(void)
         }
     }
 
-    LOGM(
-        LOG_LEVEL_INFO, "PMM",
-        "Initialized with %llu physical pages, %llu available, %llu free, %llu "
-        "allocated",
-        (unsigned long long)pool.page_count,
-        (unsigned long long)pool.avail_count,
-        (unsigned long long)pool.free_count,
-        (unsigned long long)pool.alloc_count);
+    LOGM(LOG_LEVEL_INFO, "PMM",
+         "Initialized with %zu physical pages, %zu available, %zu free, %zu "
+         "allocated",
+         pool.page_count, pool.avail_count, pool.free_count, pool.alloc_count);
 }
 
 struct pmm_page *pmm_alloc_pages(uint32_t order)
