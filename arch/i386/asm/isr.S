@@ -7,12 +7,14 @@
 
 #define ASM_FILE 1
 #include <asm/traps.h>
+#include <asm/i8259.h>
 
 #define FAKE_ERRNO 0
 #define PADDING 0
 
 .section .text
 
+/* software interrupts (exceptions) from CPU */
 .global isr0
 .global isr1
 .global isr2
@@ -110,4 +112,167 @@ isr_handler:
 
     /* discard the pushed error code and trap number */
     addl $8, %esp
+    iret
+
+/* external hardware interrupts */
+.global irq0
+.global irq1
+.global irq2
+.global irq3
+.global irq4
+.global irq5
+.global irq6
+.global irq7
+.global irq8
+.global irq9
+.global irq10
+.global irq11
+.global irq12
+.global irq13
+.global irq14
+.global irq15
+
+
+irq0:
+    pusha
+    cld
+    pushl $X86_IRQ_TIMER
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq1:
+    pusha
+    cld
+    pushl $X86_IRQ_KBD
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq2:
+    pusha
+    cld
+    pushl $X86_IRQ_CASCADE
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq3:
+    pusha
+    cld
+    pushl $X86_IRQ_COM2
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq4:
+    pusha
+    cld
+    pushl $X86_IRQ_COM1
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq5:
+    pusha
+    cld
+    pushl $X86_IRQ_LPT2
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq6:
+    pusha
+    cld
+    pushl $X86_IRQ_FLOPPY
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq7:
+    pusha
+    cld
+    pushl $X86_IRQ_LPT1
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq8:
+    pusha
+    cld
+    pushl $X86_IRQ_CMOS
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq9:
+    pusha
+    cld
+    pushl $X86_IRQ_AVAL1
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq10:
+    pusha
+    cld
+    pushl $X86_IRQ_AVAL2
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq11:
+    pusha
+    cld
+    pushl $X86_IRQ_AVAL3
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq12:
+    pusha
+    cld
+    pushl $X86_IRQ_PS2M
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq13:
+    pusha
+    cld
+    pushl $X86_IRQ_FPU
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq14:
+    pusha
+    cld
+    pushl $X86_IRQ_ATA
+    call irq_dispatch
+    addl $4, %esp
+    popa
+    iret
+
+irq15:
+    pusha
+    cld
+    pushl $X86_IRQ_ATA2
+    call irq_dispatch
+    addl $4, %esp
+    popa
     iret

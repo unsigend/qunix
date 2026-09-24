@@ -7,6 +7,7 @@
 
 #include <asm.h>
 #include <asm/i8259.h>
+#include <qunix/irq.h>
 #include <qunix/log.h>
 #include <stdint.h>
 
@@ -40,7 +41,7 @@
 #define PIC_IRR 0x0A /* Interrupt Request Register (IRR) */
 #define PIC_ISR 0x0B /* In-Service Register (ISR) */
 
-void i8259_sendEOI(uint8_t irq)
+void irq_eoi(uint32_t irq)
 {
     if (irq >= 8)
         outb(PIC2_CMD_PORT, EOI);

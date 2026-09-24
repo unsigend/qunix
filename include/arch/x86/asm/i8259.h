@@ -11,8 +11,6 @@
 /* This file defines functions and macros for IBM PC 8259 PIC (Programmable
  * Interrupt Controller) */
 
-#include <stdint.h>
-
 #define X86_IRQ_TIMER 0x00   /* timer */
 #define X86_IRQ_KBD 0x01     /* keyboard */
 #define X86_IRQ_CASCADE 0x02 /* cascade (used for slave PIC)*/
@@ -29,6 +27,10 @@
 #define X86_IRQ_FPU 0x0D     /* FPU / Coprocessor */
 #define X86_IRQ_ATA 0x0E     /* Primary ATA hard disk */
 #define X86_IRQ_ATA2 0x0F    /* Secondary ATA hard disk */
+
+#ifndef ASM_FILE
+
+#include <stdint.h>
 
 struct i8259_isr /* Interrupt Service Registers */
 {
@@ -47,9 +49,10 @@ extern void i8259_mask_all(void);
 extern void i8259_unmask_all(void);
 extern void i8259_set_mask(uint8_t irq);
 extern void i8259_clear_mask(uint8_t irq);
-extern void i8259_sendEOI(uint8_t irq);
 
 extern i8259_irr i8259_get_irr(void);
 extern i8259_isr i8259_get_isr(void);
+
+#endif
 
 #endif

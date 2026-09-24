@@ -36,5 +36,6 @@
 
 /* 0x20 - 0xFF are for external interrupts */
 #define X86_IRQ_BASE 0x20
+#define X86_IRQ_MAXNUM 16
 
 #endif

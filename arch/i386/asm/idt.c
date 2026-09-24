@@ -12,6 +12,7 @@
 #include <asm/isr.h>
 #include <asm/traps.h>
 #include <qunix/log.h>
+#include <stdint.h>
 
 void idtr_write(const struct idtr *idtr)
 {
@@ -42,6 +43,7 @@ void idt_init(void)
 
     (void)trap_flags; /* used later */
 
+    /* System Interrupts (Exceptions) from CPU */
     idt_entry_set(&idt[X86_TRAP_DIVIDE], (uint32_t)&isr0, code_sel, int_flags);
     idt_entry_set(&idt[X86_TRAP_DEBUG], (uint32_t)&isr1, code_sel, trap_flags);
     idt_entry_set(&idt[X86_TRAP_NMI], (uint32_t)&isr2, code_sel, int_flags);
@@ -54,6 +56,40 @@ void idt_init(void)
     idt_entry_set(&idt[X86_TRAP_FPERR], (uint32_t)&isr16, code_sel, int_flags);
     idt_entry_set(&idt[X86_TRAP_ALIGN], (uint32_t)&isr17, code_sel, int_flags);
     idt_entry_set(&idt[X86_TRAP_MCHK], (uint32_t)&isr18, code_sel, int_flags);
+
+    /* External Hardware Interrupts */
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_TIMER], (uint32_t)&irq0, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_KBD], (uint32_t)&irq1, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_CASCADE], (uint32_t)&irq2,
+                  code_sel, int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_COM2], (uint32_t)&irq3, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_COM1], (uint32_t)&irq4, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_LPT2], (uint32_t)&irq5, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_FLOPPY], (uint32_t)&irq6,
+                  code_sel, int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_LPT1], (uint32_t)&irq7, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_CMOS], (uint32_t)&irq8, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL1], (uint32_t)&irq9, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL2], (uint32_t)&irq10,
+                  code_sel, int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL3], (uint32_t)&irq11,
+                  code_sel, int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_PS2M], (uint32_t)&irq12, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_FPU], (uint32_t)&irq13, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_ATA], (uint32_t)&irq14, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_ATA2], (uint32_t)&irq15, code_sel,
+                  int_flags);
 
     i8259_init(X86_IRQ_BASE, X86_IRQ_BASE + 8); /* master, slave */
 
