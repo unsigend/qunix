@@ -7,6 +7,7 @@
 
 #include <asm.h>
 #include <asm/gdt.h>
+#include <asm/i8259.h>
 #include <asm/idt.h>
 #include <asm/isr.h>
 #include <asm/traps.h>
@@ -54,7 +55,10 @@ void idt_init(void)
     idt_entry_set(&idt[X86_TRAP_ALIGN], (uint32_t)&isr17, code_sel, int_flags);
     idt_entry_set(&idt[X86_TRAP_MCHK], (uint32_t)&isr18, code_sel, int_flags);
 
+    i8259_init(X86_IRQ_BASE, X86_IRQ_BASE + 8); /* master, slave */
+
     idtr_write(&idtr);
+    sti(); /* enable interrupts */
 
     LOGM(LOG_LEVEL_INFO, "IDT", "IDT initialized successfully");
 }

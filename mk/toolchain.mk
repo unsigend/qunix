@@ -84,6 +84,10 @@ CFLAGS_INC += -I include/lib/libc
 CFLAGS_INC += -I include/arch/$(ARCH)
 CFLAGS_INC += -I include/arch/$(ARCH_FAMILY)
 
+# arch src paths
+ARCH_SRC_DIRS := arch/$(ARCH)
+ARCH_SRC_DIRS += arch/$(ARCH_FAMILY)
+
 # flags
 CFLAGS  := -std=gnu11 $(CFLAGS_FREESTANDING) $(CFLAGS_ARCH) \
            $(CFLAGS_WARN) $(CFLAGS_OPT) $(CFLAGS_INC)

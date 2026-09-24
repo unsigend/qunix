@@ -49,4 +49,6 @@ static inline uint32_t inl(uint16_t port)
 static inline void cli(void) { asm volatile("cli"); }
 static inline void sti(void) { asm volatile("sti"); }
 
+static inline void io_wait(void) { outb(0x80, 0); }
+
 #endif

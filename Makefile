@@ -15,13 +15,12 @@ DEPDIR    := $(BUILDDIR)/dep
 OBJDIR    := $(BUILDDIR)/obj
 BINDIR    := $(BUILDDIR)/bin
 LDDIR     := ld
-SRCDIR    := src
+SRCDIR    := src $(ARCH_SRC_DIRS)
 INCDIR    := include
-ARCHDIR   := arch/$(ARCH)
 
 # sources
-SRCS_C := $(shell find $(ARCHDIR) $(SRCDIR) -name "*.c" 2>/dev/null)
-SRCS_S := $(shell find $(ARCHDIR) $(SRCDIR) -name "*.S" 2>/dev/null)
+SRCS_C := $(shell find $(SRCDIR) -name "*.c" 2>/dev/null)
+SRCS_S := $(shell find $(SRCDIR) -name "*.S" 2>/dev/null)
 
 # objects
 OBJS_C := $(patsubst %.c, $(OBJDIR)/%.o, $(SRCS_C))
