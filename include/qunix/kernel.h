@@ -9,6 +9,7 @@
 #define QUNIX_KERNEL_H
 
 #include <qunix/macros.h>
+#include <stddef.h>
 
 /* printk is a printf-like function that prints a formatted string to the
  * console. */
@@ -20,5 +21,9 @@ __attribute__((format(printf, 1, 2))) extern void panic(const char *fmt, ...)
 
 /* qunix kernel main function, initialize the kernel and all subsystems. */
 extern int kernel_main(void);
+
+extern void *kmalloc(size_t size);
+extern void kfree(void *p);
+extern void *kcalloc(size_t num, size_t size);
 
 #endif
