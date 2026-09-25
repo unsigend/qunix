@@ -5,23 +5,14 @@
  * For full terms see the included LICENSE file.
  */
 
-#include <asm/gdt.h>
-#include <asm/idt.h>
 #include <qunix/clock.h>
-#include <qunix/cpu.h>
+#include <qunix/fmt.h>
 #include <qunix/log.h>
 
-void cpu_halt(void)
-{
-    for (;;)
-        asm volatile("hlt");
-}
+volatile unsigned long jiffies = 0;
 
-void cpu_init(void)
+void clock_tick(void *data)
 {
-    gdt_init();
-    idt_init();
-    clock_init();
-
-    LOGM(LOG_LEVEL_INFO, "CPU", "CPU initialized successfully");
+    UNUSED(data);
+    jiffies++;
 }
