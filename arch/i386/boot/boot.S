@@ -49,6 +49,7 @@ multiboot_header_end:
 .section .bss
 
 # temporary stack for C
+.global stack_top
 .align 16
 stack_bottom:
     .skip STACK_SIZE

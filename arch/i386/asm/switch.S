@@ -5,6 +5,9 @@
 # For full terms see the included LICENSE file.
 
 
+.global context_switch
+.type context_switch, @function
+
 # Context Switch between two tasks
 #
 # void context_switch(struct task_context **saved,
@@ -14,9 +17,6 @@
 # task_context on the stack, and save its address in *saved. 
 # Switch stacks to restored and pop previously saved registers 
 # from the stack.
-
-.global context_switch
-.type context_switch, @function
 
 context_switch:
     movl 4(%esp), %eax # saved

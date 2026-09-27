@@ -9,11 +9,13 @@
 #include <qunix/kernel.h>
 #include <qunix/log.h>
 #include <qunix/mm/mm.h>
+#include <qunix/task.h>
 
 int kernel_main(void)
 {
     cpu_init();
     mm_init();
+    task_init();
 
     LOGM(LOG_LEVEL_INFO, "KERNEL", "Kernel initialized successfully");
 

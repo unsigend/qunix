@@ -48,6 +48,8 @@ void irq_eoi(uint32_t irq)
     outb(PIC1_CMD_PORT, EOI);
 }
 
+void irq_enable(void) { sti(); }
+
 static struct i8259_isr i8259_read_isr(uint8_t reg)
 {
     struct i8259_isr isr;

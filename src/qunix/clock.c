@@ -8,6 +8,7 @@
 #include <qunix/clock.h>
 #include <qunix/fmt.h>
 #include <qunix/log.h>
+#include <qunix/task.h>
 
 volatile unsigned long jiffies = 0;
 
@@ -15,4 +16,6 @@ void clock_tick(void *data)
 {
     UNUSED(data);
     jiffies++;
+
+    task_tick();
 }

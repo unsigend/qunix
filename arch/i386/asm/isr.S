@@ -138,6 +138,7 @@ irq0:
     pushl $X86_IRQ_TIMER
     call irq_dispatch
     addl $4, %esp
+    call task_preempt
     popa
     iret
 

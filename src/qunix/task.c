@@ -5,6 +5,8 @@
  * For full terms see the included LICENSE file.
  */
 
+#include <qunix/clock.h>
+#include <qunix/irq.h>
 #include <qunix/kernel.h>
 #include <qunix/log.h>
 #include <qunix/mm/page.h>
@@ -12,16 +14,77 @@
 #include <qunix/task.h>
 #include <sys/types.h>
 
+struct task_struct *task_current;
+
+struct task_node {
+    struct task_struct *task;
+    struct task_node *next;
+};
+
+struct task_list /* a FIFO queue for tasks */
+{
+    struct task_node *head;
+    struct task_node *tail;
+};
+
 static pid_t nextpid;
+static struct task_list ready_queue;
+static struct task_node *current_node;
+static int need_resched;
 
 void task_init(void)
 {
     nextpid = 1; /* next pid always start from 1 since 0 is reserved for the
                     init process */
 
-    /* TODO: Set the current init task (boot task) to the task list */
+    /* setup current boot running task */
+    task_current = (struct task_struct *)kmalloc(sizeof(struct task_struct));
+    if (!task_current)
+        panic("Failed to allocate memory for boot task");
+
+    task_current->pid = 0;
+    task_current->state = TASK_RUNNING;
+    task_current->kstack = task_boot_kstack();
+    task_current->context = NULL;
+
+    current_node = (struct task_node *)kmalloc(sizeof(struct task_node));
+    if (!current_node)
+        panic("Failed to allocate memory for current task node");
+
+    current_node->task = task_current;
+    current_node->next = NULL;
 
     LOGM(LOG_LEVEL_INFO, "TASK", "Task system initialized successfully");
+}
+
+static void enqueue(struct task_node *node)
+{
+    node->next = NULL;
+
+    if (!ready_queue.head) {
+        ready_queue.head = node;
+        ready_queue.tail = node;
+    } else {
+        ready_queue.tail->next = node;
+        ready_queue.tail = node;
+    }
+}
+
+static struct task_node *dequeue(void)
+{
+    struct task_node *node;
+
+    if (!ready_queue.head)
+        return NULL;
+
+    node = ready_queue.head;
+    ready_queue.head = node->next;
+    node->next = NULL;
+
+    if (ready_queue.tail == node)
+        ready_queue.tail = NULL;
+
+    return node;
 }
 
 static pid_t get_nextpid(void)
@@ -39,6 +102,7 @@ struct task_struct *task_create(void (*func)(void *), void *data)
 {
     struct task_struct *task;
     struct pmm_page *phy_page;
+    struct task_node *node;
 
     task = (struct task_struct *)kmalloc(sizeof(struct task_struct));
     if (!task)
@@ -63,5 +127,57 @@ struct task_struct *task_create(void (*func)(void *), void *data)
     task->context = task_context_init(task->kstack, func, data);
     task->state = TASK_READY;
 
+    node = (struct task_node *)kmalloc(sizeof(struct task_node));
+    if (!node) {
+        kfree(task);
+        pmm_free_page(phy_page);
+        return NULL;
+    }
+
+    node->task = task;
+    node->next = NULL;
+    enqueue(node);
+
     return task;
+}
+
+/* A simple Round-Robin scheduler based on a FIFO queue with a time slice */
+void task_schedule(void)
+{
+    struct task_node *new_node;
+    struct task_node *old_node;
+
+    if (!ready_queue.head)
+        return;
+
+    old_node = current_node;
+    old_node->task->state = TASK_READY;
+    enqueue(old_node);
+
+    new_node = dequeue();
+    new_node->task->state = TASK_RUNNING;
+    task_current = new_node->task;
+    current_node = new_node;
+
+    irq_enable();
+    context_switch(&old_node->task->context, task_current->context);
+}
+
+void task_tick(void)
+{
+    if (!task_current || !current_node) /* Guard against that the interrupt
+                                           triggers before call task_init */
+        return;
+
+    if (jiffies % 10 == 0) /* time slice is 10 ticks, namely 10ms */
+        need_resched = 1;
+}
+
+void task_preempt(void)
+{
+    if (!need_resched)
+        return;
+
+    need_resched = 0;
+    task_schedule();
 }

@@ -15,7 +15,7 @@
 void clock_init(void)
 {
     irq_register(X86_IRQ_TIMER, clock_tick, NULL);
-    i8253_init(100); /* 100 Hz */
+    i8253_init(1000); /* 1000 Hz */
     i8259_clear_mask(X86_IRQ_TIMER);
 
     LOGM(LOG_LEVEL_INFO, "CLOCK", "Clock initialized successfully");

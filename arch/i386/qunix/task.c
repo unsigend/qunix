@@ -10,6 +10,10 @@
 #include <qunix/task.h>
 #include <stdint.h>
 
+extern char stack_top[]; /* from boot.S */
+
+char *task_boot_kstack(void) { return stack_top; }
+
 static void trampoline(void (*func)(void *), void *data)
 {
     func(data);
@@ -33,10 +37,10 @@ struct task_context *task_context_init(char *kstack, void (*func)(void *),
      *  kstack-16    func
      *  kstack-20    unused return address
      *  kstack-24    eip = trampoline
-     *  kstack-28    edi = 0
-     *  kstack-32    esi = 0
-     *  kstack-36    ebx = 0
-     *  kstack-40    ebp = 0
+     *  kstack-28    ebp = 0
+     *  kstack-32    ebx = 0
+     *  kstack-36    esi = 0
+     *  kstack-40    edi = 0
      *
      * Base on System V ABI for i386, the call requires esp % 16 == 0, so need
      * padding to 16 bytes follow the stack layout.
@@ -50,10 +54,10 @@ struct task_context *task_context_init(char *kstack, void (*func)(void *),
 
     context = (struct task_context *)(kstack - 40);
     context->eip = (uint32_t)trampoline;
-    context->edi = 0;
-    context->esi = 0;
-    context->ebx = 0;
     context->ebp = 0;
+    context->ebx = 0;
+    context->esi = 0;
+    context->edi = 0;
 
     return context;
 }
