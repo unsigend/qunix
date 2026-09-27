@@ -10,10 +10,10 @@
 # void context_switch(struct task_context **saved,
 #                     struct task_context *restored)
 #
-# Save the current registers on the stack, creating
-# a struct task_context on the stack, and save its
-# address in *saved. Switch stacks to restored and 
-# pop previously saved registers from the stack.
+# Save the current registers on the stack, creating a struct
+# task_context on the stack, and save its address in *saved. 
+# Switch stacks to restored and pop previously saved registers 
+# from the stack.
 
 .global context_switch
 .type context_switch, @function

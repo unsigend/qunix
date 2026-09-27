@@ -16,12 +16,18 @@ enum task_state {
     TASK_RUNNING, /* running task */
 };
 
+#define NTASKS 64 /* maximum number of tasks */
+
 CONTRACT struct task_context; /* task context */
 
 /* Context switch between two tasks, save the context of the current task and
  * restore the context of the next task */
 CONTRACT extern void context_switch(struct task_context **saved,
                                     struct task_context *restored);
+
+/* Build the initial task context for the new task in a kernel stack */
+CONTRACT extern struct task_context *
+task_context_init(char *kstack, void (*func)(void *), void *data);
 
 /* In v0.1 the task struct is only used for kernel threads, no user space
  * tasks related */
@@ -31,5 +37,11 @@ struct task_struct {
     struct task_context *context;
     char *kstack; /* kernel stack bottom address */
 };
+
+extern void task_init(void);
+
+/* Create a new kernel thread without executing or scheduling it, and return a
+ * pointer to it which allocate by kmalloc. Return NULL if failed. */
+extern struct task_struct *task_create(void (*func)(void *), void *data);
 
 #endif
