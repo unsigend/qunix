@@ -18,6 +18,6 @@ struct task_context {
     uint32_t ebx;
     uint32_t ebp;
     uint32_t eip;
-};
+} __attribute__((packed));
 
 #endif
