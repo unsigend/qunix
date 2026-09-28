@@ -15,30 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVER_VGA_H_
-#define _DRIVER_VGA_H_
+#ifndef _QUNIX_MM_H_
+#define _QUNIX_MM_H_
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-#define VGA_BUFBASE 0xB8000
+extern void mm_init(void);
 
-#define VGA_COLOR_BLACK 0
-#define VGA_COLOR_BLUE 1
-#define VGA_COLOR_GREEN 2
-#define VGA_COLOR_CYAN 3
-#define VGA_COLOR_RED 4
-#define VGA_COLOR_MAGENTA 5
-#define VGA_COLOR_BROWN 6
-#define VGA_COLOR_LIGHT_GREY 7
-#define VGA_COLOR_DARK_GREY 8
-#define VGA_COLOR_LIGHT_BLUE 9
-#define VGA_COLOR_LIGHT_GREEN 10
-#define VGA_COLOR_LIGHT_CYAN 11
-#define VGA_COLOR_LIGHT_RED 12
-#define VGA_COLOR_LIGHT_MAGENTA 13
-#define VGA_COLOR_YELLOW 14
-#define VGA_COLOR_WHITE 15
-
-extern void vga_init(void *base);
-
-#endif /* _DRIVER_VGA_H_ */
+#endif /* _QUNIX_MM_H_ */

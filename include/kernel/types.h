@@ -15,30 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVER_VGA_H_
-#define _DRIVER_VGA_H_
+#ifndef _QUNIX_TYPES_H_
+#define _QUNIX_TYPES_H_
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-#define VGA_BUFBASE 0xB8000
+#include <kernel/stddef.h>
+#include <kernel/stdint.h>
 
-#define VGA_COLOR_BLACK 0
-#define VGA_COLOR_BLUE 1
-#define VGA_COLOR_GREEN 2
-#define VGA_COLOR_CYAN 3
-#define VGA_COLOR_RED 4
-#define VGA_COLOR_MAGENTA 5
-#define VGA_COLOR_BROWN 6
-#define VGA_COLOR_LIGHT_GREY 7
-#define VGA_COLOR_DARK_GREY 8
-#define VGA_COLOR_LIGHT_BLUE 9
-#define VGA_COLOR_LIGHT_GREEN 10
-#define VGA_COLOR_LIGHT_CYAN 11
-#define VGA_COLOR_LIGHT_RED 12
-#define VGA_COLOR_LIGHT_MAGENTA 13
-#define VGA_COLOR_YELLOW 14
-#define VGA_COLOR_WHITE 15
+typedef __PTRDIFF_TYPE__ ssize_t;
 
-extern void vga_init(void *base);
+typedef int32_t pid_t;
 
-#endif /* _DRIVER_VGA_H_ */
+typedef uintptr_t phys_addr_t;
+typedef uintptr_t virt_addr_t;
+
+typedef uintptr_t pagetable_t;
+
+#endif /* _QUNIX_TYPES_H_ */

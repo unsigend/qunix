@@ -31,6 +31,15 @@ else
     $(error unsupported ARCH '$(ARCH)' — valid: i386, x86_64, riscv32, riscv64)
 endif
 
+# arch word size
+ifeq ($(ARCH),$(filter $(ARCH),i386 riscv32))
+    ARCH_BITS       := 32
+    ARCH_OTHER_BITS := 64
+else
+    ARCH_BITS       := 64
+    ARCH_OTHER_BITS := 32
+endif
+
 # arch flags
 ifeq ($(ARCH),i386)
     CFLAGS_ARCH  := -m32 -march=i686
@@ -80,13 +89,10 @@ endif
 
 # include paths
 CFLAGS_INC := -I include
-CFLAGS_INC += -I include/lib/libc
-CFLAGS_INC += -I include/arch/$(ARCH)
 CFLAGS_INC += -I include/arch/$(ARCH_FAMILY)
 
 # arch src paths
-ARCH_SRC_DIRS := arch/$(ARCH)
-ARCH_SRC_DIRS += arch/$(ARCH_FAMILY)
+ARCH_SRC_DIRS := arch/$(ARCH_FAMILY)
 
 # flags
 CFLAGS  := -std=gnu11 $(CFLAGS_FREESTANDING) $(CFLAGS_ARCH) \

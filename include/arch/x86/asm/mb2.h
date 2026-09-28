@@ -15,30 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVER_VGA_H_
-#define _DRIVER_VGA_H_
+#ifndef _ASM_X86_MB2_H_
+#define _ASM_X86_MB2_H_
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-#define VGA_BUFBASE 0xB8000
+/* This file define some multiboot2 related extensions functions, reference:
+ * https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html */
 
-#define VGA_COLOR_BLACK 0
-#define VGA_COLOR_BLUE 1
-#define VGA_COLOR_GREEN 2
-#define VGA_COLOR_CYAN 3
-#define VGA_COLOR_RED 4
-#define VGA_COLOR_MAGENTA 5
-#define VGA_COLOR_BROWN 6
-#define VGA_COLOR_LIGHT_GREY 7
-#define VGA_COLOR_DARK_GREY 8
-#define VGA_COLOR_LIGHT_BLUE 9
-#define VGA_COLOR_LIGHT_GREEN 10
-#define VGA_COLOR_LIGHT_CYAN 11
-#define VGA_COLOR_LIGHT_RED 12
-#define VGA_COLOR_LIGHT_MAGENTA 13
-#define VGA_COLOR_YELLOW 14
-#define VGA_COLOR_WHITE 15
+#include <kernel/stdint.h>
 
-extern void vga_init(void *base);
+typedef uintptr_t
+    multiboot_info_t; /* multiboot2 information pointer from %ebx */
 
-#endif /* _DRIVER_VGA_H_ */
+extern void mb2_validate(uint32_t magic, multiboot_info_t mbi);
+
+extern void mb2_set_mbi(multiboot_info_t mbi);
+extern multiboot_info_t mb2_get_mbi(void);
+
+extern struct multiboot_tag *mb2_next_tag(const struct multiboot_tag *tag);
+extern struct multiboot_tag *mb2_find_tag(multiboot_info_t mbi, uint32_t type);
+extern struct multiboot_tag *mb2_first_tag(multiboot_info_t mbi);
+
+#endif /* _ASM_X86_MB2_H_ */

@@ -15,30 +15,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVER_VGA_H_
-#define _DRIVER_VGA_H_
+#ifndef _QUNIX_MM_PAGE_H_
+#define _QUNIX_MM_PAGE_H_
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-#define VGA_BUFBASE 0xB8000
+#include <kernel/compiler.h>
+#include <kernel/config.h>
+#include <kernel/types.h>
 
-#define VGA_COLOR_BLACK 0
-#define VGA_COLOR_BLUE 1
-#define VGA_COLOR_GREEN 2
-#define VGA_COLOR_CYAN 3
-#define VGA_COLOR_RED 4
-#define VGA_COLOR_MAGENTA 5
-#define VGA_COLOR_BROWN 6
-#define VGA_COLOR_LIGHT_GREY 7
-#define VGA_COLOR_DARK_GREY 8
-#define VGA_COLOR_LIGHT_BLUE 9
-#define VGA_COLOR_LIGHT_GREEN 10
-#define VGA_COLOR_LIGHT_CYAN 11
-#define VGA_COLOR_LIGHT_RED 12
-#define VGA_COLOR_LIGHT_MAGENTA 13
-#define VGA_COLOR_YELLOW 14
-#define VGA_COLOR_WHITE 15
+#ifndef CONFIG_PAGESHIFT
+#define PAGE_SHIFT 12
+#else
+#define PAGE_SHIFT CONFIG_PAGESHIFT
+#endif
 
-extern void vga_init(void *base);
+#define PAGE_SIZE (1UL << PAGE_SHIFT)
 
-#endif /* _DRIVER_VGA_H_ */
+CONTRACT extern void page_init(void);
+
+CONTRACT extern pagetable_t kernel_pagetable; /* kernel page table */
+
+/* Flush the TLB (Translation Lookaside Buffer) for all virtual addresses, these
+ * functions are based on hardware implementation.  */
+CONTRACT extern void page_flush_tlb_all(void);
+CONTRACT extern void page_flush_tlb_one(virt_addr_t va);
+
+#endif /* _QUNIX_MM_PAGE_H_ */

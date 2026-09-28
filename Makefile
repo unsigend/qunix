@@ -15,12 +15,14 @@ DEPDIR    := $(BUILDDIR)/dep
 OBJDIR    := $(BUILDDIR)/obj
 BINDIR    := $(BUILDDIR)/bin
 LDDIR     := ld
-SRCDIR    := src $(ARCH_SRC_DIRS)
+SRCDIR    := kernel driver lib $(ARCH_SRC_DIRS)
 INCDIR    := include
 
 # sources
-SRCS_C := $(shell find $(SRCDIR) -name "*.c" 2>/dev/null)
-SRCS_S := $(shell find $(SRCDIR) -name "*.S" 2>/dev/null)
+SRCS_C := $(filter-out %_$(ARCH_OTHER_BITS).c, \
+          $(shell find $(SRCDIR) -name "*.c" 2>/dev/null))
+SRCS_S := $(filter-out %_$(ARCH_OTHER_BITS).S, \
+          $(shell find $(SRCDIR) -name "*.S" 2>/dev/null))
 
 # objects
 OBJS_C := $(patsubst %.c, $(OBJDIR)/%.o, $(SRCS_C))
@@ -48,7 +50,7 @@ KERNEL_ISO := $(BINDIR)/qunix-$(ARCH).iso
 ISODIR     := $(BUILDDIR)/iso
 BOCHS_CFG  := config/bochs/$(ARCH)-bochs.cfg
 
-.PHONY: all elf mb-check iso run qemu qemu-gdb bochs gen-config clang clean version help
+.PHONY: all elf mb-check check-includes iso run qemu qemu-gdb bochs gen-config clang clean version help
 .DEFAULT_GOAL := help
 
 all: $(OBJS)
@@ -62,6 +64,9 @@ mb-check: elf
 	@$(GRUB_FILE) --is-x86-multiboot2 $(KERNEL_ELF) \
 		&& echo "  OK    $(KERNEL_ELF) is multiboot2 compliant" \
 		|| echo "  FAIL  $(KERNEL_ELF) is not multiboot2 compliant"
+
+check-includes:
+	@sh $(SCRIPTDIR)/check-includes.sh $(SRCDIR) $(INCDIR)
 
 iso: elf
 	@mkdir -p $(ISODIR)/boot/grub
@@ -113,5 +118,6 @@ help:
 	@echo "\tmake clang               - generate compile_commands.json"
 	@echo "\tmake gen-config          - generate the config files"
 	@echo "\tmake mb-check            - check multiboot2 compliance of ELF"
+	@echo "\tmake check-includes      - check header include conventions"
 	@echo "\tmake version             - show the version of the kernel"
 	@echo ""

@@ -15,30 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVER_VGA_H_
-#define _DRIVER_VGA_H_
+#ifndef _QUNIX_MACROS_H_
+#define _QUNIX_MACROS_H_
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-#define VGA_BUFBASE 0xB8000
+#define ALIGN(x, a)                                                            \
+    (((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
+#define IS_ALIGNED(x, align) (((x) & ((align) - 1)) == 0)
 
-#define VGA_COLOR_BLACK 0
-#define VGA_COLOR_BLUE 1
-#define VGA_COLOR_GREEN 2
-#define VGA_COLOR_CYAN 3
-#define VGA_COLOR_RED 4
-#define VGA_COLOR_MAGENTA 5
-#define VGA_COLOR_BROWN 6
-#define VGA_COLOR_LIGHT_GREY 7
-#define VGA_COLOR_DARK_GREY 8
-#define VGA_COLOR_LIGHT_BLUE 9
-#define VGA_COLOR_LIGHT_GREEN 10
-#define VGA_COLOR_LIGHT_CYAN 11
-#define VGA_COLOR_LIGHT_RED 12
-#define VGA_COLOR_LIGHT_MAGENTA 13
-#define VGA_COLOR_YELLOW 14
-#define VGA_COLOR_WHITE 15
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-extern void vga_init(void *base);
+#define ROUND_UP(x, ceil) ALIGN(x, ceil)
+#define ROUND_DOWN(x, a) ((x) & ~((__typeof__(x))(a) - 1))
 
-#endif /* _DRIVER_VGA_H_ */
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+#endif /* _QUNIX_MACROS_H_ */

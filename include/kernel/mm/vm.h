@@ -15,30 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DRIVER_VGA_H_
-#define _DRIVER_VGA_H_
+#ifndef _QUNIX_MM_VM_H_
+#define _QUNIX_MM_VM_H_
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
-#define VGA_BUFBASE 0xB8000
+#include <kernel/compiler.h>
+#include <kernel/types.h>
 
-#define VGA_COLOR_BLACK 0
-#define VGA_COLOR_BLUE 1
-#define VGA_COLOR_GREEN 2
-#define VGA_COLOR_CYAN 3
-#define VGA_COLOR_RED 4
-#define VGA_COLOR_MAGENTA 5
-#define VGA_COLOR_BROWN 6
-#define VGA_COLOR_LIGHT_GREY 7
-#define VGA_COLOR_DARK_GREY 8
-#define VGA_COLOR_LIGHT_BLUE 9
-#define VGA_COLOR_LIGHT_GREEN 10
-#define VGA_COLOR_LIGHT_CYAN 11
-#define VGA_COLOR_LIGHT_RED 12
-#define VGA_COLOR_LIGHT_MAGENTA 13
-#define VGA_COLOR_YELLOW 14
-#define VGA_COLOR_WHITE 15
+#define VM_PERM_READ 0x01
+#define VM_PERM_WRITE 0x02
+#define VM_PERM_EXEC 0x04
+#define VM_PERM_USER 0x08
 
-extern void vga_init(void *base);
+CONTRACT extern pagetable_t vm_alloc_pagetable(void);
 
-#endif /* _DRIVER_VGA_H_ */
+CONTRACT extern int vm_map_page(pagetable_t pagetable, virt_addr_t va,
+                                phys_addr_t pa, uint32_t perm);
+CONTRACT extern int vm_unmap_page(pagetable_t pagetable, virt_addr_t va);
+
+extern int vm_map_pages(pagetable_t pagetable, virt_addr_t va, phys_addr_t pa,
+                        size_t n, uint32_t perm);
+extern int vm_unmap_pages(pagetable_t pagetable, virt_addr_t va, size_t n);
+
+#endif /* _QUNIX_MM_VM_H_ */
