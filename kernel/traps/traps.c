@@ -17,24 +17,34 @@
 
 #include "handlers.h"
 
+#include <kernel/irq.h>
 #include <kernel/panic.h>
+#include <kernel/task.h>
 
 void trap_handler(struct trap_frame *frame)
 {
-    int trapnum = trap_getnum(frame);
-    switch (trapnum) {
-    case TRAP_DIVIDE: trap_handler_divide(frame); break;
-    case TRAP_DEBUG: trap_handler_debug(frame); break;
-    case TRAP_NMI: trap_handler_nmi(frame); break;
-    case TRAP_BRKPT: trap_handler_brkpt(frame); break;
-    case TRAP_ILLEGAL: trap_handler_illegal(frame); break;
-    case TRAP_ALIGN: trap_handler_align(frame); break;
-    case TRAP_PGFLT: trap_handler_pgflt(frame); break;
-    case TRAP_GPFLT: trap_handler_gpflt(frame); break;
-    case TRAP_FPERR: trap_handler_fperr(frame); break;
-    case TRAP_MCHK: trap_handler_mchk(frame); break;
-    case TRAP_DBLFLT: trap_handler_dblflt(frame); break;
-    case TRAP_STACK: trap_handler_stack(frame); break;
-    default: panic("unhandled trap %d", trapnum);
+    int is_irq;
+    int trapnum;
+
+    is_irq = trap_is_irq(frame);
+    if (is_irq)
+        irq_dispatch(trap_get_irq(frame));
+    else {
+        trapnum = trap_get_num(frame);
+        switch (trapnum) {
+        case TRAP_DIVIDE: trap_handler_divide(frame); break;
+        case TRAP_DEBUG: trap_handler_debug(frame); break;
+        case TRAP_NMI: trap_handler_nmi(frame); break;
+        case TRAP_BRKPT: trap_handler_brkpt(frame); break;
+        case TRAP_ILLEGAL: trap_handler_illegal(frame); break;
+        case TRAP_ALIGN: trap_handler_align(frame); break;
+        case TRAP_PGFLT: trap_handler_pgflt(frame); break;
+        case TRAP_GPFLT: trap_handler_gpflt(frame); break;
+        case TRAP_FPERR: trap_handler_fperr(frame); break;
+        case TRAP_MCHK: trap_handler_mchk(frame); break;
+        case TRAP_DBLFLT: trap_handler_dblflt(frame); break;
+        case TRAP_STACK: trap_handler_stack(frame); break;
+        default: panic("unhandled trap %d", trapnum);
+        }
     }
 }

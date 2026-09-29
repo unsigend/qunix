@@ -39,7 +39,10 @@
 CONTRACT struct trap_frame;
 
 extern void trap_handler(struct trap_frame *frame);
-CONTRACT extern int trap_getnum(const struct trap_frame *frame);
-CONTRACT extern virt_addr_t trap_fault_addr(void);
+
+CONTRACT extern int trap_is_irq(const struct trap_frame *frame);
+CONTRACT extern int trap_get_num(const struct trap_frame *frame);
+CONTRACT extern int trap_get_irq(const struct trap_frame *frame);
+CONTRACT extern virt_addr_t trap_get_fault_addr(void);
 
 #endif /* _QUNIX_TRAPS_H_ */

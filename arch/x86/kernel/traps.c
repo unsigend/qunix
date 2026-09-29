@@ -21,7 +21,6 @@
 #include <kernel/traps.h>
 #include <kernel/types.h>
 
-/* Map a x86 hardware trap number to a generic kernel trap number */
 static int map_trapnum(int trapnum)
 {
     switch (trapnum) {
@@ -41,9 +40,23 @@ static int map_trapnum(int trapnum)
     }
 }
 
-int trap_getnum(const struct trap_frame *frame)
+int trap_get_num(const struct trap_frame *frame)
 {
     return map_trapnum(frame->trapnum);
 }
 
-virt_addr_t trap_fault_addr(void) { return (virt_addr_t)cr2_read(); }
+int trap_get_irq(const struct trap_frame *frame)
+{
+    return frame->trapnum - X86_IRQ_BASE;
+}
+
+virt_addr_t trap_get_fault_addr(void) { return (virt_addr_t)cr2_read(); }
+
+int trap_is_irq(const struct trap_frame *frame)
+{
+    int irq;
+    if (frame->trapnum < X86_IRQ_BASE)
+        return 0;
+    irq = frame->trapnum - X86_IRQ_BASE;
+    return irq < X86_IRQ_MAX;
+}

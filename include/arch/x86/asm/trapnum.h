@@ -46,6 +46,6 @@
 
 /* 0x20 - 0xFF are for external interrupts */
 #define X86_IRQ_BASE 0x20
-#define X86_IRQ_MAXNUM 16
+#define X86_IRQ_MAX 16
 
 #endif /* _ASM_X86_TRAPNUM_H_ */

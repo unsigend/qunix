@@ -68,37 +68,37 @@ void idt_init(void)
     idt_entry_set(&idt[X86_TRAP_MCHK], (uint32_t)&isr18, code_sel, int_flags);
 
     /* External Hardware Interrupts */
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_TIMER], (uint32_t)&irq0, code_sel,
-                  int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_KBD], (uint32_t)&irq1, code_sel,
-                  int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_CASCADE], (uint32_t)&irq2,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_TIMER], (uint32_t)&isr32,
                   code_sel, int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_COM2], (uint32_t)&irq3, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_KBD], (uint32_t)&isr33, code_sel,
                   int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_COM1], (uint32_t)&irq4, code_sel,
-                  int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_LPT2], (uint32_t)&irq5, code_sel,
-                  int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_FLOPPY], (uint32_t)&irq6,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_CASCADE], (uint32_t)&isr34,
                   code_sel, int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_LPT1], (uint32_t)&irq7, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_COM2], (uint32_t)&isr35, code_sel,
                   int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_CMOS], (uint32_t)&irq8, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_COM1], (uint32_t)&isr36, code_sel,
                   int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL1], (uint32_t)&irq9, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_LPT2], (uint32_t)&isr37, code_sel,
                   int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL2], (uint32_t)&irq10,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_FLOPPY], (uint32_t)&isr38,
                   code_sel, int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL3], (uint32_t)&irq11,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_LPT1], (uint32_t)&isr39, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_CMOS], (uint32_t)&isr40, code_sel,
+                  int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL1], (uint32_t)&isr41,
                   code_sel, int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_PS2M], (uint32_t)&irq12, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL2], (uint32_t)&isr42,
+                  code_sel, int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_AVAL3], (uint32_t)&isr43,
+                  code_sel, int_flags);
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_PS2M], (uint32_t)&isr44, code_sel,
                   int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_FPU], (uint32_t)&irq13, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_FPU], (uint32_t)&isr45, code_sel,
                   int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_ATA], (uint32_t)&irq14, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_ATA], (uint32_t)&isr46, code_sel,
                   int_flags);
-    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_ATA2], (uint32_t)&irq15, code_sel,
+    idt_entry_set(&idt[X86_IRQ_BASE + X86_IRQ_ATA2], (uint32_t)&isr47, code_sel,
                   int_flags);
 
     i8259_init(X86_IRQ_BASE, X86_IRQ_BASE + 8); /* master, slave */

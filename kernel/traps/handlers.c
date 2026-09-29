@@ -58,7 +58,7 @@ void trap_handler_align(struct trap_frame *frame)
 void trap_handler_pgflt(struct trap_frame *frame)
 {
     UNUSED(frame);
-    panic("page fault at 0x%zx", trap_fault_addr());
+    panic("page fault at 0x%zx", trap_get_fault_addr());
 }
 
 void trap_handler_gpflt(struct trap_frame *frame)

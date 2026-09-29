@@ -18,6 +18,7 @@
 #ifndef _ASM_X86_ISR_H_
 #define _ASM_X86_ISR_H_
 
+/* System Interrupts (Exceptions) from CPU */
 extern void isr0(void);
 extern void isr1(void);
 extern void isr2(void);
@@ -31,21 +32,22 @@ extern void isr16(void);
 extern void isr17(void);
 extern void isr18(void);
 
-extern void irq0(void);
-extern void irq1(void);
-extern void irq2(void);
-extern void irq3(void);
-extern void irq4(void);
-extern void irq5(void);
-extern void irq6(void);
-extern void irq7(void);
-extern void irq8(void);
-extern void irq9(void);
-extern void irq10(void);
-extern void irq11(void);
-extern void irq12(void);
-extern void irq13(void);
-extern void irq14(void);
-extern void irq15(void);
+/* External Hardware Interrupts */
+extern void isr32(void);
+extern void isr33(void);
+extern void isr34(void);
+extern void isr35(void);
+extern void isr36(void);
+extern void isr37(void);
+extern void isr38(void);
+extern void isr39(void);
+extern void isr40(void);
+extern void isr41(void);
+extern void isr42(void);
+extern void isr43(void);
+extern void isr44(void);
+extern void isr45(void);
+extern void isr46(void);
+extern void isr47(void);
 
 #endif /* _ASM_X86_ISR_H_ */

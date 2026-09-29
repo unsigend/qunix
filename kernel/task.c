@@ -41,7 +41,7 @@ struct task_list /* a FIFO queue for tasks */
 static pid_t nextpid;
 static struct task_list ready_queue;
 static struct task_node *current_node;
-static int need_resched;
+int need_resched;
 
 void task_init(void)
 {
@@ -170,7 +170,6 @@ void task_schedule(void)
     task_current = new_node->task;
     current_node = new_node;
 
-    irq_enable();
     context_switch(&old_node->task->context, task_current->context);
 }
 

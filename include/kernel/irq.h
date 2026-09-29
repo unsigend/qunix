@@ -27,6 +27,5 @@ extern int irq_register(uint32_t irq, irq_handler_t handler, void *data);
 extern void irq_dispatch(uint32_t irq);
 
 CONTRACT extern void irq_eoi(uint32_t irq); /* End of Interrupt */
-CONTRACT extern void irq_enable(void);      /* Enable interrupts on this CPU */
 
 #endif /* _QUNIX_IRQ_H_ */

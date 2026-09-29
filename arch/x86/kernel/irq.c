@@ -21,5 +21,3 @@
 #include <kernel/irq.h>
 
 void irq_eoi(uint32_t irq) { i8259_eoi((uint8_t)irq); }
-
-void irq_enable(void) { sti(); }
