@@ -1,8 +1,11 @@
 # qunix
 
-qunix is a clean, minimal Unix-like kernel for learning and research. 
+qunix is a clean, minimal Unix-like kernel for learning and research, aiming at POSIX compatibility. It is written from scratch in C and assembly, with a arch layer at the edge and a portable generic kernel in the middle.
+
 
 Current version: `v0.1.0`
+
+For copyright information, see the file `LICENSE` in this directory.
 
 ## Architecture
 
@@ -10,7 +13,7 @@ i386.
 
 ## Configuration
 
-Project settings live in `config/config.cfg`. After editing, regenerate the build and header files:
+Project settings (arch, toolchain prefix, version, …) live in `config/config.cfg`. After editing, regenerate the build and header files:
 
 ```
 make gen-config
@@ -32,8 +35,31 @@ make help                - show this help message
 make clang               - generate compile_commands.json
 make gen-config          - generate the config files
 make mb-check            - check multiboot2 compliance of ELF
+make check-includes      - check header include conventions
 make version             - show the version of the kernel
 ```
+
+Build output goes to `build/`
+
+## Source Roadmap
+
+| Directory | Description |
+| --- | --- |
+| `arch` | Architecture-specific sources. |
+| `arch/$ARCH/asm` | Low-level hardware support. |
+| `arch/$ARCH/boot` | Boot code. |
+| `arch/$ARCH/kernel` | Architecture implementations of kernel interfaces. |
+| `kernel` | Generic kernel sources. |
+| `driver` | Hardware drivers. |
+| `lib` | Kernel libraries. |
+| `lib\libc` | Kernel freestanding libc. |
+| `include/arch/$ARCH` | Low-level hardware headers. |
+| `include/driver` | Driver headers. |
+| `include/kernel` | Kernel headers. |
+| `config` | Build and emulator configuration. |
+| `ld` | Linker scripts. |
+| `mk` | Makefile fragments. |
+| `scripts` | Build helper scripts. |
 
 ## Release
 
