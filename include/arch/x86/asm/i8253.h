@@ -15,22 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#ifndef _ASM_X86_I8253_H_
+#define _ASM_X86_I8253_H_
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+/* Intel 8253 Programmable Interval Timer (PIT) */
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+#include <kernel/stdint.h>
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
+/* Initialize the 8253 programmable interval timer with the given frequency in
+ * Hz, return 0 on success, -errno on failure */
+extern int i8253_init(uint32_t hz);
 
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
-
-#endif /* _QUNIX_COMPILER_H_ */
+#endif /* _ASM_X86_I8253_H_ */

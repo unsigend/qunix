@@ -15,22 +15,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <kernel/mm/page.h>
+#include <kernel/mm/vm.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+int vm_map_pages(pagetable_t pagetable, virt_addr_t va, phys_addr_t pa,
+                 size_t n, uint32_t perm)
+{
+    int err = 0;
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+    for (size_t i = 0; i < n; i++)
+        if ((err = vm_map_page(pagetable, va + i * PAGE_SIZE,
+                               pa + i * PAGE_SIZE, perm)) < 0)
+            return err;
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
+    return 0;
+}
 
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
+int vm_unmap_pages(pagetable_t pagetable, virt_addr_t va, size_t n)
+{
+    int err = 0;
+    for (size_t i = 0; i < n; i++)
+        if ((err = vm_unmap_page(pagetable, va + i * PAGE_SIZE)) < 0)
+            return err;
 
-#endif /* _QUNIX_COMPILER_H_ */
+    return 0;
+}

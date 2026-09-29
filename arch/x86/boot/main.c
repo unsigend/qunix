@@ -15,22 +15,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <asm/mb2.h>
+#include <asm/multiboot2.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+#include <driver/vga.h>
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+#include <kernel/init.h>
+#include <kernel/mm/memlayout.h>
+#include <kernel/printk.h>
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
+/* Forward declarations: only boot.S calls this function */
+int bootmain(uint32_t, uintptr_t);
 
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
+int bootmain(uint32_t magic, uintptr_t mbi)
+{
+    vga_init((void *)phys_to_virt(VGA_BUFBASE));
+    LOGM(LOG_LEVEL_INFO, "VGA", "VGA driver initialized successfully");
 
-#endif /* _QUNIX_COMPILER_H_ */
+    mb2_validate(magic, mbi);
+    mb2_set_mbi(mbi);
+
+    kernel_main();
+
+    return 0;
+}

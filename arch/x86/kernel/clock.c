@@ -15,22 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <asm/i8253.h>
+#include <asm/i8259.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+#include <kernel/clock.h>
+#include <kernel/irq.h>
+#include <kernel/printk.h>
+#include <kernel/stddef.h>
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+void clock_init(void)
+{
+    irq_register(X86_IRQ_TIMER, clock_tick, NULL);
+    i8253_init(1000); /* 1000 Hz */
+    i8259_clear_mask(X86_IRQ_TIMER);
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
-
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
-
-#endif /* _QUNIX_COMPILER_H_ */
+    LOGM(LOG_LEVEL_INFO, "CLOCK", "Clock initialized successfully");
+}

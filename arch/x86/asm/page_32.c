@@ -15,22 +15,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <asm/page.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+uint32_t pde_make_flag(int present, int write, int user)
+{
+    return (present ? PG_P_MASK : 0) | (write ? PG_RW_MASK : 0) |
+           (user ? PG_USER_MASK : 0);
+}
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+uint32_t pte_make_flag(int present, int write, int user, int pat, int global)
+{
+    return (present ? PG_P_MASK : 0) | (write ? PG_RW_MASK : 0) |
+           (user ? PG_USER_MASK : 0) | (pat ? PTE_PAT_MASK : 0) |
+           (global ? PTE_G_MASK : 0);
+}
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
+pde_t pde_make(phys_addr_t pa, uint32_t flags)
+{
+    return (pa & PG_ADDR_MASK) | flags;
+}
 
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
-
-#endif /* _QUNIX_COMPILER_H_ */
+pte_t pte_make(phys_addr_t pa, uint32_t flags)
+{
+    return (pa & PG_ADDR_MASK) | flags;
+}

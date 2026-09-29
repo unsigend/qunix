@@ -15,22 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <kernel/printk.h>
+#include <kernel/sprintf.h>
+#include <kernel/tty.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+int printk(const char *fmt, ...)
+{
+    char buffer[1024];
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
-
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
-
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
-
-#endif /* _QUNIX_COMPILER_H_ */
+    va_list args;
+    va_start(args, fmt);
+    int ret = vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    tty_puts(buffer);
+    return ret;
+}

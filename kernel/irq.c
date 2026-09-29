@@ -15,22 +15,36 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <kernel/errno.h>
+#include <kernel/irq.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+#define MAX_IRQS 64
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+struct irq_context {
+    irq_handler_t handler;
+    void *data;
+};
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
+static struct irq_context irq_contexts[MAX_IRQS];
 
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
+int irq_register(uint32_t irq, irq_handler_t handler, void *data)
+{
+    if (irq >= MAX_IRQS)
+        return -EINVAL;
 
-#endif /* _QUNIX_COMPILER_H_ */
+    irq_contexts[irq].handler = handler;
+    irq_contexts[irq].data = data;
+
+    return 0;
+}
+
+void irq_dispatch(uint32_t irq)
+{
+    if (irq >= MAX_IRQS)
+        return;
+
+    if (irq_contexts[irq].handler)
+        irq_contexts[irq].handler(irq_contexts[irq].data);
+
+    irq_eoi(irq);
+}

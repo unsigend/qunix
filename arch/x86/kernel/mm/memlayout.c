@@ -15,22 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <kernel/mm/memlayout.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+extern char _kernel_phys_start[];
+extern char _kernel_phys_end[];
+extern char _kernel_virt_start[];
+extern char _kernel_virt_end[];
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+const phys_addr_t kernel_phys_start = (phys_addr_t)_kernel_phys_start;
+const phys_addr_t kernel_phys_end = (phys_addr_t)_kernel_phys_end;
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
+const virt_addr_t kernel_virt_start = (virt_addr_t)_kernel_virt_start;
+const virt_addr_t kernel_virt_end = (virt_addr_t)_kernel_virt_end;
 
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
-
-#endif /* _QUNIX_COMPILER_H_ */
+const size_t kernel_virt_max = 1UL << 30; /* 1GB space: 3GB - 4GB */

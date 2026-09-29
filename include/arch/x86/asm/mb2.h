@@ -21,6 +21,7 @@
 /* This file define some multiboot2 related extensions functions, reference:
  * https://www.gnu.org/software/grub/manual/multiboot2/multiboot.html */
 
+#include <asm/multiboot2.h>
 #include <kernel/stdint.h>
 
 typedef uintptr_t

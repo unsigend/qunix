@@ -15,22 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_COMPILER_H_
-#define _QUNIX_COMPILER_H_
+#include <asm/gdt.h>
+#include <asm/idt.h>
 
-#define CONTRACT
-#define UNUSED(x) (void)(x)
+#include <kernel/cpu.h>
+#include <kernel/printk.h>
 
-#define __packed __attribute__((packed))
-#define __aligned(n) __attribute__((aligned(n)))
-#define __noreturn __attribute__((noreturn))
-#define __unused __attribute__((unused))
-#define __always_inline inline __attribute__((always_inline))
+void cpu_halt(void)
+{
+    for (;;)
+        asm volatile("hlt");
+}
 
-#define __export __attribute__((visibility("default")))
-#define __hidden __attribute__((visibility("hidden")))
+void cpu_init(void)
+{
+    gdt_init();
+    idt_init();
 
-#define __printf(string, checks) __attribute__((format(printf, string, checks)))
-#define __scanf(string, checks) __attribute__((format(scanf, string, checks)))
-
-#endif /* _QUNIX_COMPILER_H_ */
+    LOGM(LOG_LEVEL_INFO, "CPU", "CPU initialized successfully");
+}
