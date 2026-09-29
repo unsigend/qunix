@@ -32,7 +32,7 @@
 static pde_t _kernel_pagedir[PAGE_SIZE / sizeof(pde_t)] __aligned(PAGE_SIZE);
 pagetable_t kernel_pagetable = (pagetable_t)_kernel_pagedir;
 
-void page_flush_tlb_all(void) { cr3_write(cr3_read()); }
+void page_flush_tlb_all(void) { write_cr3(read_cr3()); }
 
 void page_flush_tlb_one(virt_addr_t va)
 {

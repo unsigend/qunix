@@ -50,7 +50,7 @@ int trap_get_irq(const struct trap_frame *frame)
     return frame->trapnum - X86_IRQ_BASE;
 }
 
-virt_addr_t trap_get_fault_addr(void) { return (virt_addr_t)cr2_read(); }
+virt_addr_t trap_get_fault_addr(void) { return (virt_addr_t)read_cr2(); }
 
 int trap_is_irq(const struct trap_frame *frame)
 {

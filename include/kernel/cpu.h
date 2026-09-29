@@ -20,7 +20,13 @@
 
 #include <kernel/compiler.h>
 
-CONTRACT extern void cpu_halt(void) __noreturn;
 CONTRACT extern void cpu_init(void);
+
+CONTRACT extern void cpu_halt(void) __noreturn;
+
+CONTRACT extern void cpu_enable_interrupts(void);
+CONTRACT extern void cpu_disable_interrupts(void);
+CONTRACT extern unsigned long cpu_save_interrupts(void);
+CONTRACT extern void cpu_restore_interrupts(unsigned long flags);
 
 #endif /* _QUNIX_CPU_H_ */

@@ -17,6 +17,7 @@
 
 #include <asm/task.h>
 
+#include <kernel/cpu.h>
 #include <kernel/panic.h>
 #include <kernel/task.h>
 
@@ -26,6 +27,8 @@ char *task_boot_kstack(void) { return stack_top; }
 
 static void trampoline(void (*func)(void *), void *data)
 {
+    cpu_enable_interrupts();
+
     func(data);
 
     /* TODO: implement task destroy, zombie task handling, and task exit */

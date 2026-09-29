@@ -104,7 +104,6 @@ void idt_init(void)
     i8259_init(X86_IRQ_BASE, X86_IRQ_BASE + 8); /* master, slave */
 
     idtr_write(&idtr);
-    sti(); /* enable interrupts */
 
     LOGM(LOG_LEVEL_INFO, "IDT", "IDT initialized successfully");
 }

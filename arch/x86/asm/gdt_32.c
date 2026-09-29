@@ -78,7 +78,6 @@ void gdt_init(void)
     gdt_entry_set(&gdt[SEG_USER_CODE_IDX], 0, 0xFFFFF, flag, user_code);
     gdt_entry_set(&gdt[SEG_USER_DATA_IDX], 0, 0xFFFFF, flag, user_data);
 
-    cli();
     gdtr_write(&gdtr);
     reload_segments(SEGS_MAKE(SEG_KER_CODE_IDX, SEGS_TI_GDT, SEGS_RPL_RING0),
                     SEGS_MAKE(SEG_KER_DATA_IDX, SEGS_TI_GDT, SEGS_RPL_RING0));

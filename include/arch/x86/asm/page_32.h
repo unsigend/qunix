@@ -31,12 +31,12 @@
 /* Set or get the page directory root address in CPU. */
 static __always_inline void page_set_pagedir(phys_addr_t pagedir)
 {
-    cr3_write((uint32_t)(pagedir));
+    write_cr3((uint32_t)(pagedir));
 }
 
 static __always_inline phys_addr_t page_get_pagedir(void)
 {
-    return (phys_addr_t)cr3_read();
+    return (phys_addr_t)read_cr3();
 }
 
 typedef uint32_t pte_t; /* page table entry */

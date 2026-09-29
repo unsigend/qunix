@@ -24,10 +24,12 @@
 
 int kernel_main(void)
 {
+    cpu_disable_interrupts();
     cpu_init();
     clock_init();
     mm_init();
     task_init();
+    cpu_enable_interrupts();
 
     LOGM(LOG_LEVEL_INFO, "KERNEL", "Kernel initialized successfully");
 
