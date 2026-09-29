@@ -18,6 +18,8 @@
 #ifndef _QUNIX_MACROS_H_
 #define _QUNIX_MACROS_H_
 
+#include <kernel/stddef.h>
+
 #define ALIGN(x, a)                                                            \
     (((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
 #define IS_ALIGNED(x, align) (((x) & ((align) - 1)) == 0)
@@ -29,5 +31,10 @@
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+/* A simplified version of container_of macro, without the GNU specific typeof
+ * check. */
+#define container_of(ptr, type, member)                                        \
+    ((type *)((char *)(ptr) - offsetof(type, member)))
 
 #endif /* _QUNIX_MACROS_H_ */

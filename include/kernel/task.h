@@ -19,6 +19,7 @@
 #define _QUNIX_TASK_H_
 
 #include <kernel/compiler.h>
+#include <kernel/list.h>
 #include <kernel/types.h>
 
 enum task_state {
@@ -47,10 +48,8 @@ struct task_struct {
     enum task_state state;
     struct task_context *context;
     char *kstack; /* kernel stack bottom address */
+    struct list_head node;
 };
-
-/* current running task */
-extern struct task_struct *task_current;
 
 extern void task_init(void);
 

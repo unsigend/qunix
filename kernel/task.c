@@ -16,8 +16,10 @@
  */
 
 #include <kernel/clock.h>
+#include <kernel/cpu.h>
 #include <kernel/irq.h>
 #include <kernel/kmalloc.h>
+#include <kernel/list.h>
 #include <kernel/panic.h>
 #include <kernel/printk.h>
 #include <kernel/task.h>
@@ -25,23 +27,10 @@
 #include <kernel/mm/page.h>
 #include <kernel/mm/pmm.h>
 
-struct task_struct *task_current;
-
-struct task_node {
-    struct task_struct *task;
-    struct task_node *next;
-};
-
-struct task_list /* a FIFO queue for tasks */
-{
-    struct task_node *head;
-    struct task_node *tail;
-};
-
+static struct task_struct *task_current;
+static struct list_head ready_queue;
 static pid_t nextpid;
-static struct task_list ready_queue;
-static struct task_node *current_node;
-int need_resched;
+static int need_resched;
 
 void task_init(void)
 {
@@ -58,44 +47,9 @@ void task_init(void)
     task_current->kstack = task_boot_kstack();
     task_current->context = NULL;
 
-    current_node = (struct task_node *)kmalloc(sizeof(struct task_node));
-    if (!current_node)
-        panic("Failed to allocate memory for current task node");
-
-    current_node->task = task_current;
-    current_node->next = NULL;
+    list_init(&ready_queue);
 
     LOGM(LOG_LEVEL_INFO, "TASK", "Task system initialized successfully");
-}
-
-static void enqueue(struct task_node *node)
-{
-    node->next = NULL;
-
-    if (!ready_queue.head) {
-        ready_queue.head = node;
-        ready_queue.tail = node;
-    } else {
-        ready_queue.tail->next = node;
-        ready_queue.tail = node;
-    }
-}
-
-static struct task_node *dequeue(void)
-{
-    struct task_node *node;
-
-    if (!ready_queue.head)
-        return NULL;
-
-    node = ready_queue.head;
-    ready_queue.head = node->next;
-    node->next = NULL;
-
-    if (ready_queue.tail == node)
-        ready_queue.tail = NULL;
-
-    return node;
 }
 
 static pid_t get_nextpid(void)
@@ -113,15 +67,20 @@ struct task_struct *task_create(void (*func)(void *), void *data)
 {
     struct task_struct *task;
     struct pmm_page *phy_page;
-    struct task_node *node;
+    unsigned long flags;
+
+    flags = cpu_save_interrupts();
 
     task = (struct task_struct *)kmalloc(sizeof(struct task_struct));
-    if (!task)
+    if (!task) {
+        cpu_restore_interrupts(flags);
         return NULL;
+    }
 
     phy_page = pmm_alloc_page();
     if (!phy_page) {
         kfree(task);
+        cpu_restore_interrupts(flags);
         return NULL;
     }
 
@@ -132,22 +91,17 @@ struct task_struct *task_create(void (*func)(void *), void *data)
     if (task->pid < 0) {
         kfree(task);
         pmm_free_page(phy_page);
+
+        cpu_restore_interrupts(flags);
         return NULL;
     }
 
     task->context = task_context_init(task->kstack, func, data);
     task->state = TASK_READY;
 
-    node = (struct task_node *)kmalloc(sizeof(struct task_node));
-    if (!node) {
-        kfree(task);
-        pmm_free_page(phy_page);
-        return NULL;
-    }
+    list_add_tail(&task->node, &ready_queue);
 
-    node->task = task;
-    node->next = NULL;
-    enqueue(node);
+    cpu_restore_interrupts(flags);
 
     return task;
 }
@@ -155,30 +109,35 @@ struct task_struct *task_create(void (*func)(void *), void *data)
 /* A simple Round-Robin scheduler based on a FIFO queue with a time slice */
 void task_schedule(void)
 {
-    struct task_node *new_node;
-    struct task_node *old_node;
+    struct task_struct *old_task;
+    struct task_struct *new_task;
+    unsigned long flags;
 
-    if (!ready_queue.head)
+    flags = cpu_save_interrupts();
+
+    if (list_empty(&ready_queue)) {
+        cpu_restore_interrupts(flags);
         return;
+    }
 
-    old_node = current_node;
-    old_node->task->state = TASK_READY;
-    enqueue(old_node);
+    old_task = task_current;
+    new_task = list_entry(ready_queue.next, struct task_struct, node);
 
-    new_node = dequeue();
-    new_node->task->state = TASK_RUNNING;
-    task_current = new_node->task;
-    current_node = new_node;
+    new_task->state = TASK_RUNNING;
+    old_task->state = TASK_READY;
 
-    context_switch(&old_node->task->context, task_current->context);
+    list_add_tail(&old_task->node, &ready_queue);
+    list_del(&new_task->node); /* remove new task from ready queue */
+
+    task_current = new_task;
+
+    context_switch(&old_task->context, new_task->context);
+
+    cpu_restore_interrupts(flags);
 }
 
 void task_tick(void)
 {
-    if (!task_current || !current_node) /* Guard against that the interrupt
-                                           triggers before call task_init */
-        return;
-
     if (jiffies % 10 == 0) /* time slice is 10 ticks, namely 10ms */
         need_resched = 1;
 }
