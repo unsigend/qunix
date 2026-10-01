@@ -48,7 +48,8 @@ struct task_struct {
     enum task_state state;
     struct task_context *context;
     char *kstack; /* kernel stack bottom address */
-    struct list_head node;
+    struct list_head tasks;
+    unsigned int sliceleft;
 };
 
 extern void task_init(void);

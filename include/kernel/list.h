@@ -41,7 +41,7 @@ static inline void __list_add(struct list_head *new, struct list_head *prev,
     prev->next = new;
 }
 
-/* Delete a list entry by making the prev/next entries point to each other.*/
+/* Delete a list entry by making the prev/next entries point to each other. */
 static inline void __list_del(struct list_head *prev, struct list_head *next)
 {
     next->prev = prev;
@@ -100,6 +100,15 @@ static inline void list_del(struct list_head *entry)
 }
 
 /**
+ * list_del_tail - delete the last entry from the list
+ * @head: the list to delete the last entry from
+ *
+ * Delete the last entry from the list and set the prev pointer to the new last
+ * entry.
+ */
+#define list_del_tail(head) list_del(head->prev)
+
+/**
  * list_empty - test if list is empty
  * @head: the list to test
  *
@@ -117,14 +126,5 @@ static inline int list_empty(const struct list_head *head)
  * @member:	the name of the list_struct within the struct.
  */
 #define list_entry(ptr, type, member) container_of(ptr, type, member)
-
-/**
- * list_del_tail - delete the last entry from the list
- * @head: the list to delete the last entry from
- *
- * Delete the last entry from the list and set the prev pointer to the new last
- * entry.
- */
-#define list_del_tail(head) list_del(head->prev)
 
 #endif /* _QUNIX_LIST_H_ */

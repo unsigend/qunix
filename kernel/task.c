@@ -27,25 +27,27 @@
 #include <kernel/mm/page.h>
 #include <kernel/mm/pmm.h>
 
-static struct task_struct *task_current;
+#define TIME_SLICE 10 /* 10ms */
+
+static struct task_struct *cur_task;
 static struct list_head ready_queue;
 static pid_t nextpid;
 static int need_resched;
 
 void task_init(void)
 {
-    nextpid = 1; /* next pid always start from 1 since 0 is reserved for the
-                    init process */
+    nextpid = 1;
 
-    /* setup current boot running task */
-    task_current = (struct task_struct *)kmalloc(sizeof(struct task_struct));
-    if (!task_current)
+    /* setup boot task */
+    cur_task = (struct task_struct *)kmalloc(sizeof(struct task_struct));
+    if (!cur_task)
         panic("Failed to allocate memory for boot task");
 
-    task_current->pid = 0;
-    task_current->state = TASK_RUNNING;
-    task_current->kstack = task_boot_kstack();
-    task_current->context = NULL;
+    cur_task->pid = 0;
+    cur_task->sliceleft = TIME_SLICE;
+    cur_task->state = TASK_RUNNING;
+    cur_task->kstack = task_boot_kstack();
+    cur_task->context = NULL;
 
     list_init(&ready_queue);
 
@@ -54,9 +56,6 @@ void task_init(void)
 
 static pid_t get_nextpid(void)
 {
-    /* TODO: add lock here in later version */
-
-    /* TODO: optimize this by circular check available pid */
     if (nextpid >= NTASKS)
         return -1;
 
@@ -99,7 +98,7 @@ struct task_struct *task_create(void (*func)(void *), void *data)
     task->context = task_context_init(task->kstack, func, data);
     task->state = TASK_READY;
 
-    list_add_tail(&task->node, &ready_queue);
+    list_add_tail(&task->tasks, &ready_queue);
 
     cpu_restore_interrupts(flags);
 
@@ -120,16 +119,17 @@ void task_schedule(void)
         return;
     }
 
-    old_task = task_current;
-    new_task = list_entry(ready_queue.next, struct task_struct, node);
+    old_task = cur_task;
+    new_task = list_entry(ready_queue.next, struct task_struct, tasks);
 
     new_task->state = TASK_RUNNING;
     old_task->state = TASK_READY;
+    new_task->sliceleft = TIME_SLICE;
 
-    list_add_tail(&old_task->node, &ready_queue);
-    list_del(&new_task->node); /* remove new task from ready queue */
+    list_add_tail(&old_task->tasks, &ready_queue);
+    list_del(&new_task->tasks); /* remove new task from ready queue */
 
-    task_current = new_task;
+    cur_task = new_task;
 
     context_switch(&old_task->context, new_task->context);
 
@@ -138,7 +138,13 @@ void task_schedule(void)
 
 void task_tick(void)
 {
-    if (jiffies % 10 == 0) /* time slice is 10 ticks, namely 10ms */
+    if (list_empty(&ready_queue)) {
+        cur_task->sliceleft = TIME_SLICE;
+        return;
+    }
+
+    cur_task->sliceleft--;
+    if (!cur_task->sliceleft)
         need_resched = 1;
 }
 
