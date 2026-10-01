@@ -18,6 +18,7 @@
 #include <kernel/compiler.h>
 #include <kernel/kmalloc.h>
 #include <kernel/macros.h>
+#include <kernel/spinlock.h>
 #include <kernel/stdalign.h>
 #include <kernel/stdbool.h>
 #include <kernel/stddef.h>
@@ -74,6 +75,7 @@ typedef struct free_block {
 } free_block_t;
 
 static free_block_t *buckets[BUCKET_COUNT];
+static spinlock_t lock = SPINLOCK_INIT;
 
 /* Bucket size lookup table. Base thresholds: MINIMUM_BLOCKSZ 24 on 32-bit, 48
  * on 64-bit */
@@ -319,17 +321,25 @@ void *kmalloc(size_t size)
     if (blocksz > MAX_ALLOCSZ)
         return NULL;
 
+    spinlock_lock(&lock);
+
     while (index < BUCKET_COUNT) {
         p = bestfit(blocksz, index);
-        if (p)
+        if (p) {
+            spinlock_unlock(&lock);
             return p;
+        }
         ++index;
     }
 
-    if (refill() == -1)
+    if (refill() == -1) {
+        spinlock_unlock(&lock);
         return NULL;
+    }
 
-    return bestfit(blocksz, get_bucket_index(PAGE_SIZE));
+    p = bestfit(blocksz, get_bucket_index(PAGE_SIZE));
+    spinlock_unlock(&lock);
+    return p;
 }
 
 void kfree(void *p)
@@ -341,7 +351,9 @@ void kfree(void *p)
 
     block = (block_t *)((unsigned char *)p - sizeof(header_t));
 
+    spinlock_lock(&lock);
     coalescing((free_block_t *)block);
+    spinlock_unlock(&lock);
 }
 
 void *kcalloc(size_t num, size_t size)

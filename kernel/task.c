@@ -54,6 +54,8 @@ void task_init(void)
     LOGM(LOG_LEVEL_INFO, "TASK", "Task system initialized successfully");
 }
 
+struct task_struct *task_get_current(void) { return cur_task; }
+
 static pid_t get_nextpid(void)
 {
     if (nextpid >= NTASKS)

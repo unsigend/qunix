@@ -18,6 +18,7 @@
 #include <kernel/macros.h>
 #include <kernel/panic.h>
 #include <kernel/printk.h>
+#include <kernel/spinlock.h>
 #include <kernel/string.h>
 #include <kernel/types.h>
 
@@ -34,20 +35,26 @@ struct pmm_page {
 };
 
 struct pmm_pool {
-    struct pmm_page *free_head;  /* free list */
+    struct pmm_page *free_head; /* free list */
+
     struct pmm_page *page_array; /* mapping all physical pages */
     size_t page_array_sz;        /* page array size in bytes */
-    size_t page_count;           /* number of total physical pages */
-    size_t avail_count;          /* number of available physical pages */
-    size_t free_count;           /* number of free physical pages */
-    size_t alloc_count;          /* number of allocated physical pages */
+
+    size_t page_count;  /* total physical pages */
+    size_t avail_count; /* available physical pages */
+    size_t free_count;  /* free physical pages */
+    size_t alloc_count; /* allocated physical pages */
+
+    spinlock_t lock;
 };
 
 static struct pmm_pool pool;
 
 void pmm_init(void)
 {
-    phys_addr_t max_phys = mem_map_get_max_phys();
+    phys_addr_t max_phys;
+
+    max_phys = mem_map_get_max_phys();
     pool.page_count = max_phys >> PAGE_SHIFT;
     pool.page_array = (struct pmm_page *)phys_to_virt(KERNEL_PHYS_END);
     pool.page_array_sz =
@@ -76,6 +83,8 @@ void pmm_init(void)
             }
         }
     }
+
+    spinlock_init(&pool.lock);
 
     LOGM(LOG_LEVEL_INFO, "PMM",
          "Initialized with %zu physical pages, %zu available, %zu free, %zu "
@@ -113,14 +122,22 @@ struct pmm_page *pmm_phys_to_page(phys_addr_t phys)
 
 struct pmm_page *pmm_alloc_page(void)
 {
-    if (pool.free_head == NULL)
-        return NULL;
+    struct pmm_page *page;
 
-    struct pmm_page *page = pool.free_head;
+    spinlock_lock(&pool.lock);
+
+    if (pool.free_head == NULL) {
+        spinlock_unlock(&pool.lock);
+        return NULL;
+    }
+
+    page = pool.free_head;
     pool.free_head = page->next;
     page->next = NULL;
     pool.alloc_count++;
     pool.free_count--;
+
+    spinlock_unlock(&pool.lock);
     return page;
 }
 
@@ -129,8 +146,12 @@ void pmm_free_page(struct pmm_page *page)
     if (page == NULL)
         return;
 
+    spinlock_lock(&pool.lock);
+
     page->next = pool.free_head;
     pool.free_head = page;
     pool.free_count++;
     pool.alloc_count--;
+
+    spinlock_unlock(&pool.lock);
 }

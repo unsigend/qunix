@@ -38,8 +38,6 @@ CONTRACT extern void context_switch(struct task_context **saved,
 CONTRACT extern struct task_context *
 task_context_init(char *kstack, void (*func)(void *), void *data);
 CONTRACT extern char *task_boot_kstack(void);
-extern void task_tick(void);
-extern void task_preempt(void);
 
 /* In v0.1 the task struct is only used for kernel threads, no user space
  * tasks related */
@@ -52,12 +50,15 @@ struct task_struct {
     unsigned int sliceleft;
 };
 
-extern void task_init(void);
-
 /* Create a new kernel thread without executing or scheduling it, and return a
  * pointer to it which allocate by kmalloc. Return NULL if failed. */
 extern struct task_struct *task_create(void (*func)(void *), void *data);
 
+extern void task_init(void);
 extern void task_schedule(void);
+extern void task_tick(void);
+extern void task_preempt(void);
+
+extern struct task_struct *task_get_current(void);
 
 #endif /* _QUNIX_TASK_H_ */

@@ -17,6 +17,7 @@
 
 #include <kernel/compiler.h>
 #include <kernel/errno.h>
+#include <kernel/spinlock.h>
 #include <kernel/stdint.h>
 #include <kernel/string.h>
 
@@ -24,6 +25,7 @@
 
 #define MAX_ENTRIES 64
 
+static spinlock_t lock = SPINLOCK_INIT;
 static struct mem_map_entry entries[MAX_ENTRIES];
 static size_t num_entries = 0;
 
@@ -101,6 +103,9 @@ int mem_map_add(uint64_t addr, uint64_t len, enum mem_map_type type)
     if (type == MEMMAP_KERNEL) {
         struct mem_map_entry *block = NULL;
         struct mem_map_entry tmp;
+        int err = 0, added = 0;
+
+        spinlock_lock(&lock);
 
         for (size_t i = 0; i < num_entries; i++) {
             if (entries[i].type == MEMMAP_AVAILABLE &&
@@ -113,50 +118,80 @@ int mem_map_add(uint64_t addr, uint64_t len, enum mem_map_type type)
                 break;
             }
         }
-        if (!block)
+
+        if (!block) {
+            spinlock_unlock(&lock);
             return -ENOMEM;
+        }
 
         memcpy(&tmp, block, sizeof(struct mem_map_entry));
         block->addr = addr;
         block->len = len;
         block->type = MEMMAP_KERNEL;
 
-        int err = 0, added = 0;
-
         if (addr > tmp.addr) /* left split */
         {
-            if ((err = mem_map_add(tmp.addr, addr - tmp.addr,
-                                   MEMMAP_AVAILABLE)) < 0)
+            if (num_entries >= MAX_ENTRIES) {
+                err = -ENOMEM;
                 goto rollback;
+            }
+
+            entries[num_entries++] = (struct mem_map_entry){
+                .addr = tmp.addr,
+                .len = addr - tmp.addr,
+                .type = MEMMAP_AVAILABLE,
+            };
+
             added = 1;
         }
 
-        if (addr + len < tmp.addr + tmp.len &&
-            (err = mem_map_add(addr + len, tmp.addr + tmp.len - (addr + len),
-                               MEMMAP_AVAILABLE)) < 0)
-            goto rollback;
+        if (addr + len < tmp.addr + tmp.len) {
+            if (num_entries >= MAX_ENTRIES) {
+                err = -ENOMEM;
+                goto rollback;
+            }
 
+            entries[num_entries++] = (struct mem_map_entry){
+                .addr = addr + len,
+                .len = tmp.addr + tmp.len - (addr + len),
+                .type = MEMMAP_AVAILABLE,
+            };
+        }
+
+        spinlock_unlock(&lock);
         return 0;
 
     rollback: /* recover the original block */
         block->addr = tmp.addr;
         block->len = tmp.len;
         block->type = tmp.type;
+
         if (added)
             num_entries--;
 
+        spinlock_unlock(&lock);
         return err;
+
     } else {
         struct mem_map_entry newentry = {
             .addr = addr, .len = len, .type = type};
 
-        for (size_t i = 0; i < num_entries; i++)
-            if (overlaps(&entries[i], &newentry))
-                return -EEXIST;
+        spinlock_lock(&lock);
 
-        if (num_entries >= MAX_ENTRIES)
+        for (size_t i = 0; i < num_entries; i++)
+            if (overlaps(&entries[i], &newentry)) {
+                spinlock_unlock(&lock);
+                return -EEXIST;
+            }
+
+        if (num_entries >= MAX_ENTRIES) {
+            spinlock_unlock(&lock);
             return -ENOMEM;
+        }
+
         entries[num_entries++] = newentry;
+
+        spinlock_unlock(&lock);
     }
     return 0;
 }
