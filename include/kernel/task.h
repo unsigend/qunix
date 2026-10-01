@@ -25,6 +25,7 @@
 enum task_state {
     TASK_READY,   /* ready to run */
     TASK_RUNNING, /* running task */
+    TASK_BLOCKED, /* blocked task */
 };
 
 #define NTASKS 64 /* maximum number of tasks */
@@ -58,6 +59,9 @@ extern void task_init(void);
 extern void task_schedule(void);
 extern void task_tick(void);
 extern void task_preempt(void);
+
+extern void task_enqueue(struct task_struct *task);
+extern struct task_struct *task_dequeue(void);
 
 extern struct task_struct *task_get_current(void);
 

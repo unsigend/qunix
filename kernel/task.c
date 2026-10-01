@@ -22,6 +22,7 @@
 #include <kernel/list.h>
 #include <kernel/panic.h>
 #include <kernel/printk.h>
+#include <kernel/spinlock.h>
 #include <kernel/task.h>
 
 #include <kernel/mm/page.h>
@@ -33,6 +34,7 @@ static struct task_struct *cur_task;
 static struct list_head ready_queue;
 static pid_t nextpid;
 static int need_resched;
+static spinlock_t lock;
 
 void task_init(void)
 {
@@ -50,6 +52,7 @@ void task_init(void)
     cur_task->context = NULL;
 
     list_init(&ready_queue);
+    spinlock_init(&lock);
 
     LOGM(LOG_LEVEL_INFO, "TASK", "Task system initialized successfully");
 }
@@ -68,20 +71,19 @@ struct task_struct *task_create(void (*func)(void *), void *data)
 {
     struct task_struct *task;
     struct pmm_page *phy_page;
-    unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    spinlock_lock(&lock);
 
     task = (struct task_struct *)kmalloc(sizeof(struct task_struct));
     if (!task) {
-        cpu_restore_interrupts(flags);
+        spinlock_unlock(&lock);
         return NULL;
     }
 
     phy_page = pmm_alloc_page();
     if (!phy_page) {
         kfree(task);
-        cpu_restore_interrupts(flags);
+        spinlock_unlock(&lock);
         return NULL;
     }
 
@@ -93,7 +95,7 @@ struct task_struct *task_create(void (*func)(void *), void *data)
         kfree(task);
         pmm_free_page(phy_page);
 
-        cpu_restore_interrupts(flags);
+        spinlock_unlock(&lock);
         return NULL;
     }
 
@@ -102,7 +104,7 @@ struct task_struct *task_create(void (*func)(void *), void *data)
 
     list_add_tail(&task->tasks, &ready_queue);
 
-    cpu_restore_interrupts(flags);
+    spinlock_unlock(&lock);
 
     return task;
 }
@@ -117,25 +119,59 @@ void task_schedule(void)
     flags = cpu_save_interrupts();
 
     if (list_empty(&ready_queue)) {
+        if (cur_task->state == TASK_BLOCKED)
+            panic("No task to schedule");
         cpu_restore_interrupts(flags);
         return;
     }
 
     old_task = cur_task;
-    new_task = list_entry(ready_queue.next, struct task_struct, tasks);
 
+    if (old_task->state == TASK_RUNNING) {
+        old_task->state = TASK_READY;
+        task_enqueue(old_task);
+    }
+
+    new_task = task_dequeue();
     new_task->state = TASK_RUNNING;
-    old_task->state = TASK_READY;
     new_task->sliceleft = TIME_SLICE;
 
-    list_add_tail(&old_task->tasks, &ready_queue);
-    list_del(&new_task->tasks); /* remove new task from ready queue */
+    if (old_task == new_task) {
+        cpu_restore_interrupts(flags);
+        return;
+    }
 
     cur_task = new_task;
 
     context_switch(&old_task->context, new_task->context);
 
     cpu_restore_interrupts(flags);
+}
+
+void task_enqueue(struct task_struct *task)
+{
+    spinlock_lock(&lock);
+    list_add_tail(&task->tasks, &ready_queue);
+    spinlock_unlock(&lock);
+}
+
+struct task_struct *task_dequeue(void)
+{
+    struct task_struct *task;
+
+    spinlock_lock(&lock);
+
+    if (list_empty(&ready_queue)) {
+        spinlock_unlock(&lock);
+        return NULL;
+    }
+
+    task = list_entry(ready_queue.next, struct task_struct, tasks);
+    list_del(&task->tasks);
+
+    spinlock_unlock(&lock);
+
+    return task;
 }
 
 void task_tick(void)
