@@ -116,7 +116,9 @@ void task_schedule(void)
     struct task_struct *new_task;
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags =
+        cpu_save_interrupts(); /* save interrupts flags into per-task's stack
+                                  and restore it back after context switch */
 
     if (list_empty(&ready_queue)) {
         if (cur_task->state == TASK_BLOCKED)
@@ -167,7 +169,7 @@ struct task_struct *task_dequeue(void)
     }
 
     task = list_entry(ready_queue.next, struct task_struct, tasks);
-    list_del(&task->tasks);
+    list_del_head(&ready_queue);
 
     spinlock_unlock(&lock);
 

@@ -61,14 +61,25 @@ static inline void list_init(struct list_head *head)
 }
 
 /**
- * list_add - add a new entry
+ * list_empty - test if list is empty
+ * @head: the list to test
+ *
+ * Return 1 if the list is empty, false otherwise.
+ */
+static inline int list_empty(const struct list_head *head)
+{
+    return head->next == head;
+}
+
+/**
+ * list_add_head - add a new entry
  * @new: new entry to be added
  * @head: list head to add it after
  *
- * Insert a new entry after the specified head.
+ * Insert a new entry at the head of the list.
  * Used for implementing stacks.
  */
-static inline void list_add(struct list_head *new, struct list_head *head)
+static inline void list_add_head(struct list_head *new, struct list_head *head)
 {
     __list_add(new, head, head->next);
 }
@@ -78,7 +89,7 @@ static inline void list_add(struct list_head *new, struct list_head *head)
  * @new: new entry to be added
  * @head: list head to add it before
  *
- * Insert a new entry before the specified head.
+ * Insert a new entry at the tail of the list.
  * Used for implementing queues.
  */
 static inline void list_add_tail(struct list_head *new, struct list_head *head)
@@ -106,17 +117,25 @@ static inline void list_del(struct list_head *entry)
  * Delete the last entry from the list and set the prev pointer to the new last
  * entry.
  */
-#define list_del_tail(head) list_del(head->prev)
+static inline void list_del_tail(struct list_head *head)
+{
+    if (list_empty(head))
+        return;
+    list_del(head->prev);
+}
 
 /**
- * list_empty - test if list is empty
- * @head: the list to test
+ * list_del_head - delete the first entry from the list
+ * @head: the list to delete the first entry from
  *
- * Return 1 if the list is empty, false otherwise.
+ * Delete the first entry from the list and set the next pointer to the new
+ * first entry.
  */
-static inline int list_empty(const struct list_head *head)
+static inline void list_del_head(struct list_head *head)
 {
-    return head->next == head;
+    if (list_empty(head))
+        return;
+    list_del(head->next);
 }
 
 /**

@@ -20,8 +20,15 @@
 #include <kernel/spinlock.h>
 #include <kernel/task.h>
 
+/* This implementation of spinlock is designed for single core only. So no need
+ * spin since if can't acquire the lock means the deadlock happens. For the
+ * flags, it is safe because a spinlock is never held across a context switch.
+ * So nested/flags only ever belong to one critical section at a time. */
+
+static unsigned long
+    nested; /* counts how many spinlock_lock calls on this CPU are not yet
+               matched by an unlock, across every lock */
 static unsigned long flags;
-static unsigned long nested;
 
 void spinlock_init(spinlock_t *lock)
 {
@@ -31,26 +38,29 @@ void spinlock_init(spinlock_t *lock)
 
 void spinlock_lock(spinlock_t *lock)
 {
-    struct task_struct *cur = task_get_current();
-
-    if (lock->locked && lock->holder != cur)
-        panic("spinlock already locked by another task");
+    if (lock->locked) /* already locked, since in single core, only forget to
+                         unlock is possible. */
+        panic("deadlock detected");
 
     if (nested == 0)
         flags = cpu_save_interrupts();
 
-    nested++;
-
     lock->locked = 1;
-    lock->holder = cur;
+    lock->holder = task_get_current();
+
+    nested++;
 }
 
 void spinlock_unlock(spinlock_t *lock)
 {
-    struct task_struct *cur = task_get_current();
+    if (!lock->locked)
+        panic("spinlock not locked");
 
-    if (lock->holder != cur)
-        panic("spinlock not locked by current task");
+    if (lock->holder != task_get_current())
+        panic("deadlock detected");
+
+    if (nested == 0)
+        panic("unbalanced unlock");
 
     nested--;
 
