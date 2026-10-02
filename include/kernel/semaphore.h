@@ -15,18 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_SPINLOCK_H_
-#define _QUNIX_SPINLOCK_H_
+#ifndef _QUNIX_SEMAPHORE_H_
+#define _QUNIX_SEMAPHORE_H_
 
-#include <kernel/task.h>
+#include <kernel/wait.h>
 
-typedef struct spinlock {
-    unsigned int locked;
-    struct task_struct *holder;
-} spinlock_t;
+typedef struct semaphore {
+    int count;
+    struct wait_queue wq;
+} semaphore_t;
 
-extern void spinlock_init(spinlock_t *lock);
-extern void spinlock_lock(spinlock_t *lock);
-extern void spinlock_unlock(spinlock_t *lock);
+extern void semaphore_init(semaphore_t *sem, int count);
+extern void semaphore_wait(semaphore_t *sem);
+extern void semaphore_signal(semaphore_t *sem);
 
-#endif /* _QUNIX_SPINLOCK_H_ */
+/* alias */
+#define semaphore_down(sem) semaphore_wait(sem)
+#define semaphore_up(sem) semaphore_signal(sem)
+
+#endif /* _QUNIX_SEMAPHORE_H_ */

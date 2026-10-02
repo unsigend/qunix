@@ -15,18 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_SPINLOCK_H_
-#define _QUNIX_SPINLOCK_H_
+#ifndef _QUNIX_MUTEX_H_
+#define _QUNIX_MUTEX_H_
 
-#include <kernel/task.h>
+#include <kernel/wait.h>
 
-typedef struct spinlock {
-    unsigned int locked;
+typedef struct mutex {
+    int locked;
     struct task_struct *holder;
-} spinlock_t;
+    struct wait_queue wq;
+} mutex_t;
 
-extern void spinlock_init(spinlock_t *lock);
-extern void spinlock_lock(spinlock_t *lock);
-extern void spinlock_unlock(spinlock_t *lock);
+extern void mutex_init(mutex_t *mutex);
+extern void mutex_lock(mutex_t *mutex);
+extern void mutex_unlock(mutex_t *mutex);
 
-#endif /* _QUNIX_SPINLOCK_H_ */
+#endif /* _QUNIX_MUTEX_H_ */

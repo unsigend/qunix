@@ -15,18 +15,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_SPINLOCK_H_
-#define _QUNIX_SPINLOCK_H_
+#include <kernel/cpu.h>
+#include <kernel/semaphore.h>
 
-#include <kernel/task.h>
+void semaphore_init(semaphore_t *sem, int count)
+{
+    sem->count = count;
+    wait_queue_init(&sem->wq);
+}
 
-typedef struct spinlock {
-    unsigned int locked;
-    struct task_struct *holder;
-} spinlock_t;
+void semaphore_wait(semaphore_t *sem)
+{
+    unsigned long flags;
 
-extern void spinlock_init(spinlock_t *lock);
-extern void spinlock_lock(spinlock_t *lock);
-extern void spinlock_unlock(spinlock_t *lock);
+    flags = cpu_save_interrupts();
+    while (sem->count == 0)
+        wait_queue_sleep(&sem->wq);
+    sem->count--;
+    cpu_restore_interrupts(flags);
+}
 
-#endif /* _QUNIX_SPINLOCK_H_ */
+void semaphore_signal(semaphore_t *sem)
+{
+    unsigned long flags;
+
+    flags = cpu_save_interrupts();
+    sem->count++;
+    wait_queue_wakeup(&sem->wq);
+    cpu_restore_interrupts(flags);
+}
