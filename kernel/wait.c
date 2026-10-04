@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/task.h>
 #include <kernel/wait.h>
 
 void wait_queue_init(struct wait_queue *wq)

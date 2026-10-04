@@ -18,7 +18,6 @@
 #ifndef _QUNIX_RWLOCK_H_
 #define _QUNIX_RWLOCK_H_
 
-#include <kernel/task.h>
 #include <kernel/wait.h>
 
 typedef struct rwlock {

@@ -18,6 +18,7 @@
 #include <kernel/cpu.h>
 #include <kernel/panic.h>
 #include <kernel/rwlock.h>
+#include <kernel/task.h>
 
 void rwlock_init(rwlock_t *lock)
 {

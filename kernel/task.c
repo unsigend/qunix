@@ -50,6 +50,7 @@ void task_init(void)
     cur_task->state = TASK_RUNNING;
     cur_task->kstack = task_boot_kstack();
     cur_task->context = NULL;
+    completion_init(&cur_task->exit_completion);
 
     list_init(&ready_queue);
     spinlock_init(&lock);
@@ -102,6 +103,8 @@ struct task_struct *task_create(void (*func)(void *), void *data)
     task->context = task_context_init(task->kstack, func, data);
     task->state = TASK_READY;
 
+    completion_init(&task->exit_completion);
+
     list_add_tail(&task->tasks, &ready_queue);
 
     spinlock_unlock(&lock);
@@ -121,8 +124,8 @@ void task_schedule(void)
                                   and restore it back after context switch */
 
     if (list_empty(&ready_queue)) {
-        if (cur_task->state == TASK_BLOCKED)
-            panic("No task to schedule");
+        if (cur_task->state == TASK_BLOCKED || cur_task->state == TASK_ZOMBIE)
+            panic("No runnable task to schedule");
         cpu_restore_interrupts(flags);
         return;
     }
@@ -174,6 +177,41 @@ struct task_struct *task_dequeue(void)
     spinlock_unlock(&lock);
 
     return task;
+}
+
+void task_exit(int status)
+{
+    unsigned long flags;
+
+    flags = cpu_save_interrupts();
+    cur_task->state = TASK_ZOMBIE;
+    cur_task->exit_status = status;
+    complete_all(&cur_task->exit_completion);
+    cpu_restore_interrupts(flags);
+
+    task_schedule();
+
+    /* never reach here */
+}
+
+int task_join(struct task_struct *task)
+{
+    int status;
+    struct pmm_page *phy_page;
+
+    if (task == cur_task)
+        panic("cannot join current task");
+    if (task->pid == 0)
+        panic("cannot join the boot task");
+
+    wait_for_completion(&task->exit_completion);
+
+    status = task->exit_status;
+    phy_page = pmm_virt_to_page((virt_addr_t)task->kstack - PAGE_SIZE);
+    pmm_free_page(phy_page);
+
+    kfree(task);
+    return status;
 }
 
 void task_tick(void)

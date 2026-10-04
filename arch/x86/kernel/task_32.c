@@ -27,13 +27,12 @@ char *task_boot_kstack(void) { return stack_top; }
 
 static void trampoline(void (*func)(void *), void *data)
 {
-    cpu_enable_interrupts();
+    cpu_enable_interrupts(); /* every new thread starts with interrupts enabled
+                                since it is a new context */
 
     func(data);
 
-    /* TODO: implement task destroy, zombie task handling, and task exit */
-
-    panic("trampoline function should not return"); /* should not reach here */
+    task_exit(0);
 }
 
 struct task_context *task_context_init(char *kstack, void (*func)(void *),

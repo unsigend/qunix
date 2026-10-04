@@ -18,6 +18,7 @@
 #include <kernel/cond.h>
 #include <kernel/cpu.h>
 #include <kernel/panic.h>
+#include <kernel/task.h>
 
 void cond_init(cond_t *cond) { wait_queue_init(&cond->wq); }
 

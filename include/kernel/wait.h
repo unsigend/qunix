@@ -18,8 +18,8 @@
 #ifndef _QUNIX_WAIT_H_
 #define _QUNIX_WAIT_H_
 
+#include <kernel/list.h>
 #include <kernel/spinlock.h>
-#include <kernel/task.h>
 
 struct wait_queue {
     struct list_head tasks;

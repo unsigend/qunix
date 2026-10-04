@@ -18,6 +18,7 @@
 #include <kernel/cpu.h>
 #include <kernel/mutex.h>
 #include <kernel/panic.h>
+#include <kernel/task.h>
 
 void mutex_init(mutex_t *mutex)
 {

@@ -19,6 +19,7 @@
 #define _QUNIX_TASK_H_
 
 #include <kernel/compiler.h>
+#include <kernel/completion.h>
 #include <kernel/list.h>
 #include <kernel/types.h>
 
@@ -26,6 +27,7 @@ enum task_state {
     TASK_READY,   /* ready to run */
     TASK_RUNNING, /* running task */
     TASK_BLOCKED, /* blocked task */
+    TASK_ZOMBIE,  /* zombie task */
 };
 
 #define NTASKS 64 /* maximum number of tasks */
@@ -40,8 +42,6 @@ CONTRACT extern struct task_context *
 task_context_init(char *kstack, void (*func)(void *), void *data);
 CONTRACT extern char *task_boot_kstack(void);
 
-/* In v0.1 the task struct is only used for kernel threads, no user space
- * tasks related */
 struct task_struct {
     pid_t pid;
     enum task_state state;
@@ -49,11 +49,13 @@ struct task_struct {
     char *kstack; /* kernel stack bottom address */
     struct list_head tasks;
     unsigned int sliceleft;
+    struct completion exit_completion; /* completion for exit */
+    int exit_status;                   /* exit status */
 };
 
-/* Create a new kernel thread without executing or scheduling it, and return a
- * pointer to it which allocate by kmalloc. Return NULL if failed. */
 extern struct task_struct *task_create(void (*func)(void *), void *data);
+extern void task_exit(int status);
+extern int task_join(struct task_struct *task);
 
 extern void task_init(void);
 extern void task_schedule(void);

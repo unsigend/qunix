@@ -18,12 +18,16 @@
 #ifndef _QUNIX_SPINLOCK_H_
 #define _QUNIX_SPINLOCK_H_
 
-#include <kernel/task.h>
+#include <kernel/stddef.h>
+
+struct task_struct;
 
 typedef struct spinlock {
     unsigned int locked;
     struct task_struct *holder;
 } spinlock_t;
+
+#define SPINLOCK_INIT {.locked = 0, .holder = NULL}
 
 extern void spinlock_init(spinlock_t *lock);
 extern void spinlock_lock(spinlock_t *lock);

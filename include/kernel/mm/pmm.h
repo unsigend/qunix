@@ -39,6 +39,11 @@ static __always_inline virt_addr_t pmm_page_to_virt(struct pmm_page *page)
     return phys_to_virt(pmm_page_to_phys(page));
 }
 
+static __always_inline struct pmm_page *pmm_virt_to_page(virt_addr_t virt)
+{
+    return pmm_phys_to_page(virt_to_phys(virt));
+}
+
 extern struct pmm_page *pmm_alloc_page(void);
 extern void pmm_free_page(struct pmm_page *page);
 
