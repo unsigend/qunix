@@ -60,7 +60,7 @@ KERNEL_ISO := $(BINDIR)/qunix-$(ARCH).iso
 ISODIR     := $(BUILDDIR)/iso
 BOCHS_CFG  := config/bochs/$(ARCH)-bochs.cfg
 
-.PHONY: all elf mb-check check-includes iso run qemu qemu-gdb bochs gen-config clang clean version help
+.PHONY: all elf mb-check check-includes line iso run qemu qemu-gdb bochs gen-config clang clean version help
 .DEFAULT_GOAL := help
 
 all: $(OBJS)
@@ -77,6 +77,9 @@ mb-check: elf
 
 check-includes:
 	@sh $(SCRIPTDIR)/check-includes.sh $(SRCDIR) $(INCDIR)
+
+line:
+	@$(PYTHON) $(SCRIPTDIR)/linecount.py
 
 iso: elf
 	@mkdir -p $(ISODIR)/boot/grub
@@ -129,5 +132,6 @@ help:
 	@echo "\tmake gen-config          - generate the config files"
 	@echo "\tmake mb-check            - check multiboot2 compliance of ELF"
 	@echo "\tmake check-includes      - check header include conventions"
+	@echo "\tmake line                - count source lines by module"
 	@echo "\tmake version             - show the version of the kernel"
 	@echo ""

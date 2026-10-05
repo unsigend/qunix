@@ -36,6 +36,7 @@ make clang               - generate compile_commands.json
 make gen-config          - generate the config files
 make mb-check            - check multiboot2 compliance of ELF
 make check-includes      - check header include conventions
+make line                - count source lines by module
 make version             - show the version of the kernel
 ```
 

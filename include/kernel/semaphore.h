@@ -27,10 +27,10 @@ typedef struct semaphore {
 
 extern void semaphore_init(semaphore_t *sem, int count);
 extern void semaphore_wait(semaphore_t *sem);
-extern void semaphore_signal(semaphore_t *sem);
+extern void semaphore_post(semaphore_t *sem);
 
 /* alias */
 #define semaphore_down(sem) semaphore_wait(sem)
-#define semaphore_up(sem) semaphore_signal(sem)
+#define semaphore_up(sem) semaphore_post(sem)
 
 #endif /* _QUNIX_SEMAPHORE_H_ */

@@ -35,7 +35,7 @@ void semaphore_wait(semaphore_t *sem)
     cpu_restore_interrupts(flags);
 }
 
-void semaphore_signal(semaphore_t *sem)
+void semaphore_post(semaphore_t *sem)
 {
     unsigned long flags;
 
