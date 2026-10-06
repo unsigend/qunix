@@ -30,4 +30,8 @@ typedef uintptr_t virt_addr_t;
 
 typedef uintptr_t pagetable_t;
 
+typedef struct {
+    volatile int value;
+} atomic_t;
+
 #endif /* _QUNIX_TYPES_H_ */

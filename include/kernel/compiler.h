@@ -20,6 +20,7 @@
 
 #define CONTRACT
 #define UNUSED(x) (void)(x)
+#define STATIC_ASSERT(expr) _Static_assert(expr, #expr " check failed")
 
 #define __packed __attribute__((packed))
 #define __aligned(n) __attribute__((aligned(n)))
