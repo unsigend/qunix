@@ -15,30 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_TYPES_H_
-#define _QUNIX_TYPES_H_
+#ifndef _QUNIX_FEATURE_H_
+#define _QUNIX_FEATURE_H_
 
-#include <kernel/feature.h>
-#include <kernel/stddef.h>
-#include <kernel/stdint.h>
+#include <kernel/limits.h>
 
-typedef __PTRDIFF_TYPE__ ssize_t;
-
-typedef int32_t pid_t;
-
-typedef uintptr_t phys_addr_t;
-typedef uintptr_t virt_addr_t;
-
-typedef uintptr_t pagetable_t;
-
-typedef struct {
-    volatile int value;
-} atomic_t;
-
-#if WORD_BITS == 64
-typedef struct {
-    volatile long long value;
-} atomic64_t;
+#if ULONG_MAX == 0xFFFFFFFF
+#define WORD_BITS 32
+#define WORD_SIZE 4
+#elif ULONG_MAX == 0xFFFFFFFFFFFFFFFF
+#define WORD_BITS 64
+#define WORD_SIZE 8
+#else
+#error "Unsupported word size"
 #endif
 
-#endif /* _QUNIX_TYPES_H_ */
+#endif /* _QUNIX_FEATURE_H_ */
