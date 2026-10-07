@@ -20,6 +20,9 @@
 
 #include <kernel/limits.h>
 
+/* This file contains hardcoded features macros, which are used to determine the
+ * features of the architecture and host compiler. */
+
 #if ULONG_MAX == 0xFFFFFFFF
 #define WORD_BITS 32
 #define WORD_SIZE 4
@@ -28,6 +31,12 @@
 #define WORD_SIZE 8
 #else
 #error "Unsupported word size"
+#endif
+
+#ifdef __ATOMIC_RELAXED
+#define DEFAULT_ORDER __ATOMIC_RELAXED
+#else
+#error "Compiler does not support __ATOMIC_RELAXED ANSI/ISO C11 memory ordering"
 #endif
 
 #endif /* _QUNIX_FEATURE_H_ */

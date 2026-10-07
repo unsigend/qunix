@@ -24,12 +24,16 @@
 
 /* Architecture-independent atomic operations, based on GNU GCC builtin atomic
  * operations. The atomic operations only guarantee atomicity, where ordering is
- * guaranteed by the barrier. */
+ * guaranteed by the barrier. For bitwise atomic operations, see
+ * <kernel/bitops.h> instead. */
 
 #define ATOMIC_INIT(val) {(val)}
+#if WORD_BITS == 64
 #define ATOMIC64_INIT(val) {(val)}
-#define DEFAULT_ORDER __ATOMIC_RELAXED
+#endif /* WORD_BITS == 64 */
 
+/* 32-bit atomic operations, for the return version of the operation, it return
+ * updated value. */
 static __always_inline int atomic_read(const atomic_t *v);
 static __always_inline void atomic_set(atomic_t *v, int i);
 static __always_inline void atomic_add(atomic_t *v, int i);

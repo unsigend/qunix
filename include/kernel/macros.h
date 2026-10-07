@@ -18,8 +18,6 @@
 #ifndef _QUNIX_MACROS_H_
 #define _QUNIX_MACROS_H_
 
-#include <kernel/stddef.h>
-
 #define ALIGN(x, a)                                                            \
     (((x) + ((__typeof__(x))(a) - 1)) & ~((__typeof__(x))(a) - 1))
 #define IS_ALIGNED(x, align) (((x) & ((align) - 1)) == 0)
