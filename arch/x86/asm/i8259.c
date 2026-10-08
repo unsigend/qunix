@@ -15,10 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <asm/cpu.h>
 #include <asm/i8259.h>
 #include <asm/io.h>
+#include <asm/irq.h>
 
+#include <kernel/irq.h>
+#include <kernel/panic.h>
 #include <kernel/printk.h>
 
 #define PIC1_BASE 0x20
@@ -51,30 +53,58 @@
 #define PIC_IRR 0x0A /* Interrupt Request Register (IRR) */
 #define PIC_ISR 0x0B /* In-Service Register (ISR) */
 
-void i8259_eoi(uint8_t irq)
+static void eoi(unsigned int irq)
 {
     if (irq >= 8)
         outb(PIC2_CMD_PORT, EOI);
     outb(PIC1_CMD_PORT, EOI);
 }
 
-static struct i8259_isr i8259_read_isr(uint8_t reg)
+static void maskall(void)
 {
-    struct i8259_isr isr;
-
-    outb(PIC1_CMD_PORT, reg);
-    outb(PIC2_CMD_PORT, reg);
-
-    isr.master = inb(PIC1_CMD_PORT);
-    isr.slave = inb(PIC2_CMD_PORT);
-
-    return isr;
+    outb(PIC1_DATA_PORT, 0xFF);
+    outb(PIC2_DATA_PORT, 0xFF);
 }
 
-i8259_irr i8259_get_irr(void) { return i8259_read_isr(PIC_IRR); }
-i8259_isr i8259_get_isr(void) { return i8259_read_isr(PIC_ISR); }
+__unused static void unmaskall(void)
+{
+    outb(PIC1_DATA_PORT, 0x00);
+    outb(PIC2_DATA_PORT, 0x00);
+}
 
-static void i8259_remap(uint8_t master, uint8_t slave)
+static void mask(unsigned int irq)
+{
+    uint16_t port;
+    uint8_t value;
+
+    if (irq < 8)
+        port = PIC1_DATA_PORT;
+    else {
+        port = PIC2_DATA_PORT;
+        irq -= 8;
+    }
+
+    value = inb(port) | (1 << irq);
+    outb(port, value);
+}
+
+static void unmask(unsigned int irq)
+{
+    uint16_t port;
+    uint8_t value;
+
+    if (irq < 8)
+        port = PIC1_DATA_PORT;
+    else {
+        port = PIC2_DATA_PORT;
+        irq -= 8;
+    }
+
+    value = inb(port) & ~(1 << irq);
+    outb(port, value);
+}
+
+static void remap_port(uint8_t master, uint8_t slave)
 {
     /* ICW1: start initialization sequence */
     outb(PIC1_CMD_PORT, ICW1_INIT | ICW1_ICW4);
@@ -101,56 +131,34 @@ static void i8259_remap(uint8_t master, uint8_t slave)
     outb(PIC2_DATA_PORT, ICW4_8086);
     io_wait();
 
-    i8259_mask_all(); /* keep the PICs disabled and unmask later */
+    maskall(); /* keep the PICs disabled and unmask later */
 }
 
-void i8259_set_mask(uint8_t irq)
-{
-    uint16_t port;
-    uint8_t value;
+static struct irq_chip chip = {
+    .name = "8259 PIC",
+    .mask = mask,
+    .unmask = unmask,
+    .eoi = eoi,
+};
 
-    if (irq < 8)
-        port = PIC1_DATA_PORT;
-    else {
-        port = PIC2_DATA_PORT;
-        irq -= 8;
+void i8259_init(void)
+{
+    uint8_t master, slave;
+
+    master = X86_IRQ_BASE;
+    slave = X86_IRQ_BASE + 8;
+
+    remap_port(master, slave);
+
+    for (unsigned int i = 0; i < IRQ_NR; i++) {
+        if (i == X86_IRQ_CASCADE) {
+            unmask(i); /* unmask the cascade IRQ */
+            continue;
+        }
+        if (irq_set_chip(i, &chip) < 0)
+            panic("Failed to set IRQ chip line %u for 8259 PIC", i);
     }
 
-    value = inb(port) | (1 << irq);
-    outb(port, value);
-}
-
-void i8259_clear_mask(uint8_t irq)
-{
-    uint16_t port;
-    uint8_t value;
-
-    if (irq < 8)
-        port = PIC1_DATA_PORT;
-    else {
-        port = PIC2_DATA_PORT;
-        irq -= 8;
-    }
-
-    value = inb(port) & ~(1 << irq);
-    outb(port, value);
-}
-
-void i8259_init(uint8_t master, uint8_t slave)
-{
-    i8259_remap(master, slave);
     LOGM(LOG_LEVEL_INFO, "8259 PIC",
          "Remapped 8259 PICs IRQ to 0x%02X and 0x%02X", master, slave);
-}
-
-void i8259_mask_all(void)
-{
-    outb(PIC1_DATA_PORT, 0xFF);
-    outb(PIC2_DATA_PORT, 0xFF);
-}
-
-void i8259_unmask_all(void)
-{
-    outb(PIC1_DATA_PORT, 0x00);
-    outb(PIC2_DATA_PORT, 0x00);
 }

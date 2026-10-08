@@ -31,7 +31,7 @@ void wait_queue_sleep(struct wait_queue *wq)
     spinlock_lock(&wq->lock);
     task = task_get_current();
     task->state = TASK_BLOCKED;
-    list_add_tail(&task->tasks, &wq->tasks);
+    list_add_tail(&wq->tasks, &task->tasks);
     spinlock_unlock(&wq->lock);
 
     task_schedule();

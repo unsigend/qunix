@@ -105,7 +105,7 @@ struct task_struct *task_create(void (*func)(void *), void *data)
 
     completion_init(&task->exit_completion);
 
-    list_add_tail(&task->tasks, &ready_queue);
+    list_add_tail(&ready_queue, &task->tasks);
 
     spinlock_unlock(&lock);
 
@@ -156,7 +156,7 @@ void task_schedule(void)
 void task_enqueue(struct task_struct *task)
 {
     spinlock_lock(&lock);
-    list_add_tail(&task->tasks, &ready_queue);
+    list_add_tail(&ready_queue, &task->tasks);
     spinlock_unlock(&lock);
 }
 

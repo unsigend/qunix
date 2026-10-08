@@ -15,36 +15,61 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <asm/irq.h>
+
+#include <kernel/cpu.h>
 #include <kernel/errno.h>
 #include <kernel/irq.h>
+#include <kernel/task.h>
 
-#define MAX_IRQS 64
+static struct irq_desc irq_desc[IRQ_NR];
 
-struct irq_context {
-    irq_handler_t handler;
-    void *data;
-};
-
-static struct irq_context irq_contexts[MAX_IRQS];
-
-int irq_register(uint32_t irq, irq_handler_t handler, void *data)
+void irq_enter(void)
 {
-    if (irq >= MAX_IRQS)
-        return -EINVAL;
+    struct cpu *cpu;
+    cpu = cpu_current();
+    cpu->irq_nesting++;
+}
 
-    irq_contexts[irq].handler = handler;
-    irq_contexts[irq].data = data;
+void irq_exit(void)
+{
+    struct cpu *cpu;
+    cpu = cpu_current();
+    cpu->irq_nesting--;
+    if (!cpu->irq_nesting)
+        task_preempt();
+}
+
+int irq_set_chip(unsigned int irq, struct irq_chip *chip)
+{
+    struct irq_desc *desc;
+
+    if (irq >= IRQ_NR || !chip)
+        return -EINVAL;
+    if (irq_desc[irq].chip)
+        return -EBUSY;
+
+    desc = &irq_desc[irq];
+    desc->chip = chip;
+    desc->count = 0;
+    desc->irq = irq;
+    list_init(&desc->actions);
+
+    desc->chip->mask(irq); /* mask until the handler is registered */
 
     return 0;
 }
 
-void irq_dispatch(uint32_t irq)
+struct irq_chip *irq_get_chip(unsigned int irq)
 {
-    if (irq >= MAX_IRQS)
-        return;
+    if (irq >= IRQ_NR)
+        return NULL;
+    return irq_desc[irq].chip;
+}
 
-    if (irq_contexts[irq].handler)
-        irq_contexts[irq].handler(irq_contexts[irq].data);
-
-    irq_eoi(irq);
+struct irq_desc *irq_get_desc(unsigned int irq)
+{
+    if (irq >= IRQ_NR)
+        return NULL;
+    return &irq_desc[irq];
 }

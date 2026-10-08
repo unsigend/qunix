@@ -21,9 +21,24 @@
 #include <kernel/compiler.h>
 #include <kernel/stdbool.h>
 
-/* Disable or enable cpu local interrupts. These functions are not nested safe,
- * an interrupt may occur between the enable and disable calls. For nested
- * interrupts calls, use irq_save() and irq_restore() instead. */
+#define IRQF_DISABLED                                                          \
+    (1 << 1) /* Disable interrupts when handling the interrupt */
+#define IRQF_SAMPLE_RADOM (1 << 2) /* Sample random number from interrupt */
+#define IRQF_SHARED                                                            \
+    (1 << 3) /* Shared interrupt line among multiple                           \
+                handlers */
+
+enum irqreturn {
+    IRQ_NONE = 0,    /* Interrupt not handled */
+    IRQ_HANDLED = 1, /* Interrupt handled */
+};
+
+typedef enum irqreturn irqreturn_t;
+typedef irqreturn_t (*irq_handler_t)(unsigned int irq, void *dev);
+
+/* Disable or enable cpu local interrupts. These functions are not nested
+ * safe, an interrupt may occur between the enable and disable calls. For
+ * nested interrupts calls, use irq_save() and irq_restore() instead. */
 CONTRACT extern void irq_enable(void);
 CONTRACT extern void irq_disable(void);
 
@@ -36,5 +51,25 @@ CONTRACT extern bool irq_is_disabled(void);
  * calls are safe. */
 CONTRACT extern unsigned long irq_save(void);
 CONTRACT extern void irq_restore(unsigned long flags);
+
+/* Return true if the current execution is in an interrupt context. False
+ * otherwise. */
+extern bool in_interrupt(void);
+
+/**
+ * Register an interrupt handler for a given IRQ line.
+ *
+ * @irq: IRQ line number
+ * @handler: Interrupt handler function
+ * @flags: Interrupt flags
+ * @name: Interrupt name
+ * @dev: Device pointer
+ *
+ * @return: 0 on success, -ERRNO on failure
+ */
+extern int irq_register(unsigned int irq, irq_handler_t handler,
+                        unsigned long flags, const char *name, void *dev);
+
+extern void irq_unregister(unsigned int irq, void *dev);
 
 #endif /* _QUNIX_INTERRUPT_H_ */

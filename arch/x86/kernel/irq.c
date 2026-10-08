@@ -14,10 +14,3 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-#include <asm/cpu.h>
-#include <asm/i8259.h>
-
-#include <kernel/irq.h>
-
-void irq_eoi(uint32_t irq) { i8259_eoi((uint8_t)irq); }

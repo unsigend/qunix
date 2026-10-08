@@ -234,8 +234,6 @@ isr_handler:
     call trap_handler
     addl $4, %esp
 
-    call task_preempt
-
     popa
     popw %gs
     addl $2, %esp

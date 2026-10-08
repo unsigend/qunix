@@ -73,26 +73,26 @@ static inline int list_empty(const struct list_head *head)
 
 /**
  * list_add_head - add a new entry
- * @new: new entry to be added
  * @head: list head to add it after
+ * @new: new entry to be added
  *
  * Insert a new entry at the head of the list.
  * Used for implementing stacks.
  */
-static inline void list_add_head(struct list_head *new, struct list_head *head)
+static inline void list_add_head(struct list_head *head, struct list_head *new)
 {
     __list_add(new, head, head->next);
 }
 
 /**
  * list_add_tail - add a new entry
- * @new: new entry to be added
  * @head: list head to add it before
+ * @new: new entry to be added
  *
  * Insert a new entry at the tail of the list.
  * Used for implementing queues.
  */
-static inline void list_add_tail(struct list_head *new, struct list_head *head)
+static inline void list_add_tail(struct list_head *head, struct list_head *new)
 {
     __list_add(new, head->prev, head);
 }
@@ -145,5 +145,15 @@ static inline void list_del_head(struct list_head *head)
  * @member:	the name of the list_struct within the struct.
  */
 #define list_entry(ptr, type, member) container_of(ptr, type, member)
+
+/**
+ * list_for_each - iterate over a list
+ * @head: the list to iterate over
+ * @pos: the position variable
+ *
+ * Iterate over a list starting from the head.
+ */
+#define list_for_each(head, pos)                                               \
+    for (pos = (head)->next; pos != (head); pos = pos->next)
 
 #endif /* _QUNIX_LIST_H_ */
