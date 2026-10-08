@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/panic.h>
 #include <kernel/spinlock.h>
 #include <kernel/task.h>
@@ -43,7 +43,7 @@ void spinlock_lock(spinlock_t *lock)
         panic("deadlock detected");
 
     if (nested == 0)
-        flags = cpu_save_interrupts();
+        flags = irq_save();
 
     lock->locked = 1;
     lock->holder = task_get_current();
@@ -68,5 +68,5 @@ void spinlock_unlock(spinlock_t *lock)
     lock->holder = NULL;
 
     if (nested == 0)
-        cpu_restore_interrupts(flags);
+        irq_restore(flags);
 }

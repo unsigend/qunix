@@ -16,7 +16,7 @@
  */
 
 #include <kernel/cond.h>
-#include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/panic.h>
 #include <kernel/task.h>
 
@@ -28,10 +28,10 @@ void cond_wait(cond_t *cond, mutex_t *mutex)
 
     if (mutex->locked && mutex->holder != task_get_current())
         panic("wait not hold by current task");
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     mutex_unlock(mutex);
     wait_queue_sleep(&cond->wq);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
     mutex_lock(mutex);
 }
 

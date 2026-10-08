@@ -16,7 +16,7 @@
  */
 
 #include <kernel/completion.h>
-#include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/limits.h>
 
 void completion_init(completion_t *completion)
@@ -29,31 +29,31 @@ void wait_for_completion(completion_t *completion)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     while (!completion->done)
         wait_queue_sleep(&completion->wq);
     if (completion->done != INT_MAX)
         completion->done--;
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void complete(completion_t *completion)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     if (completion->done != INT_MAX)
         completion->done++;
     wait_queue_wakeup(&completion->wq);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void complete_all(completion_t *completion)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     completion->done = INT_MAX; /* sentinel value */
     wait_queue_wakeup_all(&completion->wq);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }

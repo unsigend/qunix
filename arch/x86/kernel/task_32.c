@@ -18,6 +18,7 @@
 #include <asm/task.h>
 
 #include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/panic.h>
 #include <kernel/task.h>
 
@@ -27,8 +28,8 @@ char *task_boot_kstack(void) { return stack_top; }
 
 static void trampoline(void (*func)(void *), void *data)
 {
-    cpu_enable_interrupts(); /* every new thread starts with interrupts enabled
-                                since it is a new context */
+    irq_enable(); /* every new thread starts with interrupts enabled since it is
+                     a new context */
 
     func(data);
 

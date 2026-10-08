@@ -16,7 +16,7 @@
  */
 
 #include <kernel/clock.h>
-#include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/irq.h>
 #include <kernel/kmalloc.h>
 #include <kernel/list.h>
@@ -120,13 +120,13 @@ void task_schedule(void)
     unsigned long flags;
 
     flags =
-        cpu_save_interrupts(); /* save interrupts flags into per-task's stack
+        irq_save(); /* save interrupts flags into per-task's stack
                                   and restore it back after context switch */
 
     if (list_empty(&ready_queue)) {
         if (cur_task->state == TASK_BLOCKED || cur_task->state == TASK_ZOMBIE)
             panic("No runnable task to schedule");
-        cpu_restore_interrupts(flags);
+        irq_restore(flags);
         return;
     }
 
@@ -142,7 +142,7 @@ void task_schedule(void)
     new_task->sliceleft = TIME_SLICE;
 
     if (old_task == new_task) {
-        cpu_restore_interrupts(flags);
+        irq_restore(flags);
         return;
     }
 
@@ -150,7 +150,7 @@ void task_schedule(void)
 
     context_switch(&old_task->context, new_task->context);
 
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void task_enqueue(struct task_struct *task)
@@ -183,11 +183,11 @@ void task_exit(int status)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     cur_task->state = TASK_ZOMBIE;
     cur_task->exit_status = status;
     complete_all(&cur_task->exit_completion);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 
     task_schedule();
 

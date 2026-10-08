@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/panic.h>
 #include <kernel/rwlock.h>
 #include <kernel/task.h>
@@ -33,46 +33,46 @@ void rwlock_read_lock(rwlock_t *lock)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     while (lock->writer || lock->writers_waiting > 0)
         wait_queue_sleep(&lock->wq_readers);
     lock->readers++;
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void rwlock_read_unlock(rwlock_t *lock)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     lock->readers--;
     if (lock->readers == 0)
         wait_queue_wakeup(&lock->wq_writers);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void rwlock_write_lock(rwlock_t *lock)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     lock->writers_waiting++;
     while (lock->readers > 0 || lock->writer)
         wait_queue_sleep(&lock->wq_writers);
     lock->writers_waiting--;
     lock->writer = task_get_current();
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void rwlock_write_unlock(rwlock_t *lock)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     if (lock->writer != task_get_current())
         panic("rwlock_write_unlock: not the writer");
     lock->writer = NULL;
     wait_queue_wakeup_all(&lock->wq_readers);
     wait_queue_wakeup(&lock->wq_writers);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }

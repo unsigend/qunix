@@ -19,29 +19,17 @@
 #include <asm/gdt.h>
 #include <asm/idt.h>
 
+#include <kernel/config.h>
 #include <kernel/cpu.h>
 #include <kernel/printk.h>
 
+static struct cpu cpus[CONFIG_MAX_CPUS];
+
 void cpu_halt(void)
 {
+    asm volatile("cli");
     for (;;)
         asm volatile("hlt");
-}
-
-void cpu_enable_interrupts(void) { asm volatile("sti"); }
-void cpu_disable_interrupts(void) { asm volatile("cli"); }
-
-unsigned long cpu_save_interrupts(void)
-{
-    unsigned long flags = read_flags() & FLAGS_IF_MASK;
-    cpu_disable_interrupts();
-    return flags;
-}
-
-void cpu_restore_interrupts(unsigned long flags)
-{
-    if (flags & FLAGS_IF_MASK)
-        cpu_enable_interrupts();
 }
 
 void cpu_init(void)
@@ -50,4 +38,14 @@ void cpu_init(void)
     idt_init();
 
     LOGM(LOG_LEVEL_INFO, "CPU", "CPU initialized successfully");
+}
+
+struct cpu *cpu_current(void)
+{
+#if CONFIG_SMP
+/* TODO: Implement SMP support */
+#error "SMP support not implemented"
+#else
+    return &cpus[0];
+#endif
 }

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/semaphore.h>
 
 void semaphore_init(semaphore_t *sem, int count)
@@ -28,19 +28,19 @@ void semaphore_wait(semaphore_t *sem)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     while (sem->count == 0)
         wait_queue_sleep(&sem->wq);
     sem->count--;
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void semaphore_post(semaphore_t *sem)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     sem->count++;
     wait_queue_wakeup(&sem->wq);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }

@@ -15,24 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/clock.h>
-#include <kernel/cpu.h>
-#include <kernel/init.h>
+#include <asm/cpu.h>
+
 #include <kernel/interrupt.h>
-#include <kernel/mm.h>
-#include <kernel/printk.h>
-#include <kernel/task.h>
 
-int kernel_main(void)
+void irq_enable(void) { asm volatile("sti" ::: "memory"); }
+void irq_disable(void) { asm volatile("cli" ::: "memory"); }
+bool irq_is_disabled(void) { return (read_flags() & FLAGS_IF_MASK) == 0U; }
+
+unsigned long irq_save(void)
 {
-    irq_disable();
-    cpu_init();
-    clock_init();
-    mm_init();
-    task_init();
-    irq_enable();
+    unsigned long flags;
+    flags = read_flags() & FLAGS_IF_MASK;
+    if (flags)
+        irq_disable();
+    return flags;
+}
 
-    LOGM(LOG_LEVEL_INFO, "KERNEL", "Kernel initialized successfully");
-
-    return 0;
+void irq_restore(unsigned long flags)
+{
+    if (flags)
+        irq_enable();
 }

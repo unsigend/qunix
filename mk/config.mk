@@ -15,6 +15,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ARCH = i386
+MAX_CPUS = 1
 SMP = 0
 DEBUG = 0
 TOOLCHAIN = i686-elf-

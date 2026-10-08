@@ -20,6 +20,7 @@
 #ifndef _QUNIX_CONFIG_H_
 #define _QUNIX_CONFIG_H_
 
+#define CONFIG_MAX_CPUS 1
 #define CONFIG_SMP 0
 #define CONFIG_VERSION_MAJOR 0
 #define CONFIG_VERSION_MINOR 1

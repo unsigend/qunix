@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/cpu.h>
+#include <kernel/interrupt.h>
 #include <kernel/mutex.h>
 #include <kernel/panic.h>
 #include <kernel/task.h>
@@ -31,19 +31,19 @@ void mutex_lock(mutex_t *mutex)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
     while (mutex->locked)
         wait_queue_sleep(&mutex->wq);
     mutex->locked = 1;
     mutex->holder = task_get_current();
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
 
 void mutex_unlock(mutex_t *mutex)
 {
     unsigned long flags;
 
-    flags = cpu_save_interrupts();
+    flags = irq_save();
 
     if (!mutex->locked)
         panic("mutex not locked");
@@ -53,5 +53,5 @@ void mutex_unlock(mutex_t *mutex)
     mutex->locked = 0;
     mutex->holder = NULL;
     wait_queue_wakeup(&mutex->wq);
-    cpu_restore_interrupts(flags);
+    irq_restore(flags);
 }
