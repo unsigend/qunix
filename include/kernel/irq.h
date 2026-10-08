@@ -18,8 +18,6 @@
 #ifndef _QUNIX_IRQ_H_
 #define _QUNIX_IRQ_H_
 
-#include <asm/irq.h> /* IRQ_NR */
-
 #include <kernel/interrupt.h>
 #include <kernel/list.h>
 
@@ -64,14 +62,18 @@ struct irq_action {
  * @chip: hardware chip descriptor
  * @actions: actions list
  * @count: triggered count for this interrupt line
+ * @unhandled: number of unhandled interrupts for this interrupt line
  * @nhandlers: number of handlers registered for this interrupt line
+ * @depth: nested depth of irq_disable_line() calls
  */
 struct irq_desc {
     unsigned int irq;
     struct irq_chip *chip;
     struct list_head actions;
     unsigned long count;
+    unsigned long unhandled;
     unsigned int nhandlers;
+    unsigned int depth;
 };
 
 extern void irq_enter(void);
@@ -80,5 +82,7 @@ extern void irq_exit(void);
 extern int irq_set_chip(unsigned int irq, struct irq_chip *chip);
 extern struct irq_chip *irq_get_chip(unsigned int irq);
 extern struct irq_desc *irq_get_desc(unsigned int irq);
+
+extern irqreturn_t irq_handle(unsigned int irq);
 
 #endif /* _QUNIX_IRQ_H_ */

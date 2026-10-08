@@ -16,18 +16,31 @@
  */
 
 #include <asm/i8253.h>
-#include <asm/i8259.h>
+#include <asm/irq.h>
 
 #include <kernel/clock.h>
 #include <kernel/irq.h>
+#include <kernel/panic.h>
 #include <kernel/printk.h>
-#include <kernel/stddef.h>
+#include <kernel/task.h>
+
+static irqreturn_t tick(unsigned int irq, void *dev)
+{
+    UNUSED(irq);
+    UNUSED(dev);
+
+    jiffies++;
+    task_tick();
+
+    return IRQ_HANDLED;
+}
 
 void clock_init(void)
 {
-    irq_register(X86_IRQ_TIMER, clock_tick, NULL);
+    if (irq_register(X86_IRQ_TIMER, tick, 0, "i8253 clock", NULL))
+        panic("Failed to register i8253 clock");
+
     i8253_init(1000); /* 1000 Hz */
-    i8259_clear_mask(X86_IRQ_TIMER);
 
     LOGM(LOG_LEVEL_INFO, "CLOCK", "Clock initialized successfully");
 }

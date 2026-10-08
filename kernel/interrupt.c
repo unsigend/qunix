@@ -15,18 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <asm/irq.h> /* IRQ_NR */
+
 #include <kernel/cpu.h>
 #include <kernel/errno.h>
 #include <kernel/interrupt.h>
 #include <kernel/irq.h>
 #include <kernel/kmalloc.h>
 
-bool in_interrupt(void)
-{
-    struct cpu *cpu;
-    cpu = cpu_current();
-    return cpu->irq_nesting > 0;
-}
+bool in_interrupt(void) { return cpu_current()->irq_ctx_nested > 0; }
 
 int irq_register(unsigned int irq, irq_handler_t handler, unsigned long flags,
                  const char *name, void *dev)
@@ -57,7 +54,7 @@ int irq_register(unsigned int irq, irq_handler_t handler, unsigned long flags,
     list_add_tail(&desc->actions, &action->action);
     desc->nhandlers++;
     if (desc->nhandlers == 1)
-        desc->chip->unmask(irq); /* unmask if first handler */
+        irq_enable_line(irq); /* unmask if first handler */
 
     return 0;
 }
@@ -83,9 +80,33 @@ void irq_unregister(unsigned int irq, void *dev)
             list_del(&action->action);
             desc->nhandlers--;
             if (desc->nhandlers == 0)
-                desc->chip->mask(irq); /* mask if no handlers */
+                irq_disable_line(irq); /* mask if no handlers */
             kfree(action);
             break;
         }
     }
+}
+
+void irq_enable_line(unsigned int irq)
+{
+    struct irq_desc *desc;
+    desc = irq_get_desc(irq);
+    if (!desc || !desc->chip)
+        return;
+    if (desc->depth == 0)
+        return;
+    desc->depth--;
+    if (desc->depth == 0)
+        desc->chip->unmask(irq);
+}
+
+void irq_disable_line(unsigned int irq)
+{
+    struct irq_desc *desc;
+    desc = irq_get_desc(irq);
+    if (!desc || !desc->chip)
+        return;
+    desc->depth++;
+    if (desc->depth == 1)
+        desc->chip->mask(irq);
 }

@@ -19,11 +19,3 @@
 #include <kernel/task.h>
 
 volatile unsigned long jiffies = 0;
-
-void clock_tick(void *data)
-{
-    UNUSED(data);
-    jiffies++;
-
-    task_tick();
-}

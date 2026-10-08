@@ -25,6 +25,5 @@ extern volatile unsigned long
                 system booted */
 
 CONTRACT extern void clock_init(void);
-extern void clock_tick(void *data);
 
 #endif /* _QUNIX_CLOCK_H_ */

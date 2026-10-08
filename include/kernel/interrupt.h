@@ -21,8 +21,6 @@
 #include <kernel/compiler.h>
 #include <kernel/stdbool.h>
 
-#define IRQF_DISABLED                                                          \
-    (1 << 1) /* Disable interrupts when handling the interrupt */
 #define IRQF_SAMPLE_RADOM (1 << 2) /* Sample random number from interrupt */
 #define IRQF_SHARED                                                            \
     (1 << 3) /* Shared interrupt line among multiple                           \
@@ -41,6 +39,11 @@ typedef irqreturn_t (*irq_handler_t)(unsigned int irq, void *dev);
  * nested interrupts calls, use irq_save() and irq_restore() instead. */
 CONTRACT extern void irq_enable(void);
 CONTRACT extern void irq_disable(void);
+
+/* Enable or disable a specific interrupt line. Nested safe, only the outermost
+ * irq_enable_line() will enable the interrupt line back. */
+extern void irq_enable_line(unsigned int irq);
+extern void irq_disable_line(unsigned int irq);
 
 /* Check if cpu local interrupts are disabled. Return true if disabled, false
  * otherwise. */

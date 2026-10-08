@@ -20,9 +20,19 @@
 
 #include <kernel/compiler.h>
 
+/**
+ * Hardware generic CPU descriptor.
+ *
+ * @spinlock_nested: number of spinlock_lock() calls not yet matched by an
+ *                   spinlock_unlock() call
+ * @irq_ctx_nested:  number of nested interrupt contexts
+ * @irq_flags:       flags for irq_save() and irq_restore() calls
+ */
 struct cpu {
+    unsigned int spinlock_nested;
 
-    unsigned int irq_nesting; /* number of nested interrupt contexts */
+    unsigned int irq_ctx_nested;
+    unsigned long irq_flags;
 };
 
 CONTRACT extern void cpu_init(void);

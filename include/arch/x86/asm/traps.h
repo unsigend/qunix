@@ -18,7 +18,7 @@
 #ifndef _ASM_X86_TRAPS_H_
 #define _ASM_X86_TRAPS_H_
 
-#include <asm/trapnum.h>
+#include <asm/irq.h>
 
 #ifdef __x86_64__
 #include <asm/traps_64.h>
