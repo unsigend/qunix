@@ -18,42 +18,39 @@
 #ifndef _X86_ASM_GDT_H_
 #define _X86_ASM_GDT_H_
 
-#include <kernel/stdint.h>
-
 #define GDT_SIZE_MAX UINT16_MAX
+#define GDT_LIMIT_MAX 0xFFFFF
 
-#define GDT_A (1u << 0)   /* accessed */
-#define GDT_RW (1u << 1)  /* code: readable; data: writable */
-#define GDT_DC (1u << 2)  /* code: conforming; data: expand-down */
-#define GDT_EXE (1u << 3) /* executable */
-#define GDT_S (1u << 4)   /* non-system segment */
+#define GDT_CODE (1u << 3)               /* code segment */
+#define GDT_DATA 0                       /* data segment */
+#define GDT_LDT 0x02                     /* local descriptor table */
+#define GDT_TSS 0x09                     /* task state segment */
 #define GDT_DPL(dpl) (((dpl) & 3u) << 5) /* descriptor privilege level */
-#define GDT_P (1u << 7)                  /* present */
 
-#define GDT_CODE (GDT_S | GDT_EXE | GDT_RW) /* code segment */
-#define GDT_DATA (GDT_S | GDT_RW)           /* data segment */
-
-#define GDT_LONG (1u << 5)  /* 64-bit mode D/B must clear */
-#define GDT_DB (1u << 6)    /* 32-bit segment */
-#define GDT_G_4KB (1u << 7) /* 4KB granularity in limit */
-
-#define GDT_BITS32 (GDT_DB | GDT_G_4KB)   /* 32 bit segment */
-#define GDT_BITS64 (GDT_LONG | GDT_G_4KB) /* 64 bit segment */
+extern void gdtr_read(unsigned short *size, unsigned long *base);
+extern void gdtr_write(unsigned short size, unsigned long base);
 
 /**
- * Set the entry of the GDT at the given index.
+ * Set the entry of the GDT at the given index. Used for data and code segments.
  *
  * @index: index of the entry to set.
  * @base: base address of the entry.
  * @limit: limit of the entry.
- * @access: access flags of the entry (P, DPL, S, E, RC, RW, A).
- * @flags: flag of the entry (G, D/B, L)
+ * @flags: flags of the entry (GDT_CODE, GDT_DATA, GDT_DPL)
  */
 extern void gdt_set_entry(unsigned int index, unsigned long base,
-                          unsigned long limit, unsigned int access,
-                          unsigned int flags);
+                          unsigned long limit, unsigned int flags);
 
-extern void gdtr_read(unsigned short *size, unsigned long *base);
-extern void gdtr_write(unsigned short size, unsigned long base);
+/**
+ * Set the entry of the GDT at the given index. Used for system segments (task
+ * state segment, local descriptor table).
+ *
+ * @index: index of the entry to set.
+ * @base: base address of the entry.
+ * @limit: limit of the entry.
+ * @flags: flags of the entry (GDT_LDT, GDT_TSS, GDT_DPL)
+ */
+extern void gdt_set_sys_entry(unsigned int index, unsigned long base,
+                              unsigned long limit, unsigned int flags);
 
 #endif /* _X86_ASM_GDT_H_ */

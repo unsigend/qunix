@@ -19,13 +19,11 @@
 
 #include <asm/gdt.h>
 
-#include <kernel/compiler.h>
-
-static struct gdt_entry gdt[GDT_NR];
+__unused static struct gdt_entry gdt[GDT_NR];
 
 struct gdtr {
-    uint16_t size; /* size of the table in bytes minus 1 */
-    uint32_t base; /* base address of the table */
+    uint16_t size;
+    uint32_t base;
 } __packed;
 
 void gdtr_read(unsigned short *size, unsigned long *base)

@@ -21,6 +21,8 @@
 #include <kernel/compiler.h>
 #include <kernel/stdint.h>
 
+#define GDT_NR 12
+
 struct gdt_entry {
     uint16_t limit_low;  /* limit [0:15] */
     uint16_t base_low;   /* base [0:15] */
@@ -30,6 +32,19 @@ struct gdt_entry {
     uint8_t base_high;   /* base [24:31] */
 } __packed;
 
-#define GDT_NR 12
+#ifdef __x86_64__
+struct gdt_sys_entry {
+    uint16_t limit_low;   /* limit [0:15] */
+    uint16_t base_low;    /* base [0:15] */
+    uint8_t base_middle1; /* base [16:23] */
+    uint8_t access;       /* access flags */
+    uint8_t flags;        /* flags & limit [16:19] */
+    uint8_t base_middle2; /* base [24:31] */
+    uint32_t base_high;   /* base [32:63] */
+    uint32_t reserved;    /* reserved */
+} __packed;
+#else
+#define gdt_sys_entry gdt_entry
+#endif
 
 #endif /* _DESC_GDT_DESC_H_ */
