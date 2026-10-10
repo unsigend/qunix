@@ -16,12 +16,12 @@
 
 
 # Store the current CPU state into the given struct arch_cpu.
-#   void read_cpu(struct arch_cpu *cpu)
+#   void cpu_read(struct arch_cpu *cpu)
 
-.global read_cpu
-.type read_cpu, @function
+.global cpu_read
+.type cpu_read, @function
 
-read_cpu:
+cpu_read:
     # rdi store the cpu pointer, no need store rdi
     movq %rax, (%rdi)
     movq %rbx, 8(%rdi)

@@ -16,12 +16,12 @@
 
 
 # Store the current CPU state into the given struct arch_cpu.
-#   void read_cpu(struct arch_cpu *cpu)
+#   void cpu_read(struct arch_cpu *cpu)
 
-.global read_cpu
-.type read_cpu, @function
+.global cpu_read
+.type cpu_read, @function
 
-read_cpu:
+cpu_read:
     pushl %eax
     # eax store the cpu pointer
     movl 8(%esp), %eax
@@ -31,7 +31,7 @@ read_cpu:
     movl %edx, 12(%eax)
     movl %esi, 16(%eax)
     movl %edi, 20(%eax)
-    # store esp before call read_cpu
+    # store esp before call cpu_read
     leal 8(%esp), %ecx
     movl %ecx, 24(%eax)
     movl %ebp, 28(%eax)

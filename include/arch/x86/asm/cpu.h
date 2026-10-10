@@ -26,27 +26,32 @@
 
 #include <asm/cpu_flags.h>
 
-extern void read_cpu(struct arch_cpu *cpu);
+extern void cpu_read(struct arch_cpu *cpu);
 
-static __always_inline unsigned long read_flags(void);
+static __always_inline unsigned long flags_read(void);
 
-static __always_inline unsigned long read_cr0(void);
-static __always_inline unsigned long read_cr2(void);
-static __always_inline unsigned long read_cr3(void);
-static __always_inline unsigned long read_cr4(void);
+static __always_inline unsigned long cr0_read(void);
+static __always_inline unsigned long cr2_read(void);
+static __always_inline unsigned long cr3_read(void);
+static __always_inline unsigned long cr4_read(void);
 #ifdef __x86_64__
-static __always_inline unsigned long read_cr8(void);
+static __always_inline unsigned long cr8_read(void);
 #endif
 
-static __always_inline void write_cr0(unsigned long value);
-static __always_inline void write_cr2(unsigned long value);
-static __always_inline void write_cr3(unsigned long value);
-static __always_inline void write_cr4(unsigned long value);
+static __always_inline void cr0_write(unsigned long value);
+static __always_inline void cr2_write(unsigned long value);
+static __always_inline void cr3_write(unsigned long value);
+static __always_inline void cr4_write(unsigned long value);
 #ifdef __x86_64__
-static __always_inline void write_cr8(unsigned long value);
+static __always_inline void cr8_write(unsigned long value);
 #endif
 
-static __always_inline unsigned long read_flags(void)
+#define CPU_RING0 0
+#define CPU_RING1 1
+#define CPU_RING2 2
+#define CPU_RING3 3
+
+static __always_inline unsigned long flags_read(void)
 {
     unsigned long flags;
     asm volatile("pushf\n\t"
@@ -57,28 +62,28 @@ static __always_inline unsigned long read_flags(void)
     return flags;
 }
 
-static __always_inline unsigned long read_cr0(void)
+static __always_inline unsigned long cr0_read(void)
 {
     unsigned long cr0;
     asm volatile("mov %%cr0, %0" : "=r"(cr0) : : "memory");
     return cr0;
 }
 
-static __always_inline unsigned long read_cr2(void)
+static __always_inline unsigned long cr2_read(void)
 {
     unsigned long cr2;
     asm volatile("mov %%cr2, %0" : "=r"(cr2) : : "memory");
     return cr2;
 }
 
-static __always_inline unsigned long read_cr3(void)
+static __always_inline unsigned long cr3_read(void)
 {
     unsigned long cr3;
     asm volatile("mov %%cr3, %0" : "=r"(cr3) : : "memory");
     return cr3;
 }
 
-static __always_inline unsigned long read_cr4(void)
+static __always_inline unsigned long cr4_read(void)
 {
     unsigned long cr4;
     asm volatile("mov %%cr4, %0" : "=r"(cr4) : : "memory");
@@ -86,7 +91,7 @@ static __always_inline unsigned long read_cr4(void)
 }
 
 #ifdef __x86_64__
-static __always_inline unsigned long read_cr8(void)
+static __always_inline unsigned long cr8_read(void)
 {
     unsigned long cr8;
     asm volatile("mov %%cr8, %0" : "=r"(cr8) : : "memory");
@@ -94,28 +99,28 @@ static __always_inline unsigned long read_cr8(void)
 }
 #endif
 
-static __always_inline void write_cr0(unsigned long value)
+static __always_inline void cr0_write(unsigned long value)
 {
     asm volatile("mov %0, %%cr0" : : "r"(value) : "memory");
 }
 
-static __always_inline void write_cr2(unsigned long value)
+static __always_inline void cr2_write(unsigned long value)
 {
     asm volatile("mov %0, %%cr2" : : "r"(value) : "memory");
 }
 
-static __always_inline void write_cr3(unsigned long value)
+static __always_inline void cr3_write(unsigned long value)
 {
     asm volatile("mov %0, %%cr3" : : "r"(value) : "memory");
 }
 
-static __always_inline void write_cr4(unsigned long value)
+static __always_inline void cr4_write(unsigned long value)
 {
     asm volatile("mov %0, %%cr4" : : "r"(value) : "memory");
 }
 
 #ifdef __x86_64__
-static __always_inline void write_cr8(unsigned long value)
+static __always_inline void cr8_write(unsigned long value)
 {
     asm volatile("mov %0, %%cr8" : : "r"(value) : "memory");
 }
