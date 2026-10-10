@@ -15,24 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _QUNIX_TYPES_H_
-#define _QUNIX_TYPES_H_
+#ifndef _QUNIX_BITS_H_
+#define _QUNIX_BITS_H_
 
-#include <kernel/bits.h>
-#include <kernel/stddef.h>
+#define BITS_PER_BYTE __CHAR_BIT__
+#define BITS_PER_LONG (__SIZEOF_LONG__ * BITS_PER_BYTE)
 
-typedef __PTRDIFF_TYPE__ ssize_t;
+#define WORD_SIZE __SIZEOF_LONG__
+#define WORD_BITS (BITS_PER_BYTE * WORD_SIZE)
 
-typedef int pid_t;
-
-typedef struct {
-    volatile int value;
-} atomic_t;
-
-#if WORD_SIZE == 8
-typedef struct {
-    volatile long long value;
-} atomic64_t;
-#endif /* WORD_SIZE == 8 */
-
-#endif /* _QUNIX_TYPES_H_ */
+#endif /* _QUNIX_BITS_H_ */
