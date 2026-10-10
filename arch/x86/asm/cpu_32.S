@@ -38,7 +38,7 @@ read_cpu:
 
     movl 4(%esp), %ecx
     movl %ecx, 32(%eax)
-    pushf
+    pushfl
     popl 36(%eax)
 
     movw %cs, 40(%eax)

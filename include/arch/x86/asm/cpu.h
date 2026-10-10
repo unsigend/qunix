@@ -24,6 +24,8 @@
 #include <asm/cpu_32.h>
 #endif
 
+#include <asm/cpu_flags.h>
+
 extern void read_cpu(struct arch_cpu *cpu);
 
 static __always_inline unsigned long read_flags(void);
