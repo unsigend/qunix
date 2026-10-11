@@ -20,10 +20,14 @@
 
 #include <kernel/bits.h>
 #include <kernel/stddef.h>
+#include <kernel/stdint.h>
 
 typedef __PTRDIFF_TYPE__ ssize_t;
 
 typedef int pid_t;
+
+typedef uintptr_t phys_addr_t;
+typedef uintptr_t virt_addr_t;
 
 typedef struct {
     volatile int value;

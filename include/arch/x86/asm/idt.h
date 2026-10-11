@@ -35,14 +35,7 @@
 extern void idtr_read(unsigned short *size, unsigned long *base);
 extern void idtr_write(unsigned short size, unsigned long base);
 
-/**
- * Set the entry of the IDT at the given index.
- *
- * @index: index of the entry to set.
- * @selector: segment selector.
- * @addr: address of the Interrupt Service Routine.
- * @flags: flags of the entry.
- */
+/* Set the entry of the IDT at the given index. */
 extern void idt_set_entry(unsigned int index, unsigned short selector,
                           unsigned long addr, unsigned int flags);
 
