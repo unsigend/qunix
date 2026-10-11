@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "desc/idt_desc.h"
+#include "idt_desc.h"
 
 #include <asm/idt.h>
 
@@ -25,17 +25,10 @@
 
 static struct idt_entry idt[IDT_NR];
 
-#ifdef __x86_64__
-struct idtr {
-    uint16_t size;
-    uint64_t base;
-} __packed;
-#else /* __i386__ */
 struct idtr {
     uint16_t size;
     uint32_t base;
 } __packed;
-#endif
 
 void idtr_read(unsigned short *size, unsigned long *base)
 {
@@ -61,15 +54,8 @@ void idt_set_entry(unsigned int index, unsigned short selector,
 
     entry = &idt[index];
 
-#ifdef __x86_64__
-    entry->offset_low = addr & 0xffff;
-    entry->offset_middle = (addr >> 16) & 0xffff;
-    entry->offset_high = (addr >> 32) & 0xffffffff;
-#else /* __i386__ */
-    entry->offset_low = addr & 0xffff;
-    entry->offset_high = (addr >> 16) & 0xffff;
-#endif
-
+    entry->offset_low = addr & 0xFFFF;
+    entry->offset_high = (addr >> 16) & 0xFFFF;
     entry->selector = selector;
     entry->flags = flags | MASK;
 }

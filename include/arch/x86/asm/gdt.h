@@ -18,6 +18,8 @@
 #ifndef _X86_ASM_GDT_H_
 #define _X86_ASM_GDT_H_
 
+#include <kernel/stdint.h>
+
 #define GDT_SIZE_MAX UINT16_MAX
 #define GDT_LIMIT_MAX 0xFFFFF
 
