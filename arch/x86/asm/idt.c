@@ -19,12 +19,23 @@
 
 #include <asm/idt.h>
 
-__unused static struct idt_entry idt[IDT_NR];
+#include <kernel/panic.h>
 
+#define MASK (1u << 15)
+
+static struct idt_entry idt[IDT_NR];
+
+#ifdef __x86_64__
+struct idtr {
+    uint16_t size;
+    uint64_t base;
+} __packed;
+#else /* __i386__ */
 struct idtr {
     uint16_t size;
     uint32_t base;
 } __packed;
+#endif
 
 void idtr_read(unsigned short *size, unsigned long *base)
 {
@@ -38,4 +49,27 @@ void idtr_write(unsigned short size, unsigned long base)
 {
     struct idtr idtr = {.size = size, .base = base};
     asm volatile("lidt %0" : : "m"(idtr));
+}
+
+void idt_set_entry(unsigned int index, unsigned short selector,
+                   unsigned long addr, unsigned int flags)
+{
+    struct idt_entry *entry;
+
+    if (index >= IDT_NR)
+        panic("IDT index out of bounds: %u", index);
+
+    entry = &idt[index];
+
+#ifdef __x86_64__
+    entry->offset_low = addr & 0xffff;
+    entry->offset_middle = (addr >> 16) & 0xffff;
+    entry->offset_high = (addr >> 32) & 0xffffffff;
+#else /* __i386__ */
+    entry->offset_low = addr & 0xffff;
+    entry->offset_high = (addr >> 16) & 0xffff;
+#endif
+
+    entry->selector = selector;
+    entry->flags = flags | MASK;
 }

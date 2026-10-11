@@ -15,27 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "desc/idt_desc.h"
+#ifndef _X86_ASM_IRQ_VECTOR_H_
+#define _X86_ASM_IRQ_VECTOR_H_
 
-#include <asm/idt.h>
+/* Asynchronous exceptions from external hardware. */
 
-__unused static struct idt_entry idt[IDT_NR];
+#define X86_VECTOR_NR 16
+#define X86_VECTOR_NR_MIN 0x20
+#define X86_VECTOR_NR_MAX (X86_VECTOR_NR_MIN + X86_VECTOR_NR - 1)
 
-struct idtr {
-    uint16_t size;
-    uint64_t base;
-} __packed;
-
-void idtr_read(unsigned short *size, unsigned long *base)
-{
-    struct idtr idtr;
-    asm volatile("sidt %0" : "=m"(idtr));
-    *size = idtr.size;
-    *base = idtr.base;
-}
-
-void idtr_write(unsigned short size, unsigned long base)
-{
-    struct idtr idtr = {.size = size, .base = base};
-    asm volatile("lidt %0" : : "m"(idtr));
-}
+#endif /* _X86_ASM_IRQ_VECTOR_H_ */
