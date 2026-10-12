@@ -37,14 +37,22 @@ static __always_inline void page_disable_pae(void);
 static __always_inline void page_flush_tlb(virt_addr_t addr);
 static __always_inline void page_flush_tlb_all(void);
 
+#ifdef __x86_64__
+#include <asm/page_64.h>
+#else
+#include <asm/page_32.h>
+#endif /* __x86_64__ */
+
 static __always_inline phys_addr_t pageroot_read(void)
 {
-    return (phys_addr_t)cr3_read();
+    return (phys_addr_t)cr3_read() & CR3_PDBR_MASK;
 }
 
 static __always_inline void pageroot_write(phys_addr_t root)
 {
-    cr3_write((unsigned long)root);
+    unsigned long cr3;
+    cr3 = (cr3_read() & ~CR3_PDBR_MASK) | ((unsigned long)root & CR3_PDBR_MASK);
+    cr3_write(cr3);
 }
 
 static __always_inline void page_enable_paging(void)

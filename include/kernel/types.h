@@ -29,6 +29,8 @@ typedef int pid_t;
 typedef uintptr_t phys_addr_t;
 typedef uintptr_t virt_addr_t;
 
+typedef unsigned long pn_t; /* page number */
+
 typedef struct {
     volatile int value;
 } atomic_t;
