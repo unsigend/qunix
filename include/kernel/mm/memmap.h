@@ -71,4 +71,6 @@ memmap_find_region(phys_addr_t start, phys_addr_t end, enum mem_type type);
 extern size_t memmap_count(void);
 extern const struct mem_region *memmap_get_region(size_t index);
 
+extern phys_addr_t memmap_max_phys_addr(void);
+
 #endif /* _QUNIX_MM_MEMMAP_H_ */

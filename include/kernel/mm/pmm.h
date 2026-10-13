@@ -26,16 +26,21 @@
 struct pmm_page;
 
 struct pmm_stats {
-    size_t free_pages;
-    size_t alloc_pages;
-    size_t total_pages;
     unsigned int max_order; /* max order support */
+    size_t free_pages;      /* number of free pages */
+    size_t alloc_pages;     /* number of allocated pages */
+    size_t
+        total_pages; /* total number of pages: this is bound to total available
+                        physical pages total_pages = free_pages + alloc_pages,
+                        not including the reserved pages for kernel or pmm. */
 };
 
 struct pmm_ops {
     struct pmm_page *(*alloc)(unsigned int order);
     void (*free)(struct pmm_page *page, unsigned int order);
     void (*stats)(struct pmm_stats *stats);
+    phys_addr_t (*page_to_pa)(struct pmm_page *page);
+    struct pmm_page *(*pa_to_page)(phys_addr_t pa);
 };
 
 extern struct pmm_page *pmm_alloc_page(void);

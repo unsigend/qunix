@@ -16,6 +16,7 @@
  */
 
 #include <kernel/config.h>
+#include <kernel/mm/memlayout.h>
 #include <kernel/mm/pmm.h>
 #include <kernel/panic.h>
 
@@ -37,8 +38,9 @@ void pmm_register(const struct pmm_ops *ops)
         panic("PMM backend already registered");
     if (!ops)
         panic("Invalid PMM backend arguments");
-    if (!ops->alloc || !ops->free || !ops->stats)
-        panic("PMM backend invalid functions");
+    if (!ops->alloc || !ops->free || !ops->stats || !ops->page_to_pa ||
+        !ops->pa_to_page)
+        panic("PMM backend missing functions");
     backend = ops;
 }
 
@@ -94,21 +96,33 @@ void pmm_free_pages(struct pmm_page *page, unsigned int order)
 
 phys_addr_t pmm_page_to_pa(struct pmm_page *page)
 {
-    UNUSED(page);
-    return 0; /* TODO*/
+    if (!backend)
+        panic("PMM backend not registered");
+    return backend->page_to_pa(page);
 }
 virt_addr_t pmm_page_to_va(struct pmm_page *page)
 {
-    UNUSED(page);
-    return 0; /* TODO*/
+    phys_addr_t pa;
+
+    if (!backend)
+        panic("PMM backend not registered");
+
+    pa = backend->page_to_pa(page);
+    return pa_to_va(pa);
 }
 struct pmm_page *pmm_pa_to_page(phys_addr_t pa)
 {
-    UNUSED(pa);
-    return 0; /* TODO*/
+    if (!backend)
+        panic("PMM backend not registered");
+    return backend->pa_to_page(pa);
 }
 struct pmm_page *pmm_va_to_page(virt_addr_t va)
 {
-    UNUSED(va);
-    return 0; /* TODO*/
+    phys_addr_t pa;
+
+    if (!backend)
+        panic("PMM backend not registered");
+
+    pa = va_to_pa(va);
+    return backend->pa_to_page(pa);
 }

@@ -265,3 +265,10 @@ int memmap_punch_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
 
     return 0;
 }
+
+phys_addr_t memmap_max_phys_addr(void)
+{
+    if (region_count == 0)
+        return 0;
+    return regions[region_count - 1].end;
+}
