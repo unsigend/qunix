@@ -35,7 +35,11 @@
 extern void idtr_read(unsigned short *size, unsigned long *base);
 extern void idtr_write(unsigned short size, unsigned long base);
 
-/* Set the entry of the IDT at the given index. */
+/*
+ * idt_set_entry - write the gate at @index.
+ *
+ * An out-of-range @index panics.
+ */
 extern void idt_set_entry(unsigned int index, unsigned short selector,
                           unsigned long addr, unsigned int flags);
 

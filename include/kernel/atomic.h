@@ -34,18 +34,30 @@ static __always_inline void atomic_sub(atomic_t *v, int i);
 static __always_inline void atomic_inc(atomic_t *v);
 static __always_inline void atomic_dec(atomic_t *v);
 
-/* Atomic arithmetic operations, return the new value */
+/*
+ * atomic_add_return - add @i to @v.
+ *
+ * Returns the new value. atomic_sub_return, atomic_inc_return, and
+ * atomic_dec_return do the same for subtraction and for a step of one.
+ */
 static __always_inline int atomic_add_return(atomic_t *v, int i);
 static __always_inline int atomic_sub_return(atomic_t *v, int i);
 static __always_inline int atomic_inc_return(atomic_t *v);
 static __always_inline int atomic_dec_return(atomic_t *v);
 
-/* Atomic exchange operation, return the old value */
+/*
+ * atomic_xchg - store @i in @v.
+ *
+ * Returns the previous value.
+ */
 static __always_inline int atomic_xchg(atomic_t *v, int i);
 
-/* Atomic compare and exchange operation, if the expect equals the value in v,
- * write the new value to v and return the old value. If not equal no-ops
- * performed, return the old value in v. */
+/*
+ * atomic_cmpxchg - store @new in @v when its value is @expect.
+ *
+ * Returns the value @v held before the operation. @v is left unchanged
+ * when that value was not @expect.
+ */
 static __always_inline int atomic_cmpxchg(atomic_t *v, int expect, int new);
 
 #if WORD_SIZE == 8
@@ -56,7 +68,12 @@ static __always_inline void atomic64_sub(atomic64_t *v, long long i);
 static __always_inline void atomic64_inc(atomic64_t *v);
 static __always_inline void atomic64_dec(atomic64_t *v);
 
-/* 64-bit atomic arithmetic operations, return the new value */
+/*
+ * atomic64_add_return - add @i to @v.
+ *
+ * Returns the new value. atomic64_sub_return, atomic64_inc_return, and
+ * atomic64_dec_return do the same for subtraction and for a step of one.
+ */
 static __always_inline long long atomic64_add_return(atomic64_t *v,
                                                      long long i);
 static __always_inline long long atomic64_sub_return(atomic64_t *v,
@@ -64,12 +81,19 @@ static __always_inline long long atomic64_sub_return(atomic64_t *v,
 static __always_inline long long atomic64_inc_return(atomic64_t *v);
 static __always_inline long long atomic64_dec_return(atomic64_t *v);
 
-/* 64-bit atomic exchange operation, return the old value */
+/*
+ * atomic64_xchg - store @i in @v.
+ *
+ * Returns the previous value.
+ */
 static __always_inline long long atomic64_xchg(atomic64_t *v, long long i);
 
-/* 64-bit atomic compare and exchange operation, if the expect equals the value
- * in v, write the new value to v and return the old value. If not equal no-ops
- * performed, return the old value in v. */
+/*
+ * atomic64_cmpxchg - store @new in @v when its value is @expect.
+ *
+ * Returns the value @v held before the operation. @v is left unchanged
+ * when that value was not @expect.
+ */
 static __always_inline long long
 atomic64_cmpxchg(atomic64_t *v, long long expect, long long new);
 

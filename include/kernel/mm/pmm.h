@@ -22,7 +22,8 @@
 #include <kernel/config.h>
 #include <kernel/types.h>
 
-struct pmm_page; /* Opaque page frame managed by the PMM */
+/* opaque page frame managed by the PMM */
+struct pmm_page;
 
 struct pmm_stats {
     size_t free_pages;
@@ -32,15 +33,18 @@ struct pmm_stats {
 };
 
 struct pmm_ops {
-    /* Allocate 2^order page frames. Return NULL if allocation fails. */
     struct pmm_page *(*alloc)(unsigned int order);
     void (*free)(struct pmm_page *page, unsigned int order);
     void (*stats)(struct pmm_stats *stats);
 };
 
-extern void pmm_init(void);
-
 extern struct pmm_page *pmm_alloc_page(void);
+
+/*
+ * pmm_alloc_pages - allocate 2^@order contiguous page frames.
+ *
+ * Returns the first page, or NULL if no block of that order is free.
+ */
 extern struct pmm_page *pmm_alloc_pages(unsigned int order);
 
 extern void pmm_free_page(struct pmm_page *page);
@@ -53,8 +57,13 @@ extern virt_addr_t pmm_page_to_va(struct pmm_page *page);
 extern struct pmm_page *pmm_pa_to_page(phys_addr_t pa);
 extern struct pmm_page *pmm_va_to_page(virt_addr_t va);
 
-/* Register the PMM backend. A second installation will panic. Only the PMM
- * backend provider should call this function. */
+/*
+ * pmm_register - install the PMM backend.
+ *
+ * Only the backend provider calls this. A second registration panics.
+ */
 extern void pmm_register(const struct pmm_ops *ops);
+
+extern void pmm_init(void);
 
 #endif /* _QUNIX_MM_PMM_H_ */

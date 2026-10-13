@@ -22,22 +22,38 @@
 #include <kernel/compiler.h>
 #include <kernel/stdbool.h>
 
-/* Bit operations, non-atomic, use these if you already hold a lock, for return
- * variants, the return value is the original value of the bit */
+/*
+ * bit_read - read bit @nr in the array at @addr.
+ *
+ * bit_set, bit_clear, and bit_flip are not atomic either. Call them only
+ * while holding the lock that protects @addr.
+ */
 static __always_inline bool bit_read(void *addr, int nr);
 static __always_inline void bit_set(void *addr, int nr);
 static __always_inline void bit_clear(void *addr, int nr);
 static __always_inline void bit_flip(void *addr, int nr);
+
+/*
+ * bit_set_return - set bit @nr and return its previous value.
+ *
+ * bit_clear_return and bit_flip_return also return the previous value.
+ * Same locking rule as bit_read().
+ */
 static __always_inline bool bit_set_return(void *addr, int nr);
 static __always_inline bool bit_clear_return(void *addr, int nr);
 static __always_inline bool bit_flip_return(void *addr, int nr);
 
-/* Atomic bit operations, for return variants, the return value is the original
- * value of the bit */
 static __always_inline bool atomic_bit_read(void *addr, int nr);
 static __always_inline void atomic_bit_set(void *addr, int nr);
 static __always_inline void atomic_bit_clear(void *addr, int nr);
 static __always_inline void atomic_bit_flip(void *addr, int nr);
+
+/*
+ * atomic_bit_set_return - atomically set bit @nr.
+ *
+ * Returns the bit's previous value. atomic_bit_clear_return and
+ * atomic_bit_flip_return do the same for clear and flip.
+ */
 static __always_inline bool atomic_bit_set_return(void *addr, int nr);
 static __always_inline bool atomic_bit_clear_return(void *addr, int nr);
 static __always_inline bool atomic_bit_flip_return(void *addr, int nr);

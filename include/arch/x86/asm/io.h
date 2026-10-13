@@ -28,7 +28,9 @@ static __always_inline uint8_t inb(uint16_t port);
 static __always_inline uint16_t inw(uint16_t port);
 static __always_inline uint32_t inl(uint16_t port);
 
-/* Wait a very small amount of time, used as a small delay for old hardware */
+/*
+ * io_wait - pause briefly so slow hardware can catch the previous I/O.
+ */
 static __always_inline void io_wait(void);
 
 static __always_inline void outb(uint16_t port, uint8_t value)

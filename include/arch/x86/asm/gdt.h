@@ -32,13 +32,19 @@
 extern void gdtr_read(unsigned short *size, unsigned long *base);
 extern void gdtr_write(unsigned short size, unsigned long base);
 
-/* Set the entry of the GDT at the given index. Used only for data and code
- * segments. */
+/*
+ * gdt_set_entry - write a code or data descriptor at @index.
+ *
+ * An out-of-range @index or @limit panics.
+ */
 extern void gdt_set_entry(unsigned int index, unsigned long base,
                           unsigned long limit, unsigned int flags);
 
-/* Set the entry of the GDT at the given index. Used for system segments: task
- * state segment, local descriptor table. */
+/*
+ * gdt_set_sys_entry - write a system descriptor at @index.
+ *
+ * Used for a TSS or an LDT. An out-of-range @index or @limit panics.
+ */
 extern void gdt_set_sys_entry(unsigned int index, unsigned long base,
                               unsigned long limit, unsigned int flags);
 
