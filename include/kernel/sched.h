@@ -18,4 +18,10 @@
 #ifndef _QUNIX_SCHED_H_
 #define _QUNIX_SCHED_H_
 
+extern volatile unsigned int need_resched;
+
+extern void sched_init(void);
+extern void schedule(void);
+extern void sched_yield(void);
+
 #endif /* _QUNIX_SCHED_H_ */

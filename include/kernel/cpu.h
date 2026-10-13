@@ -18,7 +18,15 @@
 #ifndef _QUNIX_CPU_H_
 #define _QUNIX_CPU_H_
 
+#include <kernel/compiler.h>
+
 struct cpu {
+    unsigned int preempt_count;
 };
+
+CONTRACT extern void cpu_halt(void) __noreturn;
+CONTRACT extern void cpu_init(void);
+
+extern struct cpu *cpu_current(void);
 
 #endif /* _QUNIX_CPU_H_ */

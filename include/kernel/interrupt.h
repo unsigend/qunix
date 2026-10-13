@@ -18,4 +18,14 @@
 #ifndef _QUNIX_INTERRUPT_H_
 #define _QUNIX_INTERRUPT_H_
 
+#include <kernel/compiler.h>
+#include <kernel/stdbool.h>
+
+CONTRACT extern void interrupt_enable(void);
+CONTRACT extern void interrupt_disable(void);
+CONTRACT extern bool interrupt_is_disabled(void);
+
+CONTRACT extern unsigned long interrupt_save(void);
+CONTRACT extern void interrupt_restore(unsigned long flags);
+
 #endif /* _QUNIX_INTERRUPT_H_ */
