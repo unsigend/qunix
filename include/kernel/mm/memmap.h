@@ -33,19 +33,35 @@ struct mem_region {
     enum mem_type type;
 };
 
-/* Add a memory region [start, end) to the memory map. Only append to a new
- * region, overlap with existing regions with different type will panic. For
- * same type it will auto-merge. */
+/*
+ * memmap_add_region - add [start, end) of the given type to the map.
+ *
+ * Overlapping or adjacent regions of the same type are merged. Overlap with a
+ * region of a different type is a bug and panics.
+ *
+ * Returns 0 on success, -EINVAL if end <= start, -ENOMEM if the map is full.
+ */
 extern int memmap_add_region(phys_addr_t start, phys_addr_t end,
                              enum mem_type type);
 
-/* Punch a memory region in memory map, split and merge may happen. Return 0 on
- * success, -ERROR on error. -ENOENT if region not found. */
+/*
+ * memmap_punch_region - change the type of [start, end) to @type.
+ *
+ * The range must lie within a single existing region, which is split and
+ * merged with its neighbour regions as needed.
+ *
+ * Returns 0 on success, -EINVAL if end <= start, -ENOENT if no region
+ * contains the range, -ENOMEM if a split does not fit.
+ */
 extern int memmap_punch_region(phys_addr_t start, phys_addr_t end,
                                enum mem_type type);
 
-/* Remove a memory region from memory map. Return 0 on success, -ERROR on error.
- * -ENOENT if region not found. */
+/*
+ * memmap_remove_region - remove an exactly matching region from the map.
+ *
+ * Returns 0 on success, -EINVAL if end <= start, -ENOENT if no region
+ * matches start, end and type exactly.
+ */
 extern int memmap_remove_region(phys_addr_t start, phys_addr_t end,
                                 enum mem_type type);
 

@@ -23,6 +23,31 @@
 
 #define MAX_REGIONS 64
 
+/*
+ * Physical memory map.
+ *
+ * Regions are kept in a fixed-size sorted disjoint array by start address.
+ * Invariants, held on entry to and exit from every public function:
+ *
+ *  - Regions are half-open ranges [start, end) with start < end.
+ *  - Regions are pairwise disjoint.
+ *  - Neighbour regions of the same type are never adjacent, they are
+ *    coalesced into one.
+ *
+ * A region of one type overlapping a region of another type is a firmware
+ * or caller bug, and is fatal (panic).
+ *
+ * Mutators check capacity before changing anything, so -ENOMEM leaves the
+ * map untouched.
+ *
+ * Indices into regions[] are invalidated by any insert or remove. The
+ * coalesce helpers may remove entries, so callers must not reuse an index
+ * after calling them.
+ *
+ * No locking: intended for early boot, single CPU, before the memory map
+ * is handed to the allocator.
+ */
+
 static struct mem_region regions[MAX_REGIONS];
 static size_t region_count;
 
@@ -41,43 +66,15 @@ static const char *const mem_type_str[] = {
     [MEM_ACPI] = "ACPI",
 };
 
-static inline void panic_on_conflict(phys_addr_t start1, phys_addr_t end1,
-                                     enum mem_type type1, phys_addr_t start2,
-                                     phys_addr_t end2, enum mem_type type2)
+static inline void panic_region_conflict(phys_addr_t start1, phys_addr_t end1,
+                                         enum mem_type type1,
+                                         phys_addr_t start2, phys_addr_t end2,
+                                         enum mem_type type2)
 {
     panic("memmap: conflict between region [0x%lx, 0x%lx) type %s and region "
           "[0x%lx, 0x%lx) type %s",
           (unsigned long)start1, (unsigned long)end1, mem_type_str[type1],
           (unsigned long)start2, (unsigned long)end2, mem_type_str[type2]);
-}
-
-static int append(phys_addr_t start, phys_addr_t end, enum mem_type type)
-{
-    if (region_count >= MAX_REGIONS)
-        return -ENOMEM;
-
-    regions[region_count].start = start;
-    regions[region_count].end = end;
-    regions[region_count].type = type;
-    region_count++;
-    return 0;
-}
-
-static int insert(size_t index, phys_addr_t start, phys_addr_t end,
-                  enum mem_type type)
-{
-    if (region_count >= MAX_REGIONS)
-        return -ENOMEM;
-    if (index >= region_count)
-        return append(start, end, type);
-
-    memmove(&regions[index + 1], &regions[index],
-            (region_count - index) * sizeof(struct mem_region));
-    regions[index].start = start;
-    regions[index].end = end;
-    regions[index].type = type;
-    region_count++;
-    return 0;
 }
 
 static inline int overlaps(const struct mem_region *r, phys_addr_t start,
@@ -112,137 +109,86 @@ static inline void merge(struct mem_region *r, phys_addr_t start,
     r->end = MAX(r->end, end);
 }
 
-/* Merge the current region to the previous region if they are mergeable.
- * WARNING: if you have a pointer to the index region, it might be invalidated
- * during the merge. So it is not safe to use the pointer after coalesce_left().
- */
-static void coalesce_left(size_t index)
+static inline void remove_at(size_t index)
 {
-    struct mem_region *r;
-    struct mem_region *prev;
-
-    if (index == 0)
-        return;
-
-    r = &regions[index];
-    prev = &regions[index - 1];
-
-    while (index && mergeable(prev, r->start, r->end, r->type)) {
-        merge(prev, r->start, r->end);
-        if (index != region_count - 1) /* not last region */
-            memmove(&regions[index], &regions[index + 1],
-                    (region_count - index - 1) * sizeof(struct mem_region));
-        index--;
-        region_count--;
-        if (index == 0)
-            break;
-        r = &regions[index];
-        prev = &regions[index - 1];
-    }
+    memmove(&regions[index], &regions[index + 1],
+            (region_count - index - 1) * sizeof(struct mem_region));
+    region_count--;
 }
 
-/* Merge the right region to the current region if they are mergeable. Holding a
- * pointer to the index region after coalesce_right() is safe. */
-static void coalesce_right(size_t index)
+static int append(phys_addr_t start, phys_addr_t end, enum mem_type type)
 {
-    struct mem_region *r;
-    struct mem_region *next;
+    if (region_count >= MAX_REGIONS)
+        return -ENOMEM;
 
-    if (index == region_count - 1)
-        return;
-
-    r = &regions[index];
-    next = &regions[index + 1];
-
-    while (index != region_count - 1 &&
-           mergeable(r, next->start, next->end, next->type)) {
-        merge(r, next->start, next->end);
-        if (index + 1 != region_count - 1) /* still region after next */
-            memmove(&regions[index + 1], &regions[index + 2],
-                    (region_count - index - 2) * sizeof(struct mem_region));
-        region_count--;
-        if (index == region_count - 1)
-            break;
-        next = &regions[index + 1];
-    }
+    regions[region_count].start = start;
+    regions[region_count].end = end;
+    regions[region_count].type = type;
+    region_count++;
+    return 0;
 }
 
-static void check_left(size_t index)
-{
-    struct mem_region *r;
-
-    if (index == 0)
-        return;
-
-    r = &regions[index];
-
-    for (size_t i = 0; i < index; i++) {
-        if (overlaps(r, regions[i].start, regions[i].end) &&
-            regions[i].type != r->type)
-            panic_on_conflict(regions[i].start, regions[i].end, regions[i].type,
-                              r->start, r->end, r->type);
-    }
-}
-
-static void check_right(size_t index)
-{
-    struct mem_region *r;
-
-    if (index == region_count - 1)
-        return;
-
-    r = &regions[index];
-
-    for (size_t i = index + 1; i < region_count; i++) {
-        if (overlaps(r, regions[i].start, regions[i].end) &&
-            regions[i].type != r->type)
-            panic_on_conflict(regions[i].start, regions[i].end, regions[i].type,
-                              r->start, r->end, r->type);
-    }
-}
-
-static inline int region_equals(const struct mem_region *r, phys_addr_t start,
-                                phys_addr_t end, enum mem_type type)
+static inline int equals(const struct mem_region *r, phys_addr_t start,
+                         phys_addr_t end, enum mem_type type)
 {
     return r->start == start && r->end == end && r->type == type;
+}
+
+static int insert(size_t index, phys_addr_t start, phys_addr_t end,
+                  enum mem_type type)
+{
+    if (region_count >= MAX_REGIONS)
+        return -ENOMEM;
+    if (index >= region_count)
+        return append(start, end, type);
+
+    memmove(&regions[index + 1], &regions[index],
+            (region_count - index) * sizeof(struct mem_region));
+    regions[index].start = start;
+    regions[index].end = end;
+    regions[index].type = type;
+    region_count++;
+    return 0;
+}
+
+static void coalesce_left(size_t index)
+{
+    while (index && mergeable(&regions[index - 1], regions[index].start,
+                              regions[index].end, regions[index].type)) {
+        merge(&regions[index - 1], regions[index].start, regions[index].end);
+        remove_at(index--);
+    }
+}
+
+static void coalesce_right(size_t index)
+{
+    while (index + 1 < region_count &&
+           mergeable(&regions[index], regions[index + 1].start,
+                     regions[index + 1].end, regions[index + 1].type)) {
+        merge(&regions[index], regions[index + 1].start,
+              regions[index + 1].end);
+        remove_at(index + 1);
+    }
 }
 
 const struct mem_region *memmap_find_region(phys_addr_t start, phys_addr_t end,
                                             enum mem_type type)
 {
     for (size_t i = 0; i < region_count; i++) {
-        if (region_equals(&regions[i], start, end, type))
+        if (equals(&regions[i], start, end, type))
             return &regions[i];
     }
     return NULL;
 }
 
-static int find_region_by_index(phys_addr_t start, phys_addr_t end,
-                                enum mem_type type)
-{
-    for (size_t i = 0; i < region_count; i++) {
-        if (region_equals(&regions[i], start, end, type))
-            return i;
-    }
-    return -1;
-}
-
 int memmap_remove_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
 {
-    struct mem_region *r;
-
     if (end <= start)
         return -EINVAL;
-    if (region_count == 0)
-        return -ENOENT;
 
     for (size_t i = 0; i < region_count; i++) {
-        r = &regions[i];
-
-        if (region_equals(r, start, end, type)) {
-            memmove(&regions[i], &regions[i + 1],
-                    (region_count - i - 1) * sizeof(struct mem_region));
-            region_count--;
+        if (equals(&regions[i], start, end, type)) {
+            remove_at(i);
             return 0;
         }
     }
@@ -259,18 +205,18 @@ int memmap_add_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
 
     for (size_t i = 0; i < region_count; i++) {
         r = &regions[i];
-
         if (overlaps(r, start, end) && r->type != type)
-            panic_on_conflict(r->start, r->end, r->type, start, end, type);
+            panic_region_conflict(r->start, r->end, r->type, start, end, type);
+    }
+
+    for (size_t i = 0; i < region_count; i++) {
+        r = &regions[i];
 
         if (mergeable(r, start, end, type)) {
             merge(r, start, end);
             coalesce_right(i);
-            check_right(i);
             return 0;
-        }
-
-        else if (end <= r->start)
+        } else if (end <= r->start)
             return insert(i, start, end, type);
     }
 
@@ -279,71 +225,43 @@ int memmap_add_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
 
 int memmap_punch_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
 {
-    struct mem_region *r;
-    struct mem_region old, copy;
-    int err, added = 0;
-    size_t i;
-    int found = 0;
+    struct mem_region old;
+    size_t i, need;
 
     if (end <= start)
         return -EINVAL;
 
-    for (i = 0; i < region_count; i++) {
-        r = &regions[i];
-        if (within(r, start, end)) {
-            if (r->type == type) /* quick path no-ops */
-                return 0;
-            found = 1;
+    for (i = 0; i < region_count; i++)
+        if (within(&regions[i], start, end))
             break;
-        }
-    }
 
-    if (!found)
+    if (i == region_count)
         return -ENOENT;
 
-    old = *r; /* old store the old region */
-    r->start = start;
-    r->end = end;
-    r->type = type;
-    copy = *r; /* copy store the updated region */
+    old = regions[i];
 
-    if (copy.start != old.start) /* split left */
-    {
-        err = memmap_add_region(old.start, copy.start, old.type);
-        if (err) {
-            i = find_region_by_index(copy.start, copy.end, copy.type);
-            r = &regions[i];
-            *r = old;
-            return err;
-        }
-        added = 1;
-        i = find_region_by_index(copy.start, copy.end, copy.type);
-        r = &regions[i];
-    }
+    if (old.type == type)
+        return 0;
 
-    if (copy.end != old.end) /* split right */
-    {
-        err = memmap_add_region(copy.end, old.end, old.type);
-        if (err) {
-            if (added)
-                memmap_remove_region(old.start, copy.start,
-                                     old.type); /* remove will invalidate r */
-            i = find_region_by_index(copy.start, copy.end, copy.type);
-            r = &regions[i];
-            *r = old;
-            return err;
-        }
-    }
+    need = (old.start != start) + (old.end != end);
+    if (region_count + need > MAX_REGIONS)
+        return -ENOMEM;
 
-    i = find_region_by_index(copy.start, copy.end, copy.type);
+    if (old.start != start)
+        insert(i++, old.start, start, old.type);
+    if (old.end != end)
+        insert(i + 1, end, old.end, old.type);
 
-    check_left(i);
-    check_right(i);
+    regions[i].type = type;
+    regions[i].start = start;
+    regions[i].end = end;
 
-    /* Must be done in this order since coalesce_left(i) might
-     * invalidate the i */
-    coalesce_right(i);
-    coalesce_left(i);
+    /* Must coalesce the right side first, since the coalesce_left() call will
+     * invalidate the current index pointer */
+    if (old.end == end)
+        coalesce_right(i);
+    if (old.start == start)
+        coalesce_left(i);
 
     return 0;
 }
