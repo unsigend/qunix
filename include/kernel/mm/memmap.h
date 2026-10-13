@@ -33,16 +33,24 @@ struct mem_region {
     enum mem_type type;
 };
 
-extern void memmap_init(void);
-
 /* Add a memory region [start, end) to the memory map. Only append to a new
- * region, overlap with existing regions will panic. */
+ * region, overlap with existing regions with different type will panic. For
+ * same type it will auto-merge. */
 extern int memmap_add_region(phys_addr_t start, phys_addr_t end,
                              enum mem_type type);
 
-/* Update a memory region in memory map, split and merge may happen. */
-extern int memmap_update_region(phys_addr_t start, phys_addr_t end,
+/* Punch a memory region in memory map, split and merge may happen. Return 0 on
+ * success, -ERROR on error. -ENOENT if region not found. */
+extern int memmap_punch_region(phys_addr_t start, phys_addr_t end,
+                               enum mem_type type);
+
+/* Remove a memory region from memory map. Return 0 on success, -ERROR on error.
+ * -ENOENT if region not found. */
+extern int memmap_remove_region(phys_addr_t start, phys_addr_t end,
                                 enum mem_type type);
+
+extern const struct mem_region *
+memmap_find_region(phys_addr_t start, phys_addr_t end, enum mem_type type);
 
 extern size_t memmap_count(void);
 extern const struct mem_region *memmap_get_region(size_t index);
