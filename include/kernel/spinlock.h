@@ -34,7 +34,7 @@ struct spinlock {
 #endif /* CONFIG_SMP */
     const char *name;
     struct cpu *owner;
-#if defined(CONFIG_DEBUG) && defined(CONFIG_DEBUG_SPINLOCK)
+#if CONFIG_DEBUG && CONFIG_DEBUG_SPINLOCK
     const char *file;
     const char *func;
     int line;
@@ -44,7 +44,7 @@ struct spinlock {
 extern void spinlock_init(struct spinlock *lock, const char *name);
 extern bool spinlock_is_locked(struct spinlock *lock);
 
-#if defined(CONFIG_DEBUG) && defined(CONFIG_DEBUG_SPINLOCK)
+#if CONFIG_DEBUG && CONFIG_DEBUG_SPINLOCK
 extern bool spinlock_trylock_at(struct spinlock *lock, const char *file,
                                 const char *func, int line);
 extern void spinlock_lock_at(struct spinlock *lock, const char *file,

@@ -20,11 +20,11 @@
 #include <kernel/mm/pmm.h>
 #include <kernel/panic.h>
 
-#if defined(CONFIG_PMM_SIMPLE)
+#if CONFIG_PMM_SIMPLE
 #include "simple/simple.h"
-#elif defined(CONFIG_PMM_BITMAP)
+#elif CONFIG_PMM_BITMAP
 #include "bitmap/bitmap.h"
-#elif defined(CONFIG_PMM_BUDDY)
+#elif CONFIG_PMM_BUDDY
 #include "buddy/buddy.h"
 #else
 #error "No PMM backend selected"
@@ -46,11 +46,11 @@ void pmm_register(const struct pmm_ops *ops)
 
 void pmm_init(void)
 {
-#if defined(CONFIG_PMM_SIMPLE)
+#if CONFIG_PMM_SIMPLE
     pmm_simple_init();
-#elif defined(CONFIG_PMM_BITMAP)
+#elif CONFIG_PMM_BITMAP
     pmm_bitmap_init();
-#elif defined(CONFIG_PMM_BUDDY)
+#elif CONFIG_PMM_BUDDY
     pmm_buddy_init();
 #else
     panic("No PMM backend selected");
@@ -100,6 +100,7 @@ phys_addr_t pmm_page_to_pa(struct pmm_page *page)
         panic("PMM backend not registered");
     return backend->page_to_pa(page);
 }
+
 virt_addr_t pmm_page_to_va(struct pmm_page *page)
 {
     phys_addr_t pa;
@@ -110,12 +111,14 @@ virt_addr_t pmm_page_to_va(struct pmm_page *page)
     pa = backend->page_to_pa(page);
     return pa_to_va(pa);
 }
+
 struct pmm_page *pmm_pa_to_page(phys_addr_t pa)
 {
     if (!backend)
         panic("PMM backend not registered");
     return backend->pa_to_page(pa);
 }
+
 struct pmm_page *pmm_va_to_page(virt_addr_t va)
 {
     phys_addr_t pa;

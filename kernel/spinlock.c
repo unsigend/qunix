@@ -63,7 +63,7 @@ static void release_check(struct spinlock *lock)
         panic("unbalanced unlock");
 
     if (lock->owner != cpu_current())
-#if defined(CONFIG_DEBUG) && defined(CONFIG_DEBUG_SPINLOCK)
+#if CONFIG_DEBUG && CONFIG_DEBUG_SPINLOCK
         panic(
             "DEBUG: try to unlock a lock that is not owned by the current CPU, "
             "original owned by %s:%s:%d",
@@ -86,7 +86,7 @@ static void release(struct spinlock *lock)
 #endif /* CONFIG_SMP */
 }
 
-#if defined(CONFIG_DEBUG) && defined(CONFIG_DEBUG_SPINLOCK)
+#if CONFIG_DEBUG && CONFIG_DEBUG_SPINLOCK
 
 static void acquire_debug(struct spinlock *lock, const char *file,
                           const char *func, int line)
@@ -214,7 +214,7 @@ void spinlock_init(struct spinlock *lock, const char *name)
     lock->locked = false;
 #endif /* CONFIG_SMP */
 
-#if defined(CONFIG_DEBUG) && defined(CONFIG_DEBUG_SPINLOCK)
+#if CONFIG_DEBUG && CONFIG_DEBUG_SPINLOCK
     lock->file = NULL;
     lock->func = NULL;
     lock->line = 0;

@@ -38,21 +38,22 @@ size_t kernel_image_size = (size_t)_kernel_image_size;
 phys_addr_t va_to_pa(virt_addr_t va)
 {
     if (va < KERNEL_VIRT_START)
-        panic("va_to_pa: va 0x%.8x is below KERNEL_VIRT_START 0x%.8x", va,
-              (unsigned int)KERNEL_VIRT_START);
+        panic("va_to_pa: va 0x%.8x is below KERNEL_VIRT_START 0x%.8x",
+              (unsigned int)va, (unsigned int)KERNEL_VIRT_START);
 
     return va - KERNEL_VIRT_START;
 }
 virt_addr_t pa_to_va(phys_addr_t pa)
 {
     if (pa >= KERNEL_PHYS_END)
-        panic("pa_to_va: pa 0x%.8x is above KERNEL_PHYS_END 0x%.8x", pa,
-              (unsigned int)KERNEL_PHYS_END);
+        panic("pa_to_va: pa 0x%.8x is above KERNEL_PHYS_END 0x%.8x",
+              (unsigned int)pa, (unsigned int)KERNEL_PHYS_END);
 
     return pa + KERNEL_VIRT_START;
 }
 
 #else
+
 phys_addr_t va_to_pa(virt_addr_t va) { return va - KERNEL_VIRT_START; }
 virt_addr_t pa_to_va(phys_addr_t pa) { return pa + KERNEL_VIRT_START; }
 
