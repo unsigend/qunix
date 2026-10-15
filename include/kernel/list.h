@@ -18,7 +18,6 @@
 #ifndef _QUNIX_LIST_H_
 #define _QUNIX_LIST_H_
 
-#include "kernel/stddef.h"
 #include <kernel/macros.h>
 #include <kernel/stdbool.h>
 #include <kernel/types.h>

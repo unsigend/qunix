@@ -20,7 +20,22 @@
 
 #include <kernel/types.h>
 
-extern phys_addr_t va_to_pa(virt_addr_t va);
-extern virt_addr_t pa_to_va(phys_addr_t pa);
+/*
+ * va_to_pa - physical address for a kernel direct-map virtual address.
+ *
+ * Valid after paging is on, and only for a virtual address in that map.
+ *
+ * Returns the physical address.
+ */
+CONTRACT extern phys_addr_t va_to_pa(virt_addr_t va);
+
+/*
+ * pa_to_va - kernel direct-map virtual address for a physical address.
+ *
+ * Valid after paging is on, for a physical address inside the direct map.
+ *
+ * Returns the virtual address.
+ */
+CONTRACT extern virt_addr_t pa_to_va(phys_addr_t pa);
 
 #endif /* _QUNIX_MM_MEMLAYOUT_H_ */

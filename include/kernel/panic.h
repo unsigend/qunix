@@ -20,11 +20,6 @@
 
 #include <kernel/compiler.h>
 
-/*
- * panic - print the formatted message and panic the kernel.
- *
- * Will never return.
- */
 extern __printf(1, 2) void panic(const char *fmt, ...) __noreturn __cold;
 
 #endif /* _QUNIX_PANIC_H_ */
