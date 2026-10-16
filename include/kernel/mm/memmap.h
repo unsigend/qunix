@@ -72,6 +72,13 @@ extern size_t memmap_count(void);
 extern const struct mem_region *memmap_get_region(size_t index);
 extern const char *memmap_type_to_str(enum mem_type type);
 
-extern phys_addr_t memmap_max_phys_addr(void);
+/*
+ * memmap_max_ram_addr - end of the highest addressable RAM region.
+ *
+ * RAM is MEM_AVAILABLE, MEM_KERNEL, and MEM_ACPI.
+ *
+ * Returns that exclusive end, or 0 if there is no RAM.
+ */
+extern phys_addr_t memmap_max_ram_addr(void);
 
 #endif /* _QUNIX_MM_MEMMAP_H_ */

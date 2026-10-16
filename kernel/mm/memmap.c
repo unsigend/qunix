@@ -266,11 +266,19 @@ int memmap_punch_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
     return 0;
 }
 
-phys_addr_t memmap_max_phys_addr(void)
+phys_addr_t memmap_max_ram_addr(void)
 {
+    phys_addr_t max = 0;
+
     if (region_count == 0)
         return 0;
-    return regions[region_count - 1].end;
+
+    for (size_t i = 0; i < region_count; i++) {
+        if (regions[i].type == MEM_AVAILABLE || regions[i].type == MEM_KERNEL ||
+            regions[i].type == MEM_ACPI)
+            max = MAX(max, regions[i].end);
+    }
+    return max;
 }
 
 const char *memmap_type_to_str(enum mem_type type)

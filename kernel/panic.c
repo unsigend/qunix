@@ -38,3 +38,13 @@ void panic(const char *fmt, ...)
 
     cpu_halt();
 }
+
+void panic_error(int errnum, const char *s)
+{
+    int err = errnum;
+
+    if (errnum < 0)
+        err = -errnum;
+
+    panic("%s : %s", s, strerror(err));
+}

@@ -15,13 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <asm/memlayout.h>
 #include <asm/page.h>
 
 #include <kernel/errno.h>
 #include <kernel/macros.h>
 #include <kernel/mm/memlayout.h>
+#include <kernel/mm/memmap.h>
 #include <kernel/mm/page.h>
 #include <kernel/mm/pmm.h>
+#include <kernel/panic.h>
+#include <kernel/printk.h>
 
 int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
              unsigned int flags)
@@ -111,4 +115,34 @@ int page_lookup(pagetable_t root, virt_addr_t va, phys_addr_t *pa)
 
     *pa = pn_to_pa(pte_get_pn(pte));
     return 0;
+}
+
+void page_init(void)
+{
+    phys_addr_t mapend_pa;
+    virt_addr_t pagetable_va;
+    struct pmm_page *page;
+    int err;
+    size_t npages;
+
+    mapend_pa = MIN(
+        memmap_max_ram_addr(),
+        KERNEL_PHYS_END); /* map either max RAM or 1GB physical address space */
+    npages = (mapend_pa - KERNEL_PHYS_START) >> PAGE_SHIFT;
+    page = pmm_alloc_page();
+
+    if (!page)
+        panic("failed to allocate page root for page table");
+
+    pagetable_va = pmm_page_to_va(page);
+    page_clear(pagetable_va);
+
+    if ((err =
+             page_map_range(pagetable_va, KERNEL_PHYS_START, KERNEL_VIRT_START,
+                            npages, PAGEF_WRITE | PAGEF_EXEC)))
+        panic_error(err, "failed to map kernel page table");
+
+    pageroot_write(va_to_pa(pagetable_va));
+
+    LOGM_INFO("PAGE", "Page management subsystem initialized successfully");
 }

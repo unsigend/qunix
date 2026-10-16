@@ -43,5 +43,7 @@ extern char *strncpy(char *restrict dest, const char *restrict src,
 extern char *strcat(char *restrict dest, const char *restrict src);
 extern char *strncat(char *restrict dest, const char *restrict src,
                      size_t count);
+extern char *strerror(int errnum);
+extern char *strdup(const char *src);
 
 #endif /* _QUNIX_STRING_H_ */

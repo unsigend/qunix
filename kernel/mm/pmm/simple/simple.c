@@ -22,6 +22,7 @@
 #include <kernel/mm/page.h>
 #include <kernel/mm/pmm.h>
 #include <kernel/panic.h>
+#include <kernel/printk.h>
 #include <kernel/types.h>
 
 #define MAX_ORDER 0
@@ -163,8 +164,9 @@ void pmm_simple_init(void)
     phys_addr_t max_pa;
     size_t array_bytes;
     const struct mem_region *r;
+    int err;
 
-    max_pa = memmap_max_phys_addr();
+    max_pa = memmap_max_ram_addr();
     if (!max_pa)
         panic("No physical memory regions available");
 
@@ -180,8 +182,9 @@ void pmm_simple_init(void)
         phys_addr_t aligned = PAGE_ALIGN_UP(r->start);
         if (aligned < r->end && r->end - aligned >= array_bytes) {
             pool.array.pages = (struct pmm_page *)pa_to_va(aligned);
-            if (memmap_punch_region(aligned, aligned + array_bytes, MEM_KERNEL))
-                panic("pmm_simple: failed to punch memory region");
+            if ((err = memmap_punch_region(aligned, aligned + array_bytes,
+                                           MEM_KERNEL)))
+                panic_error(err, "pmm_simple: failed to punch memory region");
             break;
         }
     }
@@ -192,4 +195,6 @@ void pmm_simple_init(void)
     init_free_list();
 
     pmm_register(&ops);
+
+    LOGM_INFO("PMM", "PMM initialized successfully. Provider: simple");
 }

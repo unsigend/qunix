@@ -18,12 +18,15 @@
 #include <kernel/cpu.h>
 #include <kernel/init.h>
 #include <kernel/interrupt.h>
+#include <kernel/mm/mm.h>
 
 void kernel_main(void)
 {
     interrupt_disable();
 
     cpu_init();
+
+    mm_init();
 
     // interrupt_enable();
 

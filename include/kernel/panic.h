@@ -21,5 +21,6 @@
 #include <kernel/compiler.h>
 
 extern __printf(1, 2) void panic(const char *fmt, ...) __noreturn __cold;
+extern void panic_error(int errnum, const char *s) __noreturn __cold;
 
 #endif /* _QUNIX_PANIC_H_ */

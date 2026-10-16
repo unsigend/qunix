@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/kmalloc.h>
 #include <kernel/stddef.h>
 #include <kernel/string.h>
 
@@ -247,4 +248,16 @@ char *strstr(const char *str, const char *substr)
         ++search;
     }
     return NULL;
+}
+
+char *strdup(const char *src)
+{
+    size_t len = strlen(src);
+    char *dest = kmalloc(len + 1);
+
+    if (dest == NULL)
+        return NULL;
+
+    memcpy(dest, src, len + 1);
+    return dest;
 }

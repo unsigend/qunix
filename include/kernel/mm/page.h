@@ -95,6 +95,8 @@ extern void page_unmap_range(pagetable_t root, virt_addr_t va, size_t n);
 CONTRACT extern int page_lookup(pagetable_t root, virt_addr_t va,
                                 phys_addr_t *pa);
 
+CONTRACT extern void page_init(void);
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* _QUNIX_MM_PAGE_H_ */

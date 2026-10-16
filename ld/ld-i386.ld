@@ -70,4 +70,7 @@ SECTIONS
     _kernel_image_virt_end = ADDR(.reclaimable) + SIZEOF(.reclaimable);
 
     _kernel_image_size = _kernel_image_phys_end - _kernel_image_phys_start;
+
+    _reclaimable_phys_start = LOADADDR(.reclaimable);
+    _reclaimable_phys_end = LOADADDR(.reclaimable) + SIZEOF(.reclaimable);
 }

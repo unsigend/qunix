@@ -92,10 +92,22 @@ multiboot_header_end:
 
 _start:
     # set up page table
-    movl $HUGE_PAGE_MAKE(0), %ecx
     leal boot_pgtable - KERNEL_VIRT_START, %edi
+
+    # identity map: 0-4MB pa to 0-4MB va
+    movl $HUGE_PAGE_MAKE(0), %ecx
     movl %ecx, (%edi)
-    movl %ecx, 3072(%edi)
+
+    # higher half: 0-1GB pa to 3GB-4GB va, 256 4MB pages
+    movl $HUGE_PAGE_MAKE(0), %ecx
+    leal 3072(%edi), %esi
+    movl $256, %edx
+map_higher_half:
+    movl %ecx, (%esi)
+    addl $MB_N(4), %ecx
+    addl $4, %esi
+    decl %edx
+    jnz map_higher_half
 
     # load page table
     leal boot_pgtable - KERNEL_VIRT_START, %edx

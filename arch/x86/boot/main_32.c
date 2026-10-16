@@ -21,6 +21,7 @@
 #include <kernel/mm/memmap.h>
 #include <kernel/printk.h>
 #include <kernel/stdint.h>
+#include <kernel/string.h>
 
 #include <asm/mb2.h>
 #include <asm/memlayout.h>
@@ -29,10 +30,15 @@
 
 void bootmain(uint32_t, uint32_t);
 
+/* symbols from ld/ld-i386.ld */
+extern char _reclaimable_phys_start[];
+extern char _reclaimable_phys_end[];
+
 static void memmap_parse(const struct multiboot_tag_mmap *mmap)
 {
     struct multiboot_mmap_entry *entry;
     uint32_t base, tagend;
+    int err;
 
     base = (uint32_t)mmap->entries;
     tagend = (uint32_t)mmap + mmap->size;
@@ -52,23 +58,23 @@ static void memmap_parse(const struct multiboot_tag_mmap *mmap)
 
         switch (entry->type) {
         case MULTIBOOT_MEMORY_AVAILABLE:
-            if (memmap_add_region(entry->addr, end, MEM_AVAILABLE))
-                panic("failed to add memory region");
+            if ((err = memmap_add_region(entry->addr, end, MEM_AVAILABLE)))
+                panic_error(err, "failed to add memory region");
             break;
         case MULTIBOOT_MEMORY_RESERVED:
         case MULTIBOOT_MEMORY_NVS:
         case MULTIBOOT_MEMORY_BADRAM:
-            if (memmap_add_region(entry->addr, end, MEM_RESERVED))
-                panic("failed to add memory region");
+            if ((err = memmap_add_region(entry->addr, end, MEM_RESERVED)))
+                panic_error(err, "failed to add memory region");
 
             break;
         case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
-            if (memmap_add_region(entry->addr, end, MEM_ACPI))
-                panic("failed to add memory region");
+            if ((err = memmap_add_region(entry->addr, end, MEM_ACPI)))
+                panic_error(err, "failed to add memory region");
             break;
         default:
-            if (memmap_add_region(entry->addr, end, MEM_RESERVED))
-                panic("failed to add memory region");
+            if ((err = memmap_add_region(entry->addr, end, MEM_RESERVED)))
+                panic_error(err, "failed to add memory region");
             break;
         }
         base += mmap->entry_size;
@@ -100,6 +106,7 @@ void bootmain(uint32_t magic, uint32_t mbi)
     struct mb2_header *header;
     struct multiboot_tag *tag;
     uint32_t tag_end;
+    int err;
 
     vga_init(); /* initialize the VGA text mode driver first,
                    everything else depends on it */
@@ -121,10 +128,20 @@ void bootmain(uint32_t magic, uint32_t mbi)
 
     memmap_log();
 
-    /* reserve kernel image memory */
-    if (memmap_punch_region(KERNEL_IMAGE_PHYS_START, KERNEL_IMAGE_PHYS_END,
-                            MEM_KERNEL))
-        panic("failed to reserve kernel image memory");
+    /* Reserve the kernel image, then reclaim the temporary boot data to
+     * available memory. pmm_init walks the available regions once to build
+     * the free list, so both updates must be done before pmm_init. */
 
-    kernel_main();
+    /* reserve kernel image memory */
+    if ((err = memmap_punch_region(KERNEL_IMAGE_PHYS_START,
+                                   KERNEL_IMAGE_PHYS_END, MEM_KERNEL)))
+        panic_error(err, "failed to reserve kernel image memory");
+
+    /* reclaim the memory region from temporary boot data section */
+    if ((err = memmap_punch_region((phys_addr_t)_reclaimable_phys_start,
+                                   (phys_addr_t)_reclaimable_phys_end,
+                                   MEM_AVAILABLE)))
+        panic_error(err, "failed to punch reclaimable memory");
+
+    kernel_main(); /* pass control to the kernel */
 }
