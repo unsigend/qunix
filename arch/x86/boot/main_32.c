@@ -16,10 +16,16 @@
  */
 
 #include <kernel/compiler.h>
+#include <kernel/fmt.h>
+#include <kernel/init.h>
 #include <kernel/mm/memmap.h>
+#include <kernel/printk.h>
 #include <kernel/stdint.h>
 
 #include <asm/mb2.h>
+#include <asm/memlayout.h>
+
+#include <driver/vga.h>
 
 void bootmain(uint32_t, uint32_t);
 
@@ -33,31 +39,35 @@ static void memmap_parse(const struct multiboot_tag_mmap *mmap)
     entry = (struct multiboot_mmap_entry *)base;
 
     while (base + mmap->entry_size <= tagend) {
-        if (entry->addr > UINT32_MAX || entry->addr + entry->len > UINT32_MAX)
-            panic("memory region too large max 4GB memory");
+        phys_addr_t end = entry->addr + entry->len;
+
+        if (entry->addr > UINT32_MAX) {
+            base += mmap->entry_size;
+            entry = (struct multiboot_mmap_entry *)base;
+            continue;
+        }
+
+        if (entry->addr + entry->len > UINT32_MAX) /* wrap around */
+            end = UINT32_MAX;
 
         switch (entry->type) {
         case MULTIBOOT_MEMORY_AVAILABLE:
-            if (memmap_add_region(entry->addr, entry->addr + entry->len,
-                                  MEM_AVAILABLE))
+            if (memmap_add_region(entry->addr, end, MEM_AVAILABLE))
                 panic("failed to add memory region");
             break;
         case MULTIBOOT_MEMORY_RESERVED:
         case MULTIBOOT_MEMORY_NVS:
         case MULTIBOOT_MEMORY_BADRAM:
-            if (memmap_add_region(entry->addr, entry->addr + entry->len,
-                                  MEM_RESERVED))
+            if (memmap_add_region(entry->addr, end, MEM_RESERVED))
                 panic("failed to add memory region");
 
             break;
         case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
-            if (memmap_add_region(entry->addr, entry->addr + entry->len,
-                                  MEM_ACPI))
+            if (memmap_add_region(entry->addr, end, MEM_ACPI))
                 panic("failed to add memory region");
             break;
         default:
-            if (memmap_add_region(entry->addr, entry->addr + entry->len,
-                                  MEM_RESERVED))
+            if (memmap_add_region(entry->addr, end, MEM_RESERVED))
                 panic("failed to add memory region");
             break;
         }
@@ -66,11 +76,33 @@ static void memmap_parse(const struct multiboot_tag_mmap *mmap)
     }
 }
 
+static void memmap_log(void)
+{
+    const struct mem_region *r;
+    char buf[64];
+    size_t bytes = 0;
+
+    for (size_t i = 0; i < memmap_count(); i++) {
+        r = memmap_get_region(i);
+        if (r->type == MEM_AVAILABLE)
+            bytes += r->end - r->start;
+        LOGM_INFO("MEMMAP", "Memmap region %-9s: 0x%.8x - 0x%.8x",
+                  memmap_type_to_str(r->type), (unsigned int)r->start,
+                  (unsigned int)r->end);
+    }
+
+    fmt_mem(buf, sizeof(buf), bytes);
+    LOGM_INFO("MEMMAP", "Total available RAM memory: %s", buf);
+}
+
 void bootmain(uint32_t magic, uint32_t mbi)
 {
     struct mb2_header *header;
     struct multiboot_tag *tag;
     uint32_t tag_end;
+
+    vga_init(); /* initialize the VGA text mode driver first,
+                   everything else depends on it */
 
     mb2_validate(magic, mbi);
 
@@ -86,4 +118,13 @@ void bootmain(uint32_t magic, uint32_t mbi)
         }
         tag = mb2_next_tag(tag);
     }
+
+    memmap_log();
+
+    /* reserve kernel image memory */
+    if (memmap_punch_region(KERNEL_IMAGE_PHYS_START, KERNEL_IMAGE_PHYS_END,
+                            MEM_KERNEL))
+        panic("failed to reserve kernel image memory");
+
+    kernel_main();
 }

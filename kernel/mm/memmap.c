@@ -272,3 +272,8 @@ phys_addr_t memmap_max_phys_addr(void)
         return 0;
     return regions[region_count - 1].end;
 }
+
+const char *memmap_type_to_str(enum mem_type type)
+{
+    return mem_type_str[type];
+}

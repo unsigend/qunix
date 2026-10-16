@@ -21,6 +21,7 @@
 #include <asm/segment.h>
 
 #include <kernel/panic.h>
+#include <kernel/printk.h>
 
 #define ACCESS_MASK 0x92
 #define ACCESS_SYS_MASK 0x80
@@ -117,4 +118,6 @@ void gdt_init(void)
 
     gdtr_write(sizeof(gdt) - 1, (uint32_t)gdt);
     reload_segments(SEGSEL_KCODE, SEGSEL_KDATA);
+
+    LOGM_INFO("GDT", "GDT initialized successfully");
 }

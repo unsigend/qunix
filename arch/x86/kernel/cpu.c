@@ -18,6 +18,7 @@
 #include <asm/gdt.h>
 
 #include <kernel/cpu.h>
+#include <kernel/printk.h>
 
 void cpu_halt(void)
 {
@@ -26,4 +27,9 @@ void cpu_halt(void)
         __asm__("hlt");
 }
 
-void cpu_init(void) { gdt_init(); }
+void cpu_init(void)
+{
+    gdt_init();
+
+    LOGM_INFO("CPU", "CPU initialized successfully");
+}
