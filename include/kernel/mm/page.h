@@ -18,10 +18,7 @@
 #ifndef _QUNIX_MM_PAGE_H_
 #define _QUNIX_MM_PAGE_H_
 
-#include <kernel/compiler.h>
 #include <kernel/config.h>
-#include <kernel/string.h>
-#include <kernel/types.h>
 
 #define DEFAULT_PAGE_SHIFT 12
 #define DEFAULT_PAGE_SIZE (1UL << DEFAULT_PAGE_SHIFT)
@@ -42,6 +39,12 @@
 #define PAGEF_WRITE (1u << 0)
 #define PAGEF_USER (1u << 1)
 #define PAGEF_EXEC (1u << 2)
+
+#ifndef __ASSEMBLER__
+
+#include <kernel/compiler.h>
+#include <kernel/string.h>
+#include <kernel/types.h>
 
 #define page_clear(page) memset((void *)(page), 0, PAGE_SIZE)
 #define page_copy(dest, src) memcpy((void *)(dest), (void *)(src), PAGE_SIZE)
@@ -91,5 +94,7 @@ extern void page_unmap_range(pagetable_t root, virt_addr_t va, size_t n);
  */
 CONTRACT extern int page_lookup(pagetable_t root, virt_addr_t va,
                                 phys_addr_t *pa);
+
+#endif /* __ASSEMBLER__ */
 
 #endif /* _QUNIX_MM_PAGE_H_ */

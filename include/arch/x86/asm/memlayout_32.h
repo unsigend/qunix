@@ -19,7 +19,6 @@
 #define _X86_ASM_MEMLAYOUT_32_H_
 
 #include <kernel/sizes.h>
-#include <kernel/types.h>
 
 #define KERNEL_PHYS_START 0x0
 #define KERNEL_PHYS_END GB_N(1)
@@ -41,10 +40,15 @@
 /* kernel image size */
 #define KERNEL_IMAGE_SIZE kernel_image_size
 
+#ifndef __ASSEMBLER__
+#include <kernel/types.h>
+
 extern phys_addr_t kernel_image_phys_start;
 extern phys_addr_t kernel_image_phys_end;
 extern virt_addr_t kernel_image_virt_start;
 extern virt_addr_t kernel_image_virt_end;
 extern size_t kernel_image_size;
+
+#endif /* __ASSEMBLER__ */
 
 #endif /* _X86_ASM_MEMLAYOUT_32_H_ */

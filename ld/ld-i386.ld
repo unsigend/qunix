@@ -57,11 +57,17 @@ SECTIONS
         *(.bss*)
     }
 
+    .reclaimable : AT(ADDR(.reclaimable) - KERNEL_VIRT_BASE)
+    {
+        *(.reclaimable*)
+    }
+
+    /* export symbols */
     _kernel_image_phys_start = KERNEL_IMG_LOAD_BASE;
-    _kernel_image_phys_end = LOADADDR(.bss) + SIZEOF(.bss);
+    _kernel_image_phys_end = LOADADDR(.reclaimable) + SIZEOF(.reclaimable);
 
     _kernel_image_virt_start = KERNEL_IMG_VIRT_BASE;
-    _kernel_image_virt_end = ADDR(.bss) + SIZEOF(.bss);
+    _kernel_image_virt_end = ADDR(.reclaimable) + SIZEOF(.reclaimable);
 
     _kernel_image_size = _kernel_image_phys_end - _kernel_image_phys_start;
 }
