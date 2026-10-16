@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <asm/gdt.h>
+
 #include <kernel/cpu.h>
 
 void cpu_halt(void)
@@ -23,3 +25,5 @@ void cpu_halt(void)
     while (1)
         __asm__("hlt");
 }
+
+void cpu_init(void) { gdt_init(); }

@@ -23,12 +23,15 @@
 #define GDT_SIZE_MAX UINT16_MAX
 #define GDT_LIMIT_MAX 0xFFFFF
 
-#define GDT_CODE (1u << 3)               /* code segment */
-#define GDT_DATA 0                       /* data segment */
-#define GDT_LDT 0x02                     /* local descriptor table */
-#define GDT_TSS 0x09                     /* task state segment */
+#define GDT_CODE (1u << 3) /* code segment */
+#define GDT_DATA 0         /* data segment */
+
+#define GDT_LDT 0x02 /* local descriptor table */
+#define GDT_TSS 0x09 /* task state segment */
+
 #define GDT_DPL(dpl) (((dpl) & 3u) << 5) /* descriptor privilege level */
 
+extern void gdt_init(void);
 extern void gdtr_read(unsigned short *size, unsigned long *base);
 extern void gdtr_write(unsigned short size, unsigned long base);
 

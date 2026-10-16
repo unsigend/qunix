@@ -18,6 +18,7 @@
 #include "gdt_desc.h"
 
 #include <asm/gdt.h>
+#include <asm/segment.h>
 
 #include <kernel/panic.h>
 
@@ -85,4 +86,35 @@ void gdt_set_sys_entry(unsigned int index, unsigned long base,
     entry->base_low = base & 0xffff;
     entry->base_middle = (base >> 16) & 0xff;
     entry->base_high = (base >> 24) & 0xff;
+}
+
+static void reload_segments(uint16_t code, uint16_t data)
+{
+    asm volatile("pushl %0\n\t"
+                 "pushl $1f\n\t"
+                 "lretl\n\t"
+                 "1:\n\t"
+                 "movw %w1, %%ds\n\t"
+                 "movw %w1, %%es\n\t"
+                 "movw %w1, %%fs\n\t"
+                 "movw %w1, %%gs\n\t"
+                 "movw %w1, %%ss\n\t"
+                 :
+                 : "r"((uint32_t)code), "r"((uint32_t)data)
+                 : "memory");
+}
+
+void gdt_init(void)
+{
+    gdt_set_entry(SEG_KCODE_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_CODE | GDT_DPL(CPU_RING0));
+    gdt_set_entry(SEG_KDATA_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_DATA | GDT_DPL(CPU_RING0));
+    gdt_set_entry(SEG_UCODE_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_CODE | GDT_DPL(CPU_RING3));
+    gdt_set_entry(SEG_UDATA_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_DATA | GDT_DPL(CPU_RING3));
+
+    gdtr_write(sizeof(gdt) - 1, (uint32_t)gdt);
+    reload_segments(SEGSEL_KCODE, SEGSEL_KDATA);
 }
