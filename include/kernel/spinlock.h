@@ -41,6 +41,8 @@ struct spinlock {
 #endif
 };
 
+#define SPINLOCK_INIT(name)
+
 extern void spinlock_init(struct spinlock *lock, const char *name);
 extern bool spinlock_is_locked(struct spinlock *lock);
 
@@ -73,5 +75,12 @@ extern void spinlock_unlock(struct spinlock *lock);
 extern void spinlock_unlock_irq(struct spinlock *lock);
 extern void spinlock_unlock_irqrestore(struct spinlock *lock,
                                        unsigned long flags);
+
+#undef SPINLOCK_INIT
+#if CONFIG_SMP
+#define SPINLOCK_INIT(n) {.name = n, .locked = ATOMIC_INIT(0), .owner = NULL}
+#else
+#define SPINLOCK_INIT(n) {.name = n, .locked = false, .owner = NULL}
+#endif
 
 #endif /* _QUNIX_SPINLOCK_H_ */

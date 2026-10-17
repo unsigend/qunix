@@ -65,11 +65,11 @@ extern int memmap_punch_region(phys_addr_t start, phys_addr_t end,
 extern int memmap_remove_region(phys_addr_t start, phys_addr_t end,
                                 enum mem_type type);
 
-extern const struct mem_region *
-memmap_find_region(phys_addr_t start, phys_addr_t end, enum mem_type type);
+extern int memmap_find_region(phys_addr_t start, phys_addr_t end,
+                              enum mem_type type, struct mem_region *region);
 
 extern size_t memmap_count(void);
-extern const struct mem_region *memmap_get_region(size_t index);
+extern int memmap_get_region(size_t index, struct mem_region *region);
 extern const char *memmap_type_to_str(enum mem_type type);
 
 /*

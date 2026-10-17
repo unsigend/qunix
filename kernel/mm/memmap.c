@@ -19,6 +19,7 @@
 #include <kernel/macros.h>
 #include <kernel/mm/memmap.h>
 #include <kernel/panic.h>
+#include <kernel/spinlock.h>
 #include <kernel/string.h>
 
 #define MAX_REGIONS 64
@@ -44,19 +45,37 @@
  * coalesce helpers may remove entries, so callers must not reuse an index
  * after calling them.
  *
- * No locking: intended for early boot, single CPU, before the memory map
- * is handed to the allocator.
+ * One spinlock covers every public function. Interrupt handlers do not
+ * update the map, so the lock does not disable interrupts. Lookups copy
+ * the region out before unlocking.
  */
 
 static struct mem_region regions[MAX_REGIONS];
 static size_t region_count;
+static struct spinlock lock =
+    SPINLOCK_INIT("memmap"); /* lock the regions array and region_count */
 
-size_t memmap_count(void) { return region_count; }
-const struct mem_region *memmap_get_region(size_t index)
+size_t memmap_count(void)
 {
-    if (index >= region_count)
-        return NULL;
-    return &regions[index];
+    size_t count;
+    spinlock_lock(&lock);
+    count = region_count;
+    spinlock_unlock(&lock);
+    return count;
+}
+
+int memmap_get_region(size_t index, struct mem_region *region)
+{
+    spinlock_lock(&lock);
+
+    if (index >= region_count) {
+        spinlock_unlock(&lock);
+        return -ENOENT;
+    }
+
+    *region = regions[index];
+    spinlock_unlock(&lock);
+    return 0;
 }
 
 static const char *const mem_type_str[] = {
@@ -171,14 +190,20 @@ static void coalesce_right(size_t index)
     }
 }
 
-const struct mem_region *memmap_find_region(phys_addr_t start, phys_addr_t end,
-                                            enum mem_type type)
+int memmap_find_region(phys_addr_t start, phys_addr_t end, enum mem_type type,
+                       struct mem_region *region)
 {
+    spinlock_lock(&lock);
+
     for (size_t i = 0; i < region_count; i++) {
-        if (equals(&regions[i], start, end, type))
-            return &regions[i];
+        if (equals(&regions[i], start, end, type)) {
+            *region = regions[i];
+            spinlock_unlock(&lock);
+            return 0;
+        }
     }
-    return NULL;
+    spinlock_unlock(&lock);
+    return -ENOENT;
 }
 
 int memmap_remove_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
@@ -186,23 +211,28 @@ int memmap_remove_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
     if (end <= start)
         return -EINVAL;
 
+    spinlock_lock(&lock);
     for (size_t i = 0; i < region_count; i++) {
         if (equals(&regions[i], start, end, type)) {
             remove_at(i);
+            spinlock_unlock(&lock);
             return 0;
         }
     }
 
+    spinlock_unlock(&lock);
     return -ENOENT;
 }
 
 int memmap_add_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
 {
     struct mem_region *r;
+    int ret;
 
     if (end <= start)
         return -EINVAL;
 
+    spinlock_lock(&lock);
     for (size_t i = 0; i < region_count; i++) {
         r = &regions[i];
         if (overlaps(r, start, end) && r->type != type)
@@ -215,12 +245,18 @@ int memmap_add_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
         if (mergeable(r, start, end, type)) {
             merge(r, start, end);
             coalesce_right(i);
+            spinlock_unlock(&lock);
             return 0;
-        } else if (end <= r->start)
-            return insert(i, start, end, type);
+        } else if (end <= r->start) {
+            ret = insert(i, start, end, type);
+            spinlock_unlock(&lock);
+            return ret;
+        }
     }
 
-    return append(start, end, type);
+    ret = append(start, end, type);
+    spinlock_unlock(&lock);
+    return ret;
 }
 
 int memmap_punch_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
@@ -231,21 +267,28 @@ int memmap_punch_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
     if (end <= start)
         return -EINVAL;
 
+    spinlock_lock(&lock);
     for (i = 0; i < region_count; i++)
         if (within(&regions[i], start, end))
             break;
 
-    if (i == region_count)
+    if (i == region_count) {
+        spinlock_unlock(&lock);
         return -ENOENT;
+    }
 
     old = regions[i];
 
-    if (old.type == type)
+    if (old.type == type) {
+        spinlock_unlock(&lock);
         return 0;
+    }
 
     need = (old.start != start) + (old.end != end);
-    if (region_count + need > MAX_REGIONS)
+    if (region_count + need > MAX_REGIONS) {
+        spinlock_unlock(&lock);
         return -ENOMEM;
+    }
 
     if (old.start != start)
         insert(i++, old.start, start, old.type);
@@ -263,6 +306,7 @@ int memmap_punch_region(phys_addr_t start, phys_addr_t end, enum mem_type type)
     if (old.start == start)
         coalesce_left(i);
 
+    spinlock_unlock(&lock);
     return 0;
 }
 
@@ -270,14 +314,20 @@ phys_addr_t memmap_max_ram_addr(void)
 {
     phys_addr_t max = 0;
 
-    if (region_count == 0)
+    spinlock_lock(&lock);
+
+    if (region_count == 0) {
+        spinlock_unlock(&lock);
         return 0;
+    }
 
     for (size_t i = 0; i < region_count; i++) {
         if (regions[i].type == MEM_AVAILABLE || regions[i].type == MEM_KERNEL ||
             regions[i].type == MEM_ACPI)
             max = MAX(max, regions[i].end);
     }
+
+    spinlock_unlock(&lock);
     return max;
 }
 

@@ -23,6 +23,7 @@
 #include <kernel/mm/pmm.h>
 #include <kernel/panic.h>
 #include <kernel/printk.h>
+#include <kernel/spinlock.h>
 #include <kernel/types.h>
 
 #define MAX_ORDER 0
@@ -36,7 +37,10 @@
  * frames that were available at init. The descriptor array itself stays
  * off the list.
  *
- * No locking. Descriptors remain valid for the life of the kernel.
+ * alloc, free, and stats take an irqsave spinlock: an interrupt handler
+ * may allocate. The array base and npages are fixed after init, so
+ * page_to_pa and pa_to_page do not take the lock. Descriptors remain
+ * valid for the life of the kernel.
  */
 
 struct pmm_page {
@@ -54,6 +58,7 @@ struct pmm_simple_pool {
     size_t free_pages;
     size_t alloc_pages;
     size_t total_pages;
+    struct spinlock lock;
 };
 
 static struct pmm_simple_pool pool;
@@ -61,9 +66,14 @@ static struct pmm_simple_pool pool;
 static struct pmm_page *alloc(unsigned int order)
 {
     struct pmm_page *page;
+    unsigned long flags;
 
-    if (order > MAX_ORDER || !pool.free_list)
+    flags = spinlock_lock_irqsave(&pool.lock);
+
+    if (order > MAX_ORDER || !pool.free_list) {
+        spinlock_unlock_irqrestore(&pool.lock, flags);
         return NULL;
+    }
 
     page = pool.free_list;
     pool.free_list = page->next;
@@ -72,12 +82,14 @@ static struct pmm_page *alloc(unsigned int order)
     pool.free_pages--;
     pool.alloc_pages++;
 
+    spinlock_unlock_irqrestore(&pool.lock, flags);
     return page;
 }
 
 static void free(struct pmm_page *page, unsigned int order)
 {
     pn_t fpn;
+    unsigned long flags;
 
     if (order > MAX_ORDER || !page)
         panic("pmm_simple: invalid arguments");
@@ -88,21 +100,28 @@ static void free(struct pmm_page *page, unsigned int order)
     if (fpn >= pool.array.npages)
         panic("pmm_simple: invalid page number");
 
+    flags = spinlock_lock_irqsave(&pool.lock);
     page->next = pool.free_list;
     pool.free_list = page;
 
     pool.free_pages++;
     pool.alloc_pages--;
+
+    spinlock_unlock_irqrestore(&pool.lock, flags);
 }
 
 static void stats(struct pmm_stats *stats)
 {
     struct pmm_stats s;
+    unsigned long flags;
 
     s.max_order = MAX_ORDER;
+
+    flags = spinlock_lock_irqsave(&pool.lock);
     s.free_pages = pool.free_pages;
     s.alloc_pages = pool.alloc_pages;
     s.total_pages = pool.total_pages;
+    spinlock_unlock_irqrestore(&pool.lock, flags);
 
     *stats = s;
 }
@@ -133,21 +152,21 @@ static struct pmm_ops ops = {
 
 static void init_free_list(void)
 {
-    const struct mem_region *r;
+    struct mem_region r;
     struct pmm_page *page;
     phys_addr_t aligned;
 
     for (size_t i = 0; i < memmap_count(); i++) {
-        r = memmap_get_region(i);
-        if (r->type != MEM_AVAILABLE)
+        memmap_get_region(i, &r);
+        if (r.type != MEM_AVAILABLE)
             continue;
 
-        aligned = PAGE_ALIGN_UP(r->start);
-        if (aligned >= r->end) /* smaller then one page */
+        aligned = PAGE_ALIGN_UP(r.start);
+        if (aligned >= r.end) /* smaller then one page */
             continue;
 
         phys_addr_t addr = aligned;
-        while (r->end - addr >= PAGE_SIZE) {
+        while (r.end - addr >= PAGE_SIZE) {
             page = pool.array.pages + (addr >> PAGE_SHIFT);
             page->next = pool.free_list;
             pool.free_list = page;
@@ -163,7 +182,7 @@ void pmm_simple_init(void)
 {
     phys_addr_t max_pa;
     size_t array_bytes;
-    const struct mem_region *r;
+    struct mem_region r;
     int err;
 
     max_pa = memmap_max_ram_addr();
@@ -175,12 +194,12 @@ void pmm_simple_init(void)
     array_bytes = PAGE_ALIGN_UP(array_bytes);
 
     for (size_t i = 0; i < memmap_count(); i++) {
-        r = memmap_get_region(i);
-        if (r->type != MEM_AVAILABLE)
+        memmap_get_region(i, &r);
+        if (r.type != MEM_AVAILABLE)
             continue;
 
-        phys_addr_t aligned = PAGE_ALIGN_UP(r->start);
-        if (aligned < r->end && r->end - aligned >= array_bytes) {
+        phys_addr_t aligned = PAGE_ALIGN_UP(r.start);
+        if (aligned < r.end && r.end - aligned >= array_bytes) {
             pool.array.pages = (struct pmm_page *)pa_to_va(aligned);
             if ((err = memmap_punch_region(aligned, aligned + array_bytes,
                                            MEM_KERNEL)))
@@ -193,6 +212,7 @@ void pmm_simple_init(void)
         panic("pmm_simple: not enough available memory");
 
     init_free_list();
+    spinlock_init(&pool.lock, "pmm_simple");
 
     pmm_register(&ops);
 

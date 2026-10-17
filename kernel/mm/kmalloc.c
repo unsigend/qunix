@@ -20,6 +20,7 @@
 #include <kernel/macros.h>
 #include <kernel/mm/page.h>
 #include <kernel/mm/pmm.h>
+#include <kernel/spinlock.h>
 #include <kernel/stdbool.h>
 #include <kernel/stddef.h>
 #include <kernel/stdint.h>
@@ -42,7 +43,11 @@
  *
  * Memory comes from the page allocator, one page at a time, and is not
  * returned there when the page becomes free. A zero-size request, or one
- * whose block does not fit in a page, returns NULL. No locking.
+ * whose block does not fit in a page, returns NULL.
+ *
+ * One irqsave spinlock covers kmalloc and kfree. An interrupt handler may
+ * allocate, so the lock disables interrupts. The bucket helpers assume it
+ * is already held. kcalloc takes it only through kmalloc.
  */
 
 #define ALIGNMENT _Alignof(max_align_t) /* alignment size */
@@ -86,6 +91,7 @@ typedef struct free_block {
     (sizeof(header_t) + sizeof(footer_t) + 2 * sizeof(uintptr_t))
 
 static free_block_t *buckets[BUCKET_COUNT]; /* free buckets */
+static struct spinlock lock = SPINLOCK_INIT("kmalloc");
 
 /* Bucket size lookup table. Base thresholds: MINIMUM_THRESHOLD  24 on 32-bit,
    48 on 64-bit */
@@ -348,6 +354,7 @@ void *kmalloc(size_t size)
     size_t needed;
     size_t index;
     void *p;
+    unsigned long flags;
 
     if (!size)
         return NULL;
@@ -359,28 +366,38 @@ void *kmalloc(size_t size)
         return NULL;
     index = get_bucket_index(needed);
 
+    flags = spinlock_lock_irqsave(&lock);
     while (index < BUCKET_COUNT) {
         p = bestfit(needed, index);
-        if (p)
+        if (p) {
+            spinlock_unlock_irqrestore(&lock, flags);
             return p;
+        }
         ++index;
     }
 
-    if (refill() == -1)
+    if (refill() == -1) {
+        spinlock_unlock_irqrestore(&lock, flags);
         return NULL;
+    }
 
-    return bestfit(needed, get_bucket_index(PAGE_SIZE));
+    p = bestfit(needed, get_bucket_index(PAGE_SIZE));
+    spinlock_unlock_irqrestore(&lock, flags);
+    return p;
 }
 
 void kfree(void *ptr)
 {
     block_t *block;
+    unsigned long flags;
 
     if (!ptr)
         return;
 
     block = (block_t *)((unsigned char *)ptr - sizeof(header_t));
+    flags = spinlock_lock_irqsave(&lock);
     coalescing((free_block_t *)block);
+    spinlock_unlock_irqrestore(&lock, flags);
 }
 
 void *kcalloc(size_t num, size_t size)
