@@ -44,6 +44,11 @@ static inline bool list_empty(const struct list_head *head);
 #define LIST_NODE_INIT() {NULL, NULL}
 #define list_entry(ptr, type, member) container_of(ptr, type, member)
 #define list_for_each(head, pos) for (pos = (head)->next; pos; pos = pos->next)
+#define list_for_each_entry(head, pos, type, member)                           \
+    for (pos = (head)->next ? list_entry((head)->next, type, member) : NULL;   \
+         pos;                                                                  \
+         pos = pos->member.next ? list_entry(pos->member.next, type, member)   \
+                                : NULL)
 
 static inline void list_init(struct list_head *head)
 {

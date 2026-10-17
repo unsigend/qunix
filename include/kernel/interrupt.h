@@ -26,7 +26,10 @@ enum irqreturn {
     IRQ_HANDLED = 1,
 };
 
+#define IRQF_SHARED (1u << 0) /* shared handler in one line */
+
 typedef enum irqreturn irqreturn_t;
+typedef irqreturn_t (*irq_handler_t)(unsigned int irq, void *dev);
 
 CONTRACT extern void interrupt_enable(void);
 CONTRACT extern void interrupt_disable(void);
@@ -34,5 +37,14 @@ CONTRACT extern bool interrupt_is_disabled(void);
 
 CONTRACT extern unsigned long interrupt_save(void);
 CONTRACT extern void interrupt_restore(unsigned long flags);
+
+extern int irq_register(unsigned int irq, irq_handler_t handler,
+                        unsigned int flags, const char *name, void *dev);
+extern void irq_unregister(unsigned int irq, void *dev);
+
+extern void irq_enable_line(unsigned int irq);
+extern void irq_disable_line(unsigned int irq);
+
+extern bool in_interrupt(void);
 
 #endif /* _QUNIX_INTERRUPT_H_ */

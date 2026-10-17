@@ -22,6 +22,7 @@
 
 struct cpu {
     unsigned int preempt_count;
+    unsigned int irq_depth;
 };
 
 CONTRACT extern void cpu_halt(void) __noreturn;
