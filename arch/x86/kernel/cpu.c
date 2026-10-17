@@ -16,6 +16,7 @@
  */
 
 #include <asm/gdt.h>
+#include <asm/idt.h>
 
 #include <kernel/cpu.h>
 #include <kernel/printk.h>
@@ -30,6 +31,7 @@ void cpu_halt(void)
 void cpu_init(void)
 {
     gdt_init();
+    idt_init();
 
     LOGM_INFO("CPU", "CPU initialized successfully");
 }

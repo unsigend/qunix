@@ -14,14 +14,3 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-#ifndef _X86_ASM_IRQ_VECTORS_H_
-#define _X86_ASM_IRQ_VECTORS_H_
-
-/* Asynchronous exceptions from external hardware. */
-
-#define X86_VECTOR_NR 16
-#define X86_VECTOR_NR_MIN 0x20
-#define X86_VECTOR_NR_MAX (X86_VECTOR_NR_MIN + X86_VECTOR_NR - 1)
-
-#endif /* _X86_ASM_IRQ_VECTORS_H_ */

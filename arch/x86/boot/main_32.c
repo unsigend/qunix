@@ -84,17 +84,17 @@ static void memmap_parse(const struct multiboot_tag_mmap *mmap)
 
 static void memmap_log(void)
 {
-    const struct mem_region *r;
+    struct mem_region r;
     char buf[64];
     size_t bytes = 0;
 
     for (size_t i = 0; i < memmap_count(); i++) {
-        r = memmap_get_region(i);
-        if (r->type == MEM_AVAILABLE)
-            bytes += r->end - r->start;
+        memmap_get_region(i, &r);
+        if (r.type == MEM_AVAILABLE)
+            bytes += r.end - r.start;
         LOGM_INFO("MEMMAP", "Memmap region %-9s: 0x%.8x - 0x%.8x",
-                  memmap_type_to_str(r->type), (unsigned int)r->start,
-                  (unsigned int)r->end);
+                  memmap_type_to_str(r.type), (unsigned int)r.start,
+                  (unsigned int)r.end);
     }
 
     fmt_mem(buf, sizeof(buf), bytes);

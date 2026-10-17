@@ -22,6 +22,17 @@
 
 #include <kernel/types.h>
 
+/* Page Fault Flags */
+
+#define PF_P (1u << 0)    /* present */
+#define PF_WR (1u << 1)   /* write */
+#define PF_USER (1u << 2) /* user */
+#define PF_RSVD (1u << 3) /* reserved */
+#define PF_ID (1u << 4)   /* instruction fetch */
+#define PF_PK (1u << 5)   /* protection key */
+#define PF_SS (1u << 6)   /* shadow stack */
+#define PF_SGX (1u << 15) /* SGX */
+
 static __always_inline phys_addr_t pageroot_read(void);
 static __always_inline void pageroot_write(phys_addr_t root);
 

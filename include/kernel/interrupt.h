@@ -21,6 +21,13 @@
 #include <kernel/compiler.h>
 #include <kernel/stdbool.h>
 
+enum irqreturn {
+    IRQ_NONE = 0,
+    IRQ_HANDLED = 1,
+};
+
+typedef enum irqreturn irqreturn_t;
+
 CONTRACT extern void interrupt_enable(void);
 CONTRACT extern void interrupt_disable(void);
 CONTRACT extern bool interrupt_is_disabled(void);

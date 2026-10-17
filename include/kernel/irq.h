@@ -18,4 +18,8 @@
 #ifndef _QUNIX_IRQ_H_
 #define _QUNIX_IRQ_H_
 
+#include <kernel/interrupt.h>
+
+extern irqreturn_t irq_handle(unsigned int irq);
+
 #endif /* _QUNIX_IRQ_H_ */

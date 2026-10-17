@@ -116,7 +116,7 @@ void gdt_init(void)
     gdt_set_entry(SEG_UDATA_IDX, 0, GDT_LIMIT_MAX,
                   GDT_DATA | GDT_DPL(CPU_RING3));
 
-    gdtr_write(sizeof(gdt) - 1, (uint32_t)gdt);
+    gdtr_write(sizeof(gdt) - 1, (unsigned long)gdt);
     reload_segments(SEGSEL_KCODE, SEGSEL_KDATA);
 
     LOGM_INFO("GDT", "GDT initialized successfully");

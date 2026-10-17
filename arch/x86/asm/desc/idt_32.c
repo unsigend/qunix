@@ -18,8 +18,12 @@
 #include "idt_desc.h"
 
 #include <asm/idt.h>
+#include <asm/segment.h>
+#include <asm/trap.h>
+#include <asm/vector.h>
 
 #include <kernel/panic.h>
+#include <kernel/printk.h>
 
 #define MASK (1u << 15)
 
@@ -58,4 +62,18 @@ void idt_set_entry(unsigned int index, unsigned short selector,
     entry->offset_high = (addr >> 16) & 0xFFFF;
     entry->selector = selector;
     entry->flags = flags | MASK;
+}
+
+void idt_init(void)
+{
+    for (unsigned int i = 0; i < IDT_NR; i++) {
+        if (i == X86_VECTOR_SYSCALL)
+            continue;
+        idt_set_entry(i, SEGSEL_KCODE, trap_stubs(i),
+                      IDT_INT | IDT_DPL(CPU_RING0));
+    }
+
+    idtr_write(sizeof(idt) - 1, (unsigned long)idt);
+
+    LOGM_INFO("IDT", "IDT initialized successfully");
 }

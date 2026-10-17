@@ -21,8 +21,6 @@
 /* Synchronous exceptions from CPU and NMI. */
 
 #define X86_TRAP_NR 32
-#define X86_TRAP_NR_MIN 0
-#define X86_TRAP_NR_MAX (X86_TRAP_NR - 1)
 
 #define X86_TRAP_DE 0x00  /* Divide Error */
 #define X86_TRAP_DB 0x01  /* Debug */

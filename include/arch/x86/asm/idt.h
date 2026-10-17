@@ -32,6 +32,9 @@
 
 #define IDT_DPL(dpl) (((dpl) & 3u) << 13) /* descriptor privilege level */
 
+#ifndef __ASSEMBLER__
+
+extern void idt_init(void);
 extern void idtr_read(unsigned short *size, unsigned long *base);
 extern void idtr_write(unsigned short size, unsigned long base);
 
@@ -42,5 +45,7 @@ extern void idtr_write(unsigned short size, unsigned long base);
  */
 extern void idt_set_entry(unsigned int index, unsigned short selector,
                           unsigned long addr, unsigned int flags);
+
+#endif /* __ASSEMBLER__ */
 
 #endif /* _X86_ASM_IDT_H_ */
