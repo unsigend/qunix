@@ -35,6 +35,7 @@ const struct sched_class rr_class = {
     .dequeue = dequeue,
     .pick_next = pick_next,
     .tick = tick,
+    .slice = RR_SLICE,
 };
 
 static void enqueue(struct task *task)

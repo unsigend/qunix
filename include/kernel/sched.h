@@ -24,6 +24,7 @@ struct task;
 
 struct sched_class {
     const char *name;
+    unsigned int slice; /* initial slice */
 
     void (*dequeue)(struct task *task);
     void (*enqueue)(struct task *task);
@@ -36,5 +37,6 @@ extern void sched_init(void);
 extern void schedule(void);
 extern void sched_yield(void);
 extern void sched_tick(void);
+extern void sched_enqueue(struct task *task);
 
 #endif /* _QUNIX_SCHED_H_ */

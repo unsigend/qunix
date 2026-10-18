@@ -20,6 +20,7 @@
 
 #include <kernel/interrupt.h>
 #include <kernel/list.h>
+#include <kernel/spinlock.h>
 
 struct irq_chip {
     const char *name;
@@ -37,6 +38,7 @@ struct irq_desc {
     unsigned int nhandlers;
     unsigned long triggered;
     unsigned long unhandled;
+    struct spinlock lock;
 };
 
 struct irq_action {

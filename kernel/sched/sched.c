@@ -177,3 +177,9 @@ void sched_tick(void)
     if (sched_core.policy->tick())
         sched_core.need_resched = 1;
 }
+
+void sched_enqueue(struct task *task)
+{
+    task->slice = sched_core.policy->slice;
+    sched_core.policy->enqueue(task);
+}

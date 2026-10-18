@@ -16,6 +16,7 @@
  */
 
 #include <kernel/cpu.h>
+#include <kernel/irq.h>
 #include <kernel/panic.h>
 #include <kernel/preempt.h>
 #include <kernel/sched.h>
@@ -29,6 +30,6 @@ void preempt_enable(void)
         panic("unbalanced preempt_enable");
 
     cpu_current()->preempt_count--;
-    if (preemptible() && need_resched())
+    if (preemptible() && need_resched() && !in_interrupt())
         schedule();
 }
