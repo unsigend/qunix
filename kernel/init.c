@@ -20,6 +20,7 @@
 #include <kernel/interrupt.h>
 #include <kernel/irq.h>
 #include <kernel/mm/mm.h>
+#include <kernel/sched.h>
 
 void kernel_main(void)
 {
@@ -28,7 +29,7 @@ void kernel_main(void)
     cpu_init();
     mm_init();
     irq_init();
-
+    sched_init();
     // interrupt_enable();
 
     cpu_halt();

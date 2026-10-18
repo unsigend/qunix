@@ -28,6 +28,12 @@ void cpu_halt(void)
         __asm__("hlt");
 }
 
+void cpu_idle(void)
+{
+    while (1)
+        __asm__("hlt");
+}
+
 void cpu_init(void)
 {
     gdt_init();

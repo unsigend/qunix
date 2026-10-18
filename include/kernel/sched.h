@@ -25,10 +25,10 @@ struct task;
 struct sched_class {
     const char *name;
 
-    void (*dequeue)(struct task *task); /* add a READY task to the queue */
-    void (*enqueue)(struct task *task); /* remove a READY task from the queue */
-    struct task *(*pick_next)(void);    /* pop the next task and return it */
-    void (*tick)(void); /* slice expired update the current task's slice */
+    void (*dequeue)(struct task *task);
+    void (*enqueue)(struct task *task);
+    struct task *(*pick_next)(void);
+    bool (*tick)(void); /* tick, return true if need resched */
 };
 
 extern bool need_resched(void);

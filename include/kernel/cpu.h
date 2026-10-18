@@ -26,6 +26,7 @@ struct cpu {
 };
 
 CONTRACT extern void cpu_halt(void) __noreturn;
+CONTRACT extern void cpu_idle(void) __noreturn;
 CONTRACT extern void cpu_init(void);
 
 extern struct cpu *cpu_current(void);
