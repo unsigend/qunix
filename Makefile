@@ -35,8 +35,8 @@ SRCS_S := $(filter-out %_$(ARCH_OTHER_BITS).S, \
           $(shell find $(SRCDIR) -name "*.S" 2>/dev/null))
 
 # objects
-OBJS_C := $(patsubst %.c, $(OBJDIR)/%.o, $(SRCS_C))
-OBJS_S := $(patsubst %.S, $(OBJDIR)/%.o, $(SRCS_S))
+OBJS_C := $(patsubst %.c, $(OBJDIR)/%.c.o, $(SRCS_C))
+OBJS_S := $(patsubst %.S, $(OBJDIR)/%.S.o, $(SRCS_S))
 OBJS   := $(OBJS_C) $(OBJS_S)
 
 # deps
@@ -45,14 +45,14 @@ DEPS := $(patsubst $(OBJDIR)/%.o, $(DEPDIR)/%.d, $(OBJS))
 -include $(DEPS)
 
 # rules
-$(OBJDIR)/%.o: %.c
-	@mkdir -p $(dir $@) $(dir $(DEPDIR)/$*.d)
-	@$(CC) $(CFLAGS) -MMD -MP -MF $(DEPDIR)/$*.d -MT $@ -c $< -o $@
+$(OBJDIR)/%.c.o: %.c
+	@mkdir -p $(dir $@) $(dir $(DEPDIR)/$*.c.d)
+	@$(CC) $(CFLAGS) -MMD -MP -MF $(DEPDIR)/$*.c.d -MT $@ -c $< -o $@
 	@echo "  CC    $<"
 
-$(OBJDIR)/%.o: %.S
-	@mkdir -p $(dir $@) $(dir $(DEPDIR)/$*.d)
-	@$(CC) $(CFLAGS) -MMD -MP -MF $(DEPDIR)/$*.d -MT $@ -c $< -o $@
+$(OBJDIR)/%.S.o: %.S
+	@mkdir -p $(dir $@) $(dir $(DEPDIR)/$*.S.d)
+	@$(CC) $(CFLAGS) -MMD -MP -MF $(DEPDIR)/$*.S.d -MT $@ -c $< -o $@
 	@echo "  AS    $<"
 
 KERNEL_ELF := $(BINDIR)/qunix-$(ARCH).elf

@@ -18,6 +18,7 @@
 #include <kernel/cpu.h>
 #include <kernel/init.h>
 #include <kernel/interrupt.h>
+#include <kernel/irq.h>
 #include <kernel/mm/mm.h>
 
 void kernel_main(void)
@@ -25,8 +26,8 @@ void kernel_main(void)
     interrupt_disable();
 
     cpu_init();
-
     mm_init();
+    irq_init();
 
     // interrupt_enable();
 
