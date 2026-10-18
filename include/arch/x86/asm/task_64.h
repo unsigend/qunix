@@ -15,8 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/sched.h>
+#ifndef _X86_ASM_TASK_64_H_
+#define _X86_ASM_TASK_64_H_
 
-volatile unsigned int need_resched;
+#include <kernel/compiler.h>
+#include <kernel/stdint.h>
 
-void schedule(void) { /* TODO */ }
+struct task_context {
+    uint64_t rbx;
+    uint64_t rsp;
+    uint64_t rbp;
+    uint64_t r12;
+    uint64_t r13;
+    uint64_t r14;
+    uint64_t r15;
+} __packed;
+
+#endif /* _X86_ASM_TASK_64_H_ */

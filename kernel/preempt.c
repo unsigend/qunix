@@ -29,6 +29,6 @@ void preempt_enable(void)
         panic("unbalanced preempt_enable");
 
     cpu_current()->preempt_count--;
-    if (preemptible() && need_resched)
+    if (preemptible() && need_resched())
         schedule();
 }

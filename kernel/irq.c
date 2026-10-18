@@ -160,7 +160,7 @@ void irq_exit(void)
     if (cpu_current()->irq_depth == 0)
         panic("unbalance irq exit");
     cpu_current()->irq_depth--;
-    if (!in_interrupt() && preemptible() && need_resched)
+    if (!in_interrupt() && preemptible() && need_resched())
         schedule();
 }
 

@@ -34,8 +34,8 @@ struct task {
     pid_t pid;
     const char *name;
     enum task_state state;
-    uintptr_t kstack;
-    struct task_context *context;
+    uintptr_t kstack;             /* stack top (start address ) */
+    struct task_context *context; /* context struct store on the kernel stack */
     struct list_node node;
     unsigned int slice;
     int exit;
@@ -92,9 +92,8 @@ CONTRACT extern void task_context_switch(struct task *saved,
 /*
  * task_context_init - build @task's initial kernel stack.
  *
- * The stack and the context storage are already allocated. The first switch
- * to @task enters @func(@arg) with interrupts enabled. If @func returns, the
- * trampoline calls task_exit(0).
+ * The stack is already allocated. The first switch to @task enters @func(@arg)
+ * with interrupts enabled. If @func returns, the trampoline calls task_exit(0).
  */
 CONTRACT extern void task_context_init(struct task *task, void (*func)(void *),
                                        void *arg);

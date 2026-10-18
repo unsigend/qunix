@@ -18,10 +18,23 @@
 #ifndef _QUNIX_SCHED_H_
 #define _QUNIX_SCHED_H_
 
-extern volatile unsigned int need_resched;
+#include <kernel/stdbool.h>
 
+struct task;
+
+struct sched_class {
+    const char *name;
+
+    void (*dequeue)(struct task *task); /* add a READY task to the queue */
+    void (*enqueue)(struct task *task); /* remove a READY task from the queue */
+    struct task *(*pick_next)(void);    /* pop the next task and return it */
+    void (*tick)(void); /* slice expired update the current task's slice */
+};
+
+extern bool need_resched(void);
 extern void sched_init(void);
 extern void schedule(void);
 extern void sched_yield(void);
+extern void sched_tick(void);
 
 #endif /* _QUNIX_SCHED_H_ */
