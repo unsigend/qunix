@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/clock.h>
 #include <kernel/cpu.h>
 #include <kernel/init.h>
 #include <kernel/interrupt.h>
@@ -30,6 +31,7 @@ void kernel_main(void)
     mm_init();
     irq_init();
     sched_init();
+    clock_init();
     // interrupt_enable();
 
     cpu_halt();

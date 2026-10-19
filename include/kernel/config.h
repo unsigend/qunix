@@ -32,5 +32,6 @@
 #define CONFIG_PMM_SIMPLE 1
 #define CONFIG_PMM_BITMAP 0
 #define CONFIG_PMM_BUDDY 0
+#define CONFIG_CLOCK_HZ 1000
 
 #endif /* _QUNIX_CONFIG_H_ */
