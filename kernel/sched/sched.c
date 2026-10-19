@@ -183,3 +183,17 @@ void sched_enqueue(struct task *task)
     task->slice = sched_core.policy->slice;
     sched_core.policy->enqueue(task);
 }
+
+void sched_wakeup(struct task *task)
+{
+    if (task->state != TASK_BLOCKED)
+        return;
+
+    if (task == task_current()) {
+        task->state = TASK_RUNNING;
+        return;
+    }
+
+    task->state = TASK_READY;
+    sched_core.policy->enqueue(task);
+}

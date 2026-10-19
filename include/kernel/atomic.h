@@ -27,112 +27,70 @@
 #define ATOMIC64_INIT(i) {(i)}
 #endif /* WORD_SIZE == 8 */
 
-static __always_inline int atomic_read(atomic_t *v);
-static __always_inline void atomic_set(atomic_t *v, int i);
+static __always_inline int atomic_load(atomic_t *v);
+static __always_inline void atomic_store(atomic_t *v, int i);
 static __always_inline void atomic_add(atomic_t *v, int i);
 static __always_inline void atomic_sub(atomic_t *v, int i);
 static __always_inline void atomic_inc(atomic_t *v);
 static __always_inline void atomic_dec(atomic_t *v);
-
-/*
- * atomic_add_return - add @i to @v.
- *
- * Returns the new value. atomic_sub_return, atomic_inc_return, and
- * atomic_dec_return do the same for subtraction and for a step of one.
- */
-static __always_inline int atomic_add_return(atomic_t *v, int i);
-static __always_inline int atomic_sub_return(atomic_t *v, int i);
-static __always_inline int atomic_inc_return(atomic_t *v);
-static __always_inline int atomic_dec_return(atomic_t *v);
-
-/*
- * atomic_xchg - store @i in @v.
- *
- * Returns the previous value.
- */
+static __always_inline int atomic_fetch_add(atomic_t *v, int i);
+static __always_inline int atomic_fetch_sub(atomic_t *v, int i);
+static __always_inline int atomic_fetch_inc(atomic_t *v);
+static __always_inline int atomic_fetch_dec(atomic_t *v);
 static __always_inline int atomic_xchg(atomic_t *v, int i);
-
-/*
- * atomic_cmpxchg - store @new in @v when its value is @expect.
- *
- * Returns the value @v held before the operation. @v is left unchanged
- * when that value was not @expect.
- */
 static __always_inline int atomic_cmpxchg(atomic_t *v, int expect, int new);
 
 #if WORD_SIZE == 8
-static __always_inline long long atomic64_read(atomic64_t *v);
-static __always_inline void atomic64_set(atomic64_t *v, long long i);
+static __always_inline long long atomic64_load(atomic64_t *v);
+static __always_inline void atomic64_store(atomic64_t *v, long long i);
 static __always_inline void atomic64_add(atomic64_t *v, long long i);
 static __always_inline void atomic64_sub(atomic64_t *v, long long i);
 static __always_inline void atomic64_inc(atomic64_t *v);
 static __always_inline void atomic64_dec(atomic64_t *v);
-
-/*
- * atomic64_add_return - add @i to @v.
- *
- * Returns the new value. atomic64_sub_return, atomic64_inc_return, and
- * atomic64_dec_return do the same for subtraction and for a step of one.
- */
-static __always_inline long long atomic64_add_return(atomic64_t *v,
-                                                     long long i);
-static __always_inline long long atomic64_sub_return(atomic64_t *v,
-                                                     long long i);
-static __always_inline long long atomic64_inc_return(atomic64_t *v);
-static __always_inline long long atomic64_dec_return(atomic64_t *v);
-
-/*
- * atomic64_xchg - store @i in @v.
- *
- * Returns the previous value.
- */
+static __always_inline long long atomic64_fetch_add(atomic64_t *v, long long i);
+static __always_inline long long atomic64_fetch_sub(atomic64_t *v, long long i);
+static __always_inline long long atomic64_fetch_inc(atomic64_t *v);
+static __always_inline long long atomic64_fetch_dec(atomic64_t *v);
 static __always_inline long long atomic64_xchg(atomic64_t *v, long long i);
-
-/*
- * atomic64_cmpxchg - store @new in @v when its value is @expect.
- *
- * Returns the value @v held before the operation. @v is left unchanged
- * when that value was not @expect.
- */
 static __always_inline long long
 atomic64_cmpxchg(atomic64_t *v, long long expect, long long new);
 
 #endif /* WORD_SIZE == 8 */
 
-static __always_inline int atomic_read(atomic_t *v)
+static __always_inline int atomic_load(atomic_t *v)
 {
     return __atomic_load_n(&v->value, __ATOMIC_RELAXED);
 }
-static __always_inline void atomic_set(atomic_t *v, int i)
+static __always_inline void atomic_store(atomic_t *v, int i)
 {
     __atomic_store_n(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline int atomic_add_return(atomic_t *v, int i)
+static __always_inline int atomic_fetch_add(atomic_t *v, int i)
 {
-    return __atomic_add_fetch(&v->value, i, __ATOMIC_RELAXED);
+    return __atomic_fetch_add(&v->value, i, __ATOMIC_RELAXED);
 }
-static __always_inline int atomic_sub_return(atomic_t *v, int i)
+static __always_inline int atomic_fetch_sub(atomic_t *v, int i)
 {
-    return __atomic_sub_fetch(&v->value, i, __ATOMIC_RELAXED);
+    return __atomic_fetch_sub(&v->value, i, __ATOMIC_RELAXED);
 }
 
 static __always_inline void atomic_add(atomic_t *v, int i)
 {
-    atomic_add_return(v, i);
+    atomic_fetch_add(v, i);
 }
 static __always_inline void atomic_sub(atomic_t *v, int i)
 {
-    atomic_sub_return(v, i);
+    atomic_fetch_sub(v, i);
 }
 
-static __always_inline int atomic_inc_return(atomic_t *v)
+static __always_inline int atomic_fetch_inc(atomic_t *v)
 {
-    return atomic_add_return(v, 1);
+    return atomic_fetch_add(v, 1);
 }
-static __always_inline int atomic_dec_return(atomic_t *v)
+static __always_inline int atomic_fetch_dec(atomic_t *v)
 {
-    return atomic_sub_return(v, 1);
+    return atomic_fetch_sub(v, 1);
 }
 
 static __always_inline void atomic_inc(atomic_t *v) { atomic_add(v, 1); }
@@ -152,40 +110,40 @@ static __always_inline int atomic_cmpxchg(atomic_t *v, int expect, int new)
 }
 
 #if WORD_SIZE == 8
-static __always_inline long long atomic64_read(atomic64_t *v)
+static __always_inline long long atomic64_load(atomic64_t *v)
 {
     return __atomic_load_n(&v->value, __ATOMIC_RELAXED);
 }
-static __always_inline void atomic64_set(atomic64_t *v, long long i)
+static __always_inline void atomic64_store(atomic64_t *v, long long i)
 {
     __atomic_store_n(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline long long atomic64_add_return(atomic64_t *v, long long i)
+static __always_inline long long atomic64_fetch_add(atomic64_t *v, long long i)
 {
-    return __atomic_add_fetch(&v->value, i, __ATOMIC_RELAXED);
+    return __atomic_fetch_add(&v->value, i, __ATOMIC_RELAXED);
 }
-static __always_inline long long atomic64_sub_return(atomic64_t *v, long long i)
+static __always_inline long long atomic64_fetch_sub(atomic64_t *v, long long i)
 {
-    return __atomic_sub_fetch(&v->value, i, __ATOMIC_RELAXED);
+    return __atomic_fetch_sub(&v->value, i, __ATOMIC_RELAXED);
 }
 
 static __always_inline void atomic64_add(atomic64_t *v, long long i)
 {
-    atomic64_add_return(v, i);
+    atomic64_fetch_add(v, i);
 }
 static __always_inline void atomic64_sub(atomic64_t *v, long long i)
 {
-    atomic64_sub_return(v, i);
+    atomic64_fetch_sub(v, i);
 }
 
-static __always_inline long long atomic64_inc_return(atomic64_t *v)
+static __always_inline long long atomic64_fetch_inc(atomic64_t *v)
 {
-    return atomic64_add_return(v, 1);
+    return atomic64_fetch_add(v, 1);
 }
-static __always_inline long long atomic64_dec_return(atomic64_t *v)
+static __always_inline long long atomic64_fetch_dec(atomic64_t *v)
 {
-    return atomic64_sub_return(v, 1);
+    return atomic64_fetch_sub(v, 1);
 }
 
 static __always_inline void atomic64_inc(atomic64_t *v) { atomic64_add(v, 1); }

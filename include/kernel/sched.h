@@ -38,5 +38,6 @@ extern void schedule(void);
 extern void sched_yield(void);
 extern void sched_tick(void);
 extern void sched_enqueue(struct task *task);
+extern void sched_wakeup(struct task *task);
 
 #endif /* _QUNIX_SCHED_H_ */

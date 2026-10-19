@@ -80,7 +80,7 @@ static void release(struct spinlock *lock)
 
     lock->owner = NULL;
 #if CONFIG_SMP
-    atomic_set(&lock->locked, 0);
+    atomic_store(&lock->locked, 0);
 #else
     lock->locked = false;
 #endif /* CONFIG_SMP */
@@ -209,7 +209,7 @@ void spinlock_init(struct spinlock *lock, const char *name)
     lock->name = name;
     lock->owner = NULL;
 #if CONFIG_SMP
-    atomic_set(&lock->locked, 0);
+    atomic_store(&lock->locked, 0);
 #else
     lock->locked = false;
 #endif /* CONFIG_SMP */
@@ -224,7 +224,7 @@ void spinlock_init(struct spinlock *lock, const char *name)
 bool spinlock_is_locked(struct spinlock *lock)
 {
 #if CONFIG_SMP
-    return atomic_read(&lock->locked) != 0;
+    return atomic_load(&lock->locked) != 0;
 #else
     return lock->locked;
 #endif /* CONFIG_SMP */
