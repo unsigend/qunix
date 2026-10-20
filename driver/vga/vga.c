@@ -45,6 +45,7 @@ static struct vga_state vga_device;
 
 static struct tty_ops ops = {
     .putchar = putchar,
+    .clear = clear_screen,
 };
 
 void vga_init(void)

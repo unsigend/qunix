@@ -46,3 +46,11 @@ void tty_write(const char *s, size_t len)
     while (len--)
         dev->putchar(*s++);
 }
+
+void tty_clear(void)
+{
+    if (!dev || !dev->clear)
+        return;
+
+    dev->clear();
+}

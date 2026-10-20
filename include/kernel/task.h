@@ -18,6 +18,7 @@
 #ifndef _QUNIX_TASK_H_
 #define _QUNIX_TASK_H_
 
+#include <kernel/completion.h>
 #include <kernel/list.h>
 #include <kernel/types.h>
 
@@ -39,6 +40,7 @@ struct task {
     struct list_node node;
     unsigned int slice;
     int exit;
+    struct completion completion;
 };
 
 /*

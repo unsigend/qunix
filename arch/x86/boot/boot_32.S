@@ -39,6 +39,7 @@
 #define HUGE_PAGE_MAKE(pa) (((pa) & ~0x3fffff) | HUGE_PAGE_MASK)
 
 .section .bss
+.global kernel_stack_top
 .align STACK_ALIGN
 kernel_stack_top:
     .skip STACK_SIZE

@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/cpu.h>
 #include <kernel/kmalloc.h>
 #include <kernel/mm/pmm.h>
 #include <kernel/sched.h>
@@ -45,8 +46,37 @@ struct task *task_create(void (*func)(void *), void *arg, const char *name)
     task_context_init(task, func, arg);
     list_init(&task->node);
     task->exit = 0;
+    completion_init(&task->completion);
 
     sched_enqueue(task);
 
     return task;
+}
+
+void task_exit(int status)
+{
+    struct task *task;
+
+    task = task_current();
+    task->state = TASK_ZOMBIE;
+    task->exit = status;
+
+    complete_all(&task->completion);
+    schedule();
+
+    cpu_halt();
+}
+
+int task_join(struct task *task)
+{
+    int status;
+    struct pmm_page *page;
+
+    wait_for_completion(&task->completion);
+    status = task->exit;
+    page = pmm_va_to_page((virt_addr_t)task->kstack);
+    pmm_free_page(page);
+    kfree(task);
+
+    return status;
 }

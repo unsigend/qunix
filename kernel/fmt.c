@@ -31,3 +31,8 @@ int fmt_mem(char *buf, size_t size, size_t bytes)
 
     return snprintf(buf, size, "%zu %s", bytes, units[index]);
 }
+
+int fmt_version(char *buf, size_t size, int major, int minor, int patch)
+{
+    return snprintf(buf, size, "%d.%d.%d", major, minor, patch);
+}

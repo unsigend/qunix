@@ -18,8 +18,10 @@
 #ifndef _QUNIX_FMT_H_
 #define _QUNIX_FMT_H_
 
+#include <kernel/stddef.h>
 #include <kernel/types.h>
 
 extern int fmt_mem(char *buf, size_t size, size_t bytes);
+extern int fmt_version(char *buf, size_t size, int major, int minor, int patch);
 
 #endif /* _QUNIX_FMT_H_ */

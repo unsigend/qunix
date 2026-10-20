@@ -88,6 +88,7 @@ void sched_init(void)
     list_init(&root->node);
     root->slice = ROOT_SLICE;
     root->exit = 0;
+    completion_init(&root->completion);
 
     /* initialize the idle task */
     idle = kmalloc(sizeof(struct task));
@@ -107,6 +108,7 @@ void sched_init(void)
     list_init(&idle->node);
     idle->slice = IDLE_SLICE;
     idle->exit = 0;
+    completion_init(&idle->completion);
 
     sched_core.tasks.current = root;
     sched_core.tasks.idle = idle;

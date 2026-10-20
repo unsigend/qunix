@@ -21,7 +21,23 @@
 #include <kernel/interrupt.h>
 #include <kernel/irq.h>
 #include <kernel/mm/mm.h>
+#include <kernel/printk.h>
+#include <kernel/qunix.h>
 #include <kernel/sched.h>
+#include <kernel/tty.h>
+
+static void welcome(void)
+{
+    char buf[64];
+
+    qunix_version(buf, sizeof(buf));
+
+    tty_clear();
+    printk("%s\n", qunix_logo());
+    printk("%s\n", qunix_copyright());
+    printk("%s\n", "All rights reserved.");
+    printk("qunix kernel version: %s\n", buf);
+}
 
 void kernel_main(void)
 {
@@ -32,7 +48,12 @@ void kernel_main(void)
     irq_init();
     sched_init();
     clock_init();
-    // interrupt_enable();
 
-    cpu_halt();
+    interrupt_enable();
+
+    LOGM_INFO("KERNEL", "Kernel initialized successfully");
+
+    welcome();
+
+    cpu_idle();
 }
