@@ -16,9 +16,11 @@
  */
 
 #include <kernel/panic.h>
+#include <kernel/spinlock.h>
 #include <kernel/tty.h>
 
 static struct tty_ops *dev;
+static struct spinlock tty_lock;
 
 void tty_register(struct tty_ops *ops)
 {
@@ -32,25 +34,44 @@ void tty_register(struct tty_ops *ops)
 
 void tty_putc(char c)
 {
+    unsigned long irqflags;
     if (!dev)
         return;
 
+    irqflags = spinlock_lock_irqsave(&tty_lock);
     dev->putchar(c);
+    spinlock_unlock_irqrestore(&tty_lock, irqflags);
 }
 
 void tty_write(const char *s, size_t len)
 {
+    unsigned long irqflags;
+
     if (!dev)
         return;
 
+    irqflags = spinlock_lock_irqsave(&tty_lock);
     while (len--)
         dev->putchar(*s++);
+    spinlock_unlock_irqrestore(&tty_lock, irqflags);
 }
 
 void tty_clear(void)
 {
+    unsigned long irqflags;
+
     if (!dev || !dev->clear)
         return;
 
+    irqflags = spinlock_lock_irqsave(&tty_lock);
     dev->clear();
+    spinlock_unlock_irqrestore(&tty_lock, irqflags);
+}
+
+void tty_write_raw(const char *s, size_t len)
+{
+    if (!dev)
+        return;
+    while (len--)
+        dev->putchar(*s++);
 }

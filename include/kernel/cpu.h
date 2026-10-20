@@ -19,10 +19,17 @@
 #define _QUNIX_CPU_H_
 
 #include <kernel/compiler.h>
+#include <kernel/stdbool.h>
+
+struct task;
 
 struct cpu {
     unsigned int preempt_count;
     unsigned int irq_depth;
+    struct task *task_cur;
+    struct task *task_idle;
+    volatile unsigned int need_resched;
+    bool in_sched;
 };
 
 CONTRACT extern void cpu_halt(void) __noreturn;

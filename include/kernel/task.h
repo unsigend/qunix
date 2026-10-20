@@ -18,9 +18,9 @@
 #ifndef _QUNIX_TASK_H_
 #define _QUNIX_TASK_H_
 
+#include <kernel/atomic.h>
 #include <kernel/completion.h>
 #include <kernel/list.h>
-#include <kernel/types.h>
 
 struct task_context;
 
@@ -41,6 +41,7 @@ struct task {
     unsigned int slice;
     int exit;
     struct completion completion;
+    atomic_t joined;
 };
 
 /*

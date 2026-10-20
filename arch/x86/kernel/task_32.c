@@ -17,6 +17,7 @@
 
 #include <asm/task.h>
 
+#include <kernel/cpu.h>
 #include <kernel/interrupt.h>
 #include <kernel/mm/page.h>
 #include <kernel/string.h>
@@ -24,6 +25,7 @@
 
 static void trampoline(void (*func)(void *), void *arg)
 {
+    cpu_current()->in_sched = false;
     interrupt_enable();
     func(arg);
     task_exit(0);

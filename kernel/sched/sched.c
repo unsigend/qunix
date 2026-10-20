@@ -40,18 +40,20 @@
 extern char kernel_stack_top[]; /* the stack top of the root task */
 
 struct sched {
-    struct {
-        struct task *current;
-        struct task *idle;
-    } tasks;
+    struct spinlock lock;
     const struct sched_class *policy;
-    volatile unsigned int need_resched;
 };
 
 static struct sched sched_core;
 
-struct task *task_current(void) { return sched_core.tasks.current; }
-bool need_resched(void) { return sched_core.need_resched; }
+static inline void sched_core_init(void)
+{
+    spinlock_init(&sched_core.lock, "sched_core");
+    sched_core.policy = &rr_class;
+}
+
+struct task *task_current(void) { return cpu_current()->task_cur; }
+bool need_resched(void) { return cpu_current()->need_resched; }
 
 static void sched_check(void)
 {
@@ -89,6 +91,7 @@ void sched_init(void)
     root->slice = ROOT_SLICE;
     root->exit = 0;
     completion_init(&root->completion);
+    atomic_store(&root->joined, 0);
 
     /* initialize the idle task */
     idle = kmalloc(sizeof(struct task));
@@ -109,11 +112,13 @@ void sched_init(void)
     idle->slice = IDLE_SLICE;
     idle->exit = 0;
     completion_init(&idle->completion);
+    atomic_store(&idle->joined, 0);
 
-    sched_core.tasks.current = root;
-    sched_core.tasks.idle = idle;
-    sched_core.need_resched = 0;
-    sched_core.policy = &rr_class;
+    /* initialize the scheduler core */
+    sched_core_init();
+
+    cpu_current()->task_cur = root;
+    cpu_current()->task_idle = idle;
 
     LOGM_INFO("SCHED", "Scheduler initialized successfully");
 }
@@ -121,81 +126,120 @@ void sched_init(void)
 void schedule(void)
 {
     struct task *cur, *next;
+    unsigned long irqflags;
+
+    if (cpu_current()->in_sched)
+        return;
 
     sched_check();
 
     cur = task_current();
 
+    irqflags = spinlock_lock_irqsave(&sched_core.lock);
+
     if (cur->state == TASK_RUNNING &&
-        cur != sched_core.tasks.idle) /* only running tasks will be put back to
-                                         the ready queue */
+        cur != cpu_current()->task_idle) /* only running tasks will be put back
+                                         to the ready queue */
     {
         cur->state = TASK_READY;
         sched_core.policy->enqueue(cur);
     }
 
-    sched_core.need_resched = 0;
+    cpu_current()->need_resched = 0;
 
     next = sched_core.policy->pick_next();
     if (!next)
-        next = sched_core.tasks.idle;
+        next = cpu_current()->task_idle;
 
     next->state = TASK_RUNNING;
-    sched_core.tasks.current = next;
+
+    cpu_current()->in_sched = true;
+    spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
+
+    /* Per-CPU data, SMP safe */
+    cpu_current()->task_cur = next;
+
     task_context_switch(cur, next);
+    cpu_current()->in_sched = false;
 }
 
 void sched_yield(void)
 {
     struct task *cur, *next;
+    unsigned long irqflags;
 
     sched_check();
 
     cur = task_current();
 
-    if (cur == sched_core.tasks.idle)
+    if (cur == cpu_current()->task_idle)
         return;
+
+    irqflags = spinlock_lock_irqsave(&sched_core.lock);
 
     cur->state = TASK_READY;
     sched_core.policy->enqueue(cur);
 
     next = sched_core.policy->pick_next();
-    if (next == cur)
+    if (next == cur) {
         cur->state = TASK_RUNNING;
-    else {
+        spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
+    } else {
         next->state = TASK_RUNNING;
-        sched_core.tasks.current = next;
+        cpu_current()->task_cur = next;
+
+        cpu_current()->in_sched = true;
+        spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
         task_context_switch(cur, next);
+        cpu_current()->in_sched = false;
     }
 }
 
 void sched_tick(void)
 {
-    if (task_current() == sched_core.tasks.idle) {
-        sched_core.need_resched = 1;
+    unsigned long irqflags;
+
+    if (cpu_current()->task_cur == cpu_current()->task_idle) {
+        irqflags = spinlock_lock_irqsave(&sched_core.lock);
+        cpu_current()->need_resched = 1;
+        spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
         return;
     }
 
+    irqflags = spinlock_lock_irqsave(&sched_core.lock);
     if (sched_core.policy->tick())
-        sched_core.need_resched = 1;
+        cpu_current()->need_resched = 1;
+    spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
 }
 
 void sched_enqueue(struct task *task)
 {
+    unsigned long irqflags;
+
+    irqflags = spinlock_lock_irqsave(&sched_core.lock);
     task->slice = sched_core.policy->slice;
     sched_core.policy->enqueue(task);
+    spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
 }
 
 void sched_wakeup(struct task *task)
 {
-    if (task->state != TASK_BLOCKED)
+    unsigned long irqflags;
+
+    irqflags = spinlock_lock_irqsave(&sched_core.lock);
+
+    if (task->state != TASK_BLOCKED) {
+        spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
         return;
+    }
 
     if (task == task_current()) {
         task->state = TASK_RUNNING;
+        spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
         return;
     }
 
     task->state = TASK_READY;
     sched_core.policy->enqueue(task);
+    spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
 }

@@ -18,11 +18,14 @@
 #include <kernel/cpu.h>
 #include <kernel/kmalloc.h>
 #include <kernel/mm/pmm.h>
+#include <kernel/panic.h>
+#include <kernel/preempt.h>
 #include <kernel/sched.h>
 #include <kernel/task.h>
 
 static pid_t next_pid = 2; /* improve later, use a better PID allocation method
                               to track the next available PID */
+static struct spinlock pid_lock = SPINLOCK_INIT("pid");
 
 struct task *task_create(void (*func)(void *), void *arg, const char *name)
 {
@@ -39,7 +42,10 @@ struct task *task_create(void (*func)(void *), void *arg, const char *name)
         return NULL;
     }
 
+    spinlock_lock(&pid_lock);
     task->pid = next_pid++;
+    spinlock_unlock(&pid_lock);
+
     task->name = name;
     task->state = TASK_READY;
     task->kstack = (uintptr_t)pmm_page_to_va(page);
@@ -47,6 +53,7 @@ struct task *task_create(void (*func)(void *), void *arg, const char *name)
     list_init(&task->node);
     task->exit = 0;
     completion_init(&task->completion);
+    atomic_store(&task->joined, 0);
 
     sched_enqueue(task);
 
@@ -57,11 +64,13 @@ void task_exit(int status)
 {
     struct task *task;
 
+    preempt_disable();
     task = task_current();
     task->state = TASK_ZOMBIE;
     task->exit = status;
 
     complete_all(&task->completion);
+    preempt_enable();
     schedule();
 
     cpu_halt();
@@ -72,8 +81,18 @@ int task_join(struct task *task)
     int status;
     struct pmm_page *page;
 
+    if (!task)
+        panic("task_join: bad task");
+    if (task == task_current())
+        panic("task_join: self join");
+    if (task == cpu_current()->task_idle)
+        panic("task_join: join idle task");
+
     wait_for_completion(&task->completion);
     status = task->exit;
+
+    if (atomic_xchg(&task->joined, 1) == 1)
+        return status;
     page = pmm_va_to_page((virt_addr_t)task->kstack);
     pmm_free_page(page);
     kfree(task);

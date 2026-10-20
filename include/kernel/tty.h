@@ -37,6 +37,7 @@ extern void tty_register(struct tty_ops *ops);
 
 extern void tty_putc(char c);
 extern void tty_write(const char *s, size_t len);
+extern void tty_write_raw(const char *s, size_t len); /* no lock */
 extern void tty_clear(void);
 
 #endif /* _KERNEL_TTY_H_ */

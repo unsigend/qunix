@@ -16,6 +16,7 @@
  */
 
 #include <kernel/cpu.h>
+#include <kernel/irq.h>
 #include <kernel/panic.h>
 #include <kernel/sprintf.h>
 #include <kernel/stdarg.h>
@@ -32,9 +33,10 @@ void panic(const char *fmt, ...)
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
 
-    tty_write(msg, strlen(msg));
-    tty_write(buf, strlen(buf));
-    tty_write("\n", 1);
+    interrupt_disable();
+    tty_write_raw(msg, strlen(msg));
+    tty_write_raw(buf, strlen(buf));
+    tty_write_raw("\n", 1);
 
     cpu_halt();
 }

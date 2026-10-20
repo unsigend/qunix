@@ -24,6 +24,7 @@
 #include <kernel/printk.h>
 #include <kernel/qunix.h>
 #include <kernel/sched.h>
+#include <kernel/task.h>
 #include <kernel/tty.h>
 
 static void welcome(void)
