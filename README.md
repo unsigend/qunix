@@ -3,7 +3,7 @@
 qunix is a clean, minimal Unix-like kernel for learning and research, aiming at POSIX compatibility. It is written from scratch in C and assembly, with a arch layer at the edge and a portable generic kernel in the middle.
 
 
-Current version: `v0.1.0`
+Current version: `v0.1.1`
 
 For copyright information, see the file `LICENSE` in this directory.
 
@@ -64,10 +64,11 @@ Build output goes to `build/`
 
 ## Release
 
-### qunix v0.1.0
+### [qunix v0.1.0](https://github.com/unsigend/qunix/tree/v0.1.0)
 
-#### Features
+#### Boot, Memory, Interrupts, Basic Kernel Threads
 
+**Features**
 - Multiboot2 boot, higher-half kernel at `0xC0000000`, 4KB two-level paging
 - Memory map detection, free-list page frame allocator, first-fit `kmalloc`
 - GDT, IDT, generic trap layer, `#PF` diagnostics
@@ -75,6 +76,34 @@ Build output goes to `build/`
 - VGA console behind the `tty` interface, `printk`, log macros
 - `task_struct`, context switch, kernel threads, idle task
 - Preemptive round-robin scheduling on timer tick
+
+----
+
+### [qunix v0.1.1](https://github.com/unsigend/qunix/tree/v0.1.1)
+
+#### Synchronization, Preemption, Thread Lifecycle
+
+Complete re-write based on v0.1.0
+
+**Features**
+- Synchronization primitives: wait queue, semaphore, mutex, condition variable, readers-writer lock, completion
+- IRQ-safe spinlock (`lock` / `irq` / `irqsave`, holder checks), interrupt save/restore, preempt count
+- `struct cpu`: current and idle task, `need_resched`, `in_sched`, IRQ depth
+- `task_exit` / `task_join`, `TASK_BLOCKED` / `TASK_ZOMBIE`, `sched_wakeup`
+- `sched_class` (`enqueue`, `dequeue`, `pick_next`, `tick`), round-robin is the first policy
+- `irq_chip`, per-line `irq_desc`, `irq_action`, nested irq line mask
+- Intrusive list
+- atomic and bitosp 
+- Physical memory map: ordered disjoint regions, split and merged on update
+
+**Rebuild**
+- Flattened `arch/x86` (i386 and x86_64), Multiboot2 higher-half boot
+- GDT, IDT, 4KB paging, one shared `trap_frame`
+- VGA `tty` / `printk`, `panic` writes without taking the tty lock
+- PMM behind `pmm_ops`, `kmalloc` remains a heap on that allocator
+- 8259 as an `irq_chip`, 8253/PIT still drives `jiffies`
+- irqsave locks on PMM, `kmalloc`, memmap, sched, IRQ lines, and tty
+- Interrupts enabled only after core init
 
 ## Contribution and Copyright
 
