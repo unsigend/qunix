@@ -15,34 +15,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/semaphore.h>
+#ifndef _QUNIX_COMPLETION_H_
+#define _QUNIX_COMPLETION_H_
 
-void semaphore_init(semaphore_t *sem, int val)
-{
-    spinlock_init(&sem->lock, SEMAPHORE_STR);
-    sem->val = val;
-    waitq_init(&sem->waitq);
-}
+#include <kernel/spinlock.h>
+#include <kernel/waitq.h>
 
-void semaphore_wait(semaphore_t *sem)
-{
-    spinlock_lock(&sem->lock);
+#define COMPLETION_STR "completion"
 
-    while (sem->val <= 0)
-        waitq_sleep(&sem->waitq, &sem->lock);
+struct completion {
+    wait_queue_t waitq;
+    unsigned int done;
+    struct spinlock lock;
+};
 
-    sem->val--;
+typedef struct completion completion_t;
 
-    spinlock_unlock(&sem->lock);
-}
+#define COMPLETION_INIT                                                        \
+    {.waitq = WAITQ_INIT(), .done = 0, .lock = SPINLOCK_INIT(COMPLETION_STR)}
 
-void semaphore_post(semaphore_t *sem)
-{
-    spinlock_lock(&sem->lock);
+extern void completion_init(completion_t *comp);
+extern void wait_for_completion(completion_t *comp);
+extern void complete(completion_t *comp);
+extern void complete_all(completion_t *comp);
 
-    sem->val++;
-
-    waitq_wakeup(&sem->waitq);
-
-    spinlock_unlock(&sem->lock);
-}
+#endif /* _QUNIX_COMPLETION_H_ */

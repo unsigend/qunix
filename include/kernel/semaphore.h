@@ -24,7 +24,7 @@
 
 struct semaphore {
     wait_queue_t waitq;
-    int val;
+    unsigned int val;
     struct spinlock lock;
 };
 
@@ -33,7 +33,7 @@ typedef struct semaphore semaphore_t;
 #define SEMAPHORE_INIT(n)                                                      \
     {.waitq = WAITQ_INIT(), .val = n, .lock = SPINLOCK_INIT(SEMAPHORE_STR)}
 
-extern void semaphore_init(semaphore_t *sem, int val);
+extern void semaphore_init(semaphore_t *sem, unsigned int val);
 extern void semaphore_wait(semaphore_t *sem);
 extern void semaphore_post(semaphore_t *sem);
 
