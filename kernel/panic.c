@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/atomic.h>
+#include <kernel/backtrace.h>
 #include <kernel/cpu.h>
 #include <kernel/irq.h>
 #include <kernel/panic.h>
@@ -23,20 +25,27 @@
 #include <kernel/string.h>
 #include <kernel/tty.h>
 
+static atomic_t in_panic = ATOMIC_INIT(0);
+static const char *msg = "PANIC: ";
+
 void panic(const char *fmt, ...)
 {
     char buf[1024];
-    const char *msg = "PANIC: ";
     va_list args;
+
+    interrupt_disable();
+    if (atomic_xchg(&in_panic, 1) != 0)
+        cpu_halt();
 
     va_start(args, fmt);
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
 
-    interrupt_disable();
     tty_write_raw(msg, strlen(msg));
     tty_write_raw(buf, strlen(buf));
     tty_write_raw("\n", 1);
+
+    backtrace();
 
     cpu_halt();
 }

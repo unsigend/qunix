@@ -22,5 +22,7 @@
 
 extern void swap(void *lhs, void *rhs, size_t sz);
 extern int sort(void *base, size_t n, size_t sz, int (*cmp)(void *, void *));
+extern void *bsearch(const void *key, const void *ptr, size_t n, size_t size,
+                     int (*cmp)(const void *, const void *));
 
 #endif /* _QUNIX_UTILS_H_ */

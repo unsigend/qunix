@@ -86,3 +86,26 @@ int sort(void *base, size_t n, size_t sz, int (*cmp)(void *, void *))
     return sort(base, pos, sz, cmp) ||
            sort(GET(base, pos + 1, sz), n - pos - 1, sz, cmp);
 }
+
+void *bsearch(const void *key, const void *ptr, size_t n, size_t size,
+              int (*cmp)(const void *, const void *))
+{
+    const char *base = (const char *)ptr;
+    size_t lo = 0;
+    size_t hi = n;
+
+    while (lo < hi) {
+        size_t mid = lo + (hi - lo) / 2;
+        const char *p = base + mid * size;
+        int c = cmp(key, p);
+
+        if (c == 0)
+            return (void *)p;
+        if (c < 0)
+            hi = mid;
+        else
+            lo = mid + 1;
+    }
+
+    return NULL;
+}

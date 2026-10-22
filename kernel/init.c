@@ -21,6 +21,7 @@
 #include <kernel/interrupt.h>
 #include <kernel/irq.h>
 #include <kernel/mm/mm.h>
+#include <kernel/panic.h>
 #include <kernel/printk.h>
 #include <kernel/qunix.h>
 #include <kernel/sched.h>
@@ -55,6 +56,8 @@ void kernel_main(void)
     LOGM_INFO("KERNEL", "Kernel initialized successfully");
 
     welcome();
+
+    panic("test panic");
 
     cpu_idle();
 }

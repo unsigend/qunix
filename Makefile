@@ -56,6 +56,11 @@ $(OBJDIR)/%.S.o: %.S
 	@echo "  AS    $<"
 
 KERNEL_ELF := $(BINDIR)/qunix-$(ARCH).elf
+KERNEL_ELF_TMP := $(BUILDDIR)/qunix-$(ARCH).tmp.elf
+KSYMS_C    := $(BUILDDIR)/ksymtable.c
+KSYMS_O    := $(OBJDIR)/ksymtable.c.o
+KSYMS_STUB_C := $(BUILDDIR)/ksymtable_stub.c
+KSYMS_STUB_O := $(OBJDIR)/ksymtable_stub.c.o
 KERNEL_ISO := $(BINDIR)/qunix-$(ARCH).iso
 ISODIR     := $(BUILDDIR)/iso
 BOCHS_CFG  := config/bochs/$(ARCH)-bochs.cfg
@@ -65,10 +70,35 @@ BOCHS_CFG  := config/bochs/$(ARCH)-bochs.cfg
 
 all: $(OBJS)
 
-elf: all
+$(KSYMS_STUB_C):
+	@mkdir -p $(BUILDDIR)
+	@$(PYTHON) $(SCRIPTDIR)/gen-symtable.py < /dev/null > $@
+
+$(KSYMS_STUB_O): $(KSYMS_STUB_C)
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo "  CC    $<"
+
+$(KERNEL_ELF_TMP): $(OBJS) $(KSYMS_STUB_O)
+	@mkdir -p $(BUILDDIR)
+	@$(LD) $(LDFLAGS) -T $(LDDIR)/ld-$(ARCH).ld -o $@ $(OBJS) $(KSYMS_STUB_O) $(LIBGCC)
+	@echo "  LD    $@"
+
+$(KSYMS_C): $(KERNEL_ELF_TMP)
+	@$(NM) -n $< | $(PYTHON) $(SCRIPTDIR)/gen-symtable.py > $@
+	@echo "  NM    $@"
+
+$(KSYMS_O): $(KSYMS_C)
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo "  CC    $<"
+
+$(KERNEL_ELF): $(OBJS) $(KSYMS_O)
 	@mkdir -p $(BINDIR)
-	@$(LD) $(LDFLAGS) -T $(LDDIR)/ld-$(ARCH).ld -o $(KERNEL_ELF) $(OBJS) $(LIBGCC)
-	@echo "  LD    $(KERNEL_ELF)"
+	@$(LD) $(LDFLAGS) -T $(LDDIR)/ld-$(ARCH).ld -o $@ $(OBJS) $(KSYMS_O) $(LIBGCC)
+	@echo "  LD    $@"
+
+elf: $(KERNEL_ELF)
 
 mb-check: elf
 	@$(GRUB_FILE) --is-x86-multiboot2 $(KERNEL_ELF) \

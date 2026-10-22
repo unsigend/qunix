@@ -99,6 +99,7 @@ void trap_handle(struct trap_frame *frame)
 
             addr = cr2_read();
             vm_handle_fault(addr, flags);
+            break;
         }
         case X86_TRAP_MF:
             trap_die(frame->eip, nr, frame->err,

@@ -77,6 +77,7 @@ LIBGCC := $(shell $(CC) $(CFLAGS_ARCH) -print-libgcc-file-name)
 CFLAGS_FREESTANDING := -ffreestanding
 CFLAGS_FREESTANDING += -fno-builtin
 CFLAGS_FREESTANDING += -fno-common
+CFLAGS_FREESTANDING += -fno-omit-frame-pointer
 CFLAGS_FREESTANDING += -fno-stack-protector
 CFLAGS_FREESTANDING += -fno-pie
 CFLAGS_FREESTANDING += -fno-pic
