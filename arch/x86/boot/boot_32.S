@@ -72,6 +72,8 @@ multiboot_header_info_request:
     .long LENGTH(multiboot_header_info_request, multiboot_header_info_request_end)
     .long MULTIBOOT_TAG_TYPE_MMAP
     .long MULTIBOOT_TAG_TYPE_FRAMEBUFFER
+    .long MULTIBOOT_TAG_TYPE_CMDLINE
+    .long PADDING
 multiboot_header_info_request_end:
 
     # entry address tag

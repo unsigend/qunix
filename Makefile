@@ -114,8 +114,8 @@ line:
 iso: elf
 	@mkdir -p $(ISODIR)/boot/grub
 	@cp $(KERNEL_ELF) $(ISODIR)/boot/$(notdir $(KERNEL_ELF))
-	@printf 'set timeout=-1\nset default=0\nmenuentry "%s" {\n\tmultiboot2 /boot/%s\n\tboot\n}\n' \
-		"$(KERNEL_NAME)" "$(notdir $(KERNEL_ELF))" > $(ISODIR)/boot/grub/grub.cfg
+	@printf 'set timeout=-1\nset default=0\nmenuentry "%s" {\n\tmultiboot2 /boot/%s sched=%s\n\tboot\n}\n' \
+		"$(KERNEL_NAME)" "$(notdir $(KERNEL_ELF))" "$(SCHED_POLICY)" > $(ISODIR)/boot/grub/grub.cfg
 	@$(GRUB_MKRESCUE) -o $(KERNEL_ISO) $(ISODIR) 2>/dev/null
 	@echo "  ISO   $(KERNEL_ISO)"
 

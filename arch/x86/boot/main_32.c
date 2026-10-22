@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/cmdline.h>
 #include <kernel/compiler.h>
 #include <kernel/fmt.h>
 #include <kernel/init.h>
@@ -82,6 +83,39 @@ static void memmap_parse(const struct multiboot_tag_mmap *mmap)
     }
 }
 
+static void cmdline_parse(const struct multiboot_tag_string *cmdline)
+{
+    char *s, *key, *val, *sep;
+    int err;
+
+    s = (char *)cmdline->string;
+    while (*s) {
+        while (*s == ' ')
+            s++;
+        if (!*s)
+            break;
+
+        key = s;
+        while (*s && *s != ' ')
+            s++;
+        if (*s)
+            *s++ = '\0';
+
+        val = NULL;
+        sep = strchr(key, '=');
+        if (sep) {
+            *sep = '\0';
+            val = sep + 1;
+        }
+
+        if (!key[0])
+            continue;
+
+        if ((err = cmdline_set(key, val)))
+            panic_error(err, "failed to set cmdline");
+    }
+}
+
 static void memmap_log(void)
 {
     struct mem_region r;
@@ -122,7 +156,11 @@ void bootmain(uint32_t magic, uint32_t mbi)
         case MULTIBOOT_TAG_TYPE_MMAP:
             memmap_parse((struct multiboot_tag_mmap *)tag);
             break;
+        case MULTIBOOT_TAG_TYPE_CMDLINE:
+            cmdline_parse((struct multiboot_tag_string *)tag);
+            break;
         }
+
         tag = mb2_next_tag(tag);
     }
 

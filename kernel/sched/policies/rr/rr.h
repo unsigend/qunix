@@ -20,6 +20,8 @@
 
 #include <kernel/sched.h>
 
+#define RR_POLICY_STR "rr"
+
 extern const struct sched_class rr_class;
 
 #endif /* _POLICIES_RR_RR_H_ */

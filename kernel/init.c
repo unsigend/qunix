@@ -21,14 +21,13 @@
 #include <kernel/interrupt.h>
 #include <kernel/irq.h>
 #include <kernel/mm/mm.h>
-#include <kernel/panic.h>
 #include <kernel/printk.h>
 #include <kernel/qunix.h>
 #include <kernel/sched.h>
 #include <kernel/task.h>
 #include <kernel/tty.h>
 
-static void welcome(void)
+__unused static void welcome(void)
 {
     char buf[64];
 
@@ -55,9 +54,7 @@ void kernel_main(void)
 
     LOGM_INFO("KERNEL", "Kernel initialized successfully");
 
-    welcome();
-
-    panic("test panic");
+    // welcome();
 
     cpu_idle();
 }

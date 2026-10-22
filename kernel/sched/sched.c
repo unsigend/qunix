@@ -19,6 +19,7 @@
 
 #include <asm/task.h>
 
+#include <kernel/cmdline.h>
 #include <kernel/cpu.h>
 #include <kernel/interrupt.h>
 #include <kernel/kmalloc.h>
@@ -46,14 +47,24 @@ struct sched {
 
 static struct sched sched_core;
 
-static inline void sched_core_init(void)
+static inline void init_policy(void)
 {
-    spinlock_init(&sched_core.lock, "sched_core");
-    sched_core.policy = &rr_class;
-}
+    const char *policy;
+    const char *policy_str = RR_POLICY_STR;
 
-struct task *task_current(void) { return cpu_current()->task_cur; }
-bool need_resched(void) { return cpu_current()->need_resched; }
+    policy = cmdline_get("sched");
+
+    if (policy) {
+        if (strcmp(policy, RR_POLICY_STR) == 0) {
+            sched_core.policy = &rr_class;
+            policy_str = RR_POLICY_STR;
+        } else
+            panic("sched: invalid policy: %s", policy);
+    } else /* default policy is rr */
+        sched_core.policy = &rr_class;
+
+    LOGM_INFO("SCHED", "scheduler policy: %s", policy_str);
+}
 
 static void sched_check(void)
 {
@@ -114,14 +125,18 @@ void sched_init(void)
     completion_init(&idle->completion);
     atomic_store(&idle->joined, 0);
 
-    /* initialize the scheduler core */
-    sched_core_init();
+    spinlock_init(&sched_core.lock, "sched_core");
+
+    init_policy();
 
     cpu_current()->task_cur = root;
     cpu_current()->task_idle = idle;
 
     LOGM_INFO("SCHED", "Scheduler initialized successfully");
 }
+
+struct task *task_current(void) { return cpu_current()->task_cur; }
+bool need_resched(void) { return cpu_current()->need_resched; }
 
 void schedule(void)
 {
