@@ -46,7 +46,7 @@ struct irq_action {
     irq_handler_t handler;
     unsigned int flags;
     void *dev;
-    struct list_node action;
+    struct list_head action;
 };
 
 extern irqreturn_t irq_handle(unsigned int irq);

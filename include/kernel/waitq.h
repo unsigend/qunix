@@ -27,7 +27,7 @@ struct wait_queue {
 
 typedef struct wait_queue wait_queue_t;
 
-#define WAITQ_INIT(name) {.waiter = LIST_HEAD_INIT()}
+#define WAITQ_INIT(name) {.waiter = LIST_HEAD_INIT((name).waiter)}
 
 extern void waitq_init(wait_queue_t *wq);
 extern void waitq_sleep(wait_queue_t *wq, struct spinlock *lock);

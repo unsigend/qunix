@@ -30,7 +30,8 @@ struct cond {
 
 typedef struct cond cond_t;
 
-#define COND_INIT {.waitq = WAITQ_INIT(), .lock = SPINLOCK_INIT(COND_STR)}
+#define COND_INIT(name)                                                        \
+    {.waitq = WAITQ_INIT(name.waitq), .lock = SPINLOCK_INIT(COND_STR)}
 
 extern void cond_init(cond_t *cond);
 extern void cond_wait(cond_t *cond, mutex_t *mutex);

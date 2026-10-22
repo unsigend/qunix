@@ -30,8 +30,10 @@ struct semaphore {
 
 typedef struct semaphore semaphore_t;
 
-#define SEMAPHORE_INIT(n)                                                      \
-    {.waitq = WAITQ_INIT(), .val = n, .lock = SPINLOCK_INIT(SEMAPHORE_STR)}
+#define SEMAPHORE_INIT(name, n)                                                \
+    {.waitq = WAITQ_INIT(name.waitq),                                          \
+     .val = n,                                                                 \
+     .lock = SPINLOCK_INIT(SEMAPHORE_STR)}
 
 extern void semaphore_init(semaphore_t *sem, unsigned int val);
 extern void semaphore_wait(semaphore_t *sem);

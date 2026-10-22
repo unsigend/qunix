@@ -130,7 +130,7 @@ void irq_unregister(unsigned int irq, void *dev)
     list_for_each_entry(&desc->action_list, action, struct irq_action, action)
     {
         if (action->dev == dev) {
-            list_del(&desc->action_list, &action->action);
+            list_del(&action->action);
             kfree(action);
             desc->nhandlers--;
             if (!desc->nhandlers)

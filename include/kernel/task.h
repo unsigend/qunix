@@ -37,7 +37,7 @@ struct task {
     enum task_state state;
     uintptr_t kstack;             /* stack top (start address ) */
     struct task_context *context; /* context struct store on the kernel stack */
-    struct list_node node;
+    struct list_head node;
     unsigned int slice;
     int exit;
     struct completion completion;

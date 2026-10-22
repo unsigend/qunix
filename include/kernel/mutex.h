@@ -30,8 +30,10 @@ struct mutex {
 
 typedef struct mutex mutex_t;
 
-#define MUTEX_INIT                                                             \
-    {.waitq = WAITQ_INIT(), .lock = SPINLOCK_INIT(MUTEX_STR), .owner = NULL}
+#define MUTEX_INIT(name)                                                       \
+    {.waitq = WAITQ_INIT(name.waitq),                                          \
+     .lock = SPINLOCK_INIT(MUTEX_STR),                                         \
+     .owner = NULL}
 
 extern void mutex_init(mutex_t *mutex);
 extern bool mutex_is_locked(mutex_t *mutex);

@@ -18,105 +18,173 @@
 #ifndef _QUNIX_LIST_H_
 #define _QUNIX_LIST_H_
 
+#include <kernel/compiler.h>
 #include <kernel/macros.h>
-#include <kernel/stdbool.h>
-#include <kernel/types.h>
+#include <kernel/stddef.h>
 
-/* Simple intrusive linked list implementation, originally from Linux kernel
- * with changes of the naming convention and params order. */
+/* Simple intrusive linked list implementation, originally from Linux kernel.
+ * Embedded the node or head in the structure. */
 
 struct list_head {
     struct list_head *next;
     struct list_head *prev;
 };
 
-#define list_node list_head
+#define LIST_POISON                                                            \
+    NULL /* Replace this value to an address that will trigger page fault if   \
+            used in kernel. Ignore this if used in user space. */
 
+/* Macros */
+#define LIST_HEAD_INIT(name)
+#define list_entry(ptr, type, member)
+#define list_first_entry(head, type, member)
+#define list_last_entry(head, type, member)
+#define list_for_each(head, pos)
+#define list_for_each_entry(head, pos, type, member)
+#define list_for_each_safe(head, pos, tmp)
+#define list_for_each_entry_safe(head, pos, tmp, type, member)
+
+/* APIs */
 static inline void list_init(struct list_head *head);
-static inline void list_add_head(struct list_head *head, struct list_node *new);
-static inline void list_add_tail(struct list_head *head, struct list_node *new);
-static inline void list_del(struct list_head *head, struct list_node *node);
-static inline struct list_node *list_del_tail(struct list_head *head);
-static inline struct list_node *list_del_head(struct list_head *head);
-static inline bool list_empty(const struct list_head *head);
+static inline int list_empty(const struct list_head *head);
+static inline void list_add_head(struct list_head *head, struct list_head *new);
+static inline void list_add_tail(struct list_head *head, struct list_head *new);
+static inline void list_del(struct list_head *node);
+static inline void list_del_init(struct list_head *node);
+static inline struct list_head *list_del_head(struct list_head *head);
+static inline struct list_head *list_del_tail(struct list_head *head);
+static inline struct list_head *list_del_head_init(struct list_head *head);
+static inline struct list_head *list_del_tail_init(struct list_head *head);
 
-#define LIST_HEAD_INIT() {NULL, NULL}
-#define LIST_NODE_INIT() {NULL, NULL}
+#undef LIST_HEAD_INIT
+#undef list_entry
+#undef list_first_entry
+#undef list_last_entry
+#undef list_for_each
+#undef list_for_each_entry
+#undef list_for_each_safe
+#undef list_for_each_entry_safe
+
+#define LIST_HEAD_INIT(name) {&(name), &(name)}
+
 #define list_entry(ptr, type, member) container_of(ptr, type, member)
-#define list_for_each(head, pos) for (pos = (head)->next; pos; pos = pos->next)
+#define list_first_entry(head, type, member)                                   \
+    list_entry((head)->next, type, member)
+#define list_last_entry(head, type, member)                                    \
+    list_entry((head)->prev, type, member)
+
+#define list_for_each(head, pos)                                               \
+    for (pos = (head)->next; pos != (head); pos = pos->next)
+
 #define list_for_each_entry(head, pos, type, member)                           \
-    for (pos = (head)->next ? list_entry((head)->next, type, member) : NULL;   \
-         pos;                                                                  \
-         pos = pos->member.next ? list_entry(pos->member.next, type, member)   \
-                                : NULL)
+    for (pos = list_entry((head)->next, type, member); &pos->member != (head); \
+         pos = list_entry(pos->member.next, type, member))
+
+#define list_for_each_safe(head, pos, tmp)                                     \
+    for (pos = (head)->next, tmp = pos->next; pos != (head);                   \
+         pos = tmp, tmp = pos->next)
+
+#define list_for_each_entry_safe(head, pos, tmp, type, member)                 \
+    for (pos = list_entry((head)->next, type, member),                         \
+        tmp = list_entry(pos->member.next, type, member);                      \
+         &pos->member != (head);                                               \
+         pos = tmp, tmp = list_entry(pos->member.next, type, member))
+
+static inline void __list_del(struct list_head *prev, struct list_head *next)
+{
+    prev->next = next;
+    next->prev = prev;
+}
+
+static inline void __list_add(struct list_head *new, struct list_head *prev,
+                              struct list_head *next)
+{
+    new->next = next;
+    new->prev = prev;
+    prev->next = new;
+    next->prev = new;
+}
 
 static inline void list_init(struct list_head *head)
 {
-    head->next = NULL;
-    head->prev = NULL;
+    head->next = head;
+    head->prev = head;
 }
 
-static inline void list_add_head(struct list_head *head, struct list_node *new)
+static inline int list_empty(const struct list_head *head)
 {
-    new->next = head->next;
-    new->prev = NULL;
-    if (new->next)
-        new->next->prev = new;
-
-    if (!head->prev)
-        head->prev = new;
-    head->next = new;
+    return head->next == head;
 }
 
-static inline void list_add_tail(struct list_head *head, struct list_node *new)
+static inline void list_add_head(struct list_head *head, struct list_head *new)
 {
-    new->next = NULL;
-    new->prev = head->prev;
-    if (new->prev)
-        new->prev->next = new;
-
-    if (!head->next)
-        head->next = new;
-    head->prev = new;
+    __list_add(new, head, head->next);
 }
 
-static inline void list_del(struct list_head *head, struct list_node *node)
+static inline void list_add_tail(struct list_head *head, struct list_head *new)
 {
-    if (node->next)
-        node->next->prev = node->prev;
-    if (node->prev)
-        node->prev->next = node->next;
-    if (node == head->next)
-        head->next = node->next;
-    if (node == head->prev)
-        head->prev = node->prev;
-    node->next = NULL;
-    node->prev = NULL;
+    __list_add(new, head->prev, head);
 }
 
-static inline struct list_node *list_del_tail(struct list_head *head)
+static inline void list_del(struct list_head *node)
 {
-    struct list_node *node = head->prev;
-    if (node) {
-        list_del(head, node);
-        return node;
-    }
-    return NULL;
+    __list_del(node->prev, node->next);
+    node->next = LIST_POISON;
+    node->prev = LIST_POISON;
 }
 
-static inline struct list_node *list_del_head(struct list_head *head)
+static inline void list_del_init(struct list_head *node)
 {
-    struct list_node *node = head->next;
-    if (node) {
-        list_del(head, node);
-        return node;
-    }
-    return NULL;
+    __list_del(node->prev, node->next);
+    list_init(node);
 }
 
-static inline bool list_empty(const struct list_head *head)
+static inline struct list_head *list_del_head(struct list_head *head)
 {
-    return head->next == NULL;
+    struct list_head *node;
+
+    if (list_empty(head))
+        return NULL;
+
+    node = head->next;
+    list_del(node);
+    return node;
+}
+
+static inline struct list_head *list_del_tail(struct list_head *head)
+{
+    struct list_head *node;
+
+    if (list_empty(head))
+        return NULL;
+
+    node = head->prev;
+    list_del(node);
+    return node;
+}
+
+static inline struct list_head *list_del_head_init(struct list_head *head)
+{
+    struct list_head *node;
+
+    if (list_empty(head))
+        return NULL;
+
+    node = head->next;
+    list_del_init(node);
+    return node;
+}
+
+static inline struct list_head *list_del_tail_init(struct list_head *head)
+{
+    struct list_head *node;
+
+    if (list_empty(head))
+        return NULL;
+
+    node = head->prev;
+    list_del_init(node);
+    return node;
 }
 
 #endif /* _QUNIX_LIST_H_ */

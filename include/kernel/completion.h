@@ -31,8 +31,10 @@ struct completion {
 
 typedef struct completion completion_t;
 
-#define COMPLETION_INIT                                                        \
-    {.waitq = WAITQ_INIT(), .done = 0, .lock = SPINLOCK_INIT(COMPLETION_STR)}
+#define COMPLETION_INIT(name)                                                  \
+    {.waitq = WAITQ_INIT(name.waitq),                                          \
+     .done = 0,                                                                \
+     .lock = SPINLOCK_INIT(COMPLETION_STR)}
 
 extern void completion_init(completion_t *comp);
 extern void wait_for_completion(completion_t *comp);

@@ -27,7 +27,7 @@ static void dequeue(struct task *task);
 static struct task *pick_next(void);
 static bool tick(void);
 
-static struct list_head ready_queue = LIST_HEAD_INIT();
+static struct list_head ready_queue = LIST_HEAD_INIT(ready_queue);
 
 const struct sched_class rr_class = {
     .name = "Round Robin",
@@ -53,7 +53,7 @@ static void dequeue(struct task *task)
     list_for_each_entry(&ready_queue, cur, struct task, node)
     {
         if (cur == task) {
-            list_del(&ready_queue, &cur->node);
+            list_del(&cur->node);
             break;
         }
     }
@@ -61,7 +61,7 @@ static void dequeue(struct task *task)
 
 static struct task *pick_next(void)
 {
-    struct list_node *node;
+    struct list_head *node;
 
     if (list_empty(&ready_queue))
         return NULL;
