@@ -20,6 +20,7 @@
 #include <kernel/init.h>
 #include <kernel/interrupt.h>
 #include <kernel/irq.h>
+#include <kernel/ktest.h>
 #include <kernel/mm/mm.h>
 #include <kernel/printk.h>
 #include <kernel/qunix.h>
@@ -54,7 +55,12 @@ void kernel_main(void)
 
     LOGM_INFO("KERNEL", "Kernel initialized successfully");
 
-    // welcome();
+#if CONFIG_TEST
+    ktest_init();
+    ktest_run_all();
+#else
+    welcome();
+#endif
 
     cpu_idle();
 }

@@ -21,12 +21,24 @@ include $(MKDIR)/config.mk
 include $(MKDIR)/toolchain.mk
 
 BUILDDIR  := build
+ifeq ($(RUN_KTEST),1)
+BUILDDIR  := build/test
+override TEST := 1
+CFLAGS    += -DCONFIG_TEST=1 -DCONFIG_TEST_QEMU_EXIT=1
+endif
+
 DEPDIR    := $(BUILDDIR)/dep
 OBJDIR    := $(BUILDDIR)/obj
 BINDIR    := $(BUILDDIR)/bin
 LDDIR     := ld
 SRCDIR    := kernel driver lib $(ARCH_SRC_DIRS)
+ifeq ($(TEST),1)
+SRCDIR    += test
+CFLAGS    += -DCONFIG_TEST=1
+endif
 INCDIR    := include
+
+QEMU_DEBUG_PORT ?= 0xf4
 
 # sources
 SRCS_C := $(filter-out %_$(ARCH_OTHER_BITS).c, \
@@ -65,7 +77,7 @@ KERNEL_ISO := $(BINDIR)/qunix-$(ARCH).iso
 ISODIR     := $(BUILDDIR)/iso
 BOCHS_CFG  := config/bochs/$(ARCH)-bochs.cfg
 
-.PHONY: all elf mb-check check-includes line iso run qemu qemu-gdb bochs gen-config clang clean version help
+.PHONY: all elf mb-check check-includes line iso run qemu qemu-gdb bochs gen-config clang clean version help test
 .DEFAULT_GOAL := help
 
 all: $(OBJS)
@@ -127,6 +139,29 @@ qemu: iso
 qemu-gdb: iso
 	@$(QEMU) -cdrom $(KERNEL_ISO) -no-reboot -no-shutdown -s -S
 
+ifeq ($(RUN_KTEST),1)
+test: iso
+	@echo "  TEST  $(KERNEL_ISO)"
+	@set +e; \
+	$(QEMU) -cdrom $(KERNEL_ISO) \
+		-device isa-debug-exit,iobase=$(QEMU_DEBUG_PORT),iosize=0x04 \
+		-no-reboot; \
+	status=$$?; \
+	if [ $$status -eq 1 ]; then \
+		echo "  PASS"; \
+		exit 0; \
+	elif [ $$status -eq 3 ]; then \
+		echo "  FAIL"; \
+		exit 1; \
+	else \
+		echo "  QEMU exited $$status"; \
+		exit $$status; \
+	fi
+else
+test:
+	@$(MAKE) RUN_KTEST=1 test
+endif
+
 bochs: iso
 	@$(BOCHS) -f $(BOCHS_CFG) -q
 
@@ -154,6 +189,7 @@ help:
 	@echo "\tmake run                 - run the kernel in default emulator"
 	@echo "\tmake qemu                - run the kernel in QEMU"
 	@echo "\tmake qemu-gdb            - run the kernel in QEMU with GDB"
+	@echo "\tmake test                - build KTEST and run all suites in QEMU"
 	@echo "\tmake bochs               - run the kernel in Bochs"
 	@echo ""
 	@echo "\tmake clean               - clean the build directory"

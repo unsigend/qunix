@@ -90,14 +90,23 @@ def h_define(key, val):
         return f"#define {key}_{val.upper()} 1"
 
 
+# Command-line -DCONFIG_TEST=1 (make test) must win over the generated default.
+OVERRIDABLE = {"CONFIG_TEST", "CONFIG_TEST_QEMU_EXIT"}
+
+
 def write_h(entries):
     """Only emit entries whose key starts with CONFIG_ — the name is the signal."""
     os.makedirs(os.path.dirname(CONFIG_H), exist_ok=True)
     with open(CONFIG_H, "w") as f:
         f.write(H_HEADER + "\n")
         for key, val in entries:
-            if key.startswith("CONFIG_"):
-                f.write(h_define(key, val) + "\n")
+            if not key.startswith("CONFIG_"):
+                continue
+            line = h_define(key, val)
+            if key in OVERRIDABLE:
+                f.write(f"#ifndef {key}\n{line}\n#endif\n")
+            else:
+                f.write(line + "\n")
         f.write("\n" + H_FOOTER)
 
 

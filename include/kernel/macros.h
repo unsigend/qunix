@@ -42,5 +42,7 @@
 #define CONCAT(a, b) __CONCAT(a, b)
 #define CONCAT2(a, b) CONCAT(a, b)
 #define CONCAT3(a, b, c) CONCAT(CONCAT(a, b), c)
+#define CONCAT4(a, b, c, d) CONCAT(CONCAT(CONCAT(a, b), c), d)
+#define CONCAT5(a, b, c, d, e) CONCAT(CONCAT(CONCAT(CONCAT(a, b), c), d), e)
 
 #endif /* _QUNIX_MACROS_H_ */

@@ -25,7 +25,10 @@
 #include <kernel/ktest/core.h>
 #endif /* CONFIG_TEST */
 
-extern void ktest_run(void);
+extern void ktest_run_all(void);
+extern void ktest_run_all_parallel(unsigned int nthreads);
+extern void ktest_run_suite(const char *name);
+
 extern void ktest_init(void);
 
 #endif /* _QUNIX_KTEST_H_ */

@@ -49,6 +49,16 @@ SECTIONS
     .data ALIGN(4K) : AT(ADDR(.data) - KERNEL_VIRT_BASE)
     {
         *(.data*)
+
+        . = ALIGN(4);
+        __ktest_suites_start = .;
+        KEEP(*(.ktest_suites))
+        __ktest_suites_end = .;
+
+        . = ALIGN(4);
+        __ktest_cases_start = .;
+        KEEP(*(.ktest_cases))
+        __ktest_cases_end = .;
     }
 
     .bss ALIGN(4K) : AT(ADDR(.bss) - KERNEL_VIRT_BASE)

@@ -18,4 +18,6 @@
 #ifndef _QUNIX_KTEST_ASSERT_H_
 #define _QUNIX_KTEST_ASSERT_H_
 
+#include <kernel/compiler.h>
+
 #endif /* _QUNIX_KTEST_ASSERT_H_ */
