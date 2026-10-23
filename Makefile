@@ -148,10 +148,10 @@ test: iso
 		-no-reboot; \
 	status=$$?; \
 	if [ $$status -eq 1 ]; then \
-		echo "  PASS"; \
+		echo "  PASS TESTS"; \
 		exit 0; \
 	elif [ $$status -eq 3 ]; then \
-		echo "  FAIL"; \
+		echo "  FAIL TESTS"; \
 		exit 1; \
 	else \
 		echo "  QEMU exited $$status"; \

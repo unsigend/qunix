@@ -83,7 +83,9 @@ void ktest_failed(struct ktest_case *self, const char *fmt, ...)
     va_start(args, fmt);
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
-    printk("[FAILED ] %s: %s\n", self->name, buf);
+
+    printk("  [FAILED ] Test case: %s\n", self->name);
+    printk("  %s\n", buf);
 }
 
 void ktest_init(void)

@@ -74,6 +74,9 @@ CONTRACT extern void ktest_isa_exit(int status);
 #define __KTEST_FUNC_NAME(sname, cname)                                        \
     CONCAT5(__KTEST_PREFIX, f_, sname, _, cname)
 
+#undef KTEST_SUITE
+#undef KTEST_CASE
+
 #define KTEST_SUITE(sname)                                                     \
     struct ktest_suite __KTEST_SUITE_NAME(sname)                               \
         __used __section(__KTEST_SUITE_SECTION) = {                            \

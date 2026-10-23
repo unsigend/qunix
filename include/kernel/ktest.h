@@ -18,17 +18,50 @@
 #ifndef _QUNIX_KTEST_H_
 #define _QUNIX_KTEST_H_
 
-#include <kernel/config.h>
+#define KTEST_SUITE(sname)
+#define KTEST_CASE(sname, cname)
 
-#if CONFIG_TEST
-#include <kernel/ktest/assert.h>
-#include <kernel/ktest/core.h>
-#endif /* CONFIG_TEST */
+#define ASSERT_TRUE(expr)
+#define ASSERT_FALSE(expr)
+
+#define ASSERT_NULL(p)
+#define ASSERT_NOT_NULL(p)
+
+#define ASSERT_EQ_PTR(actual, expected)
+#define ASSERT_NE_PTR(actual, expected)
+#define ASSERT_GT_PTR(actual, expected)
+#define ASSERT_GE_PTR(actual, expected)
+#define ASSERT_LT_PTR(actual, expected)
+#define ASSERT_LE_PTR(actual, expected)
+
+#define ASSERT_EQ_INT(actual, expected)
+#define ASSERT_NE_INT(actual, expected)
+#define ASSERT_GT_INT(actual, expected)
+#define ASSERT_GE_INT(actual, expected)
+#define ASSERT_LT_INT(actual, expected)
+#define ASSERT_LE_INT(actual, expected)
+
+#define ASSERT_EQ_UINT(actual, expected)
+#define ASSERT_NE_UINT(actual, expected)
+#define ASSERT_GT_UINT(actual, expected)
+#define ASSERT_GE_UINT(actual, expected)
+#define ASSERT_LT_UINT(actual, expected)
+#define ASSERT_LE_UINT(actual, expected)
+
+#define ASSERT_EQ_STR(actual, expected)
+#define ASSERT_NE_STR(actual, expected)
 
 extern void ktest_run_all(void);
 extern void ktest_run_all_parallel(unsigned int nthreads);
 extern void ktest_run_suite(const char *name);
 
 extern void ktest_init(void);
+
+#include <kernel/config.h>
+
+#if CONFIG_TEST
+#include <kernel/ktest/assert.h>
+#include <kernel/ktest/core.h>
+#endif /* CONFIG_TEST */
 
 #endif /* _QUNIX_KTEST_H_ */
