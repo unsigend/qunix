@@ -35,4 +35,12 @@
 #define container_of(ptr, type, member)                                        \
     ((type *)((char *)(ptr) - __offsetof(type, member)))
 
+#define STRINGIFY_RAW(x) #x
+#define TOSTRING(x) STRINGIFY_RAW(x)
+
+#define __CONCAT(a, b) a##b
+#define CONCAT(a, b) __CONCAT(a, b)
+#define CONCAT2(a, b) CONCAT(a, b)
+#define CONCAT3(a, b, c) CONCAT(CONCAT(a, b), c)
+
 #endif /* _QUNIX_MACROS_H_ */

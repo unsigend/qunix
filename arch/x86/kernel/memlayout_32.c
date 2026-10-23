@@ -21,17 +21,17 @@
 #include <kernel/mm/memlayout.h>
 #include <kernel/panic.h>
 
-extern char _kernel_image_phys_start[];
-extern char _kernel_image_phys_end[];
-extern char _kernel_image_virt_start[];
-extern char _kernel_image_virt_end[];
-extern char _kernel_image_size[];
+extern char __kernel_image_phys_start[];
+extern char __kernel_image_phys_end[];
+extern char __kernel_image_virt_start[];
+extern char __kernel_image_virt_end[];
+extern char __kernel_image_size[];
 
-phys_addr_t kernel_image_phys_start = (phys_addr_t)_kernel_image_phys_start;
-phys_addr_t kernel_image_phys_end = (phys_addr_t)_kernel_image_phys_end;
-virt_addr_t kernel_image_virt_start = (virt_addr_t)_kernel_image_virt_start;
-virt_addr_t kernel_image_virt_end = (virt_addr_t)_kernel_image_virt_end;
-size_t kernel_image_size = (size_t)_kernel_image_size;
+phys_addr_t kernel_image_phys_start = (phys_addr_t)__kernel_image_phys_start;
+phys_addr_t kernel_image_phys_end = (phys_addr_t)__kernel_image_phys_end;
+virt_addr_t kernel_image_virt_start = (virt_addr_t)__kernel_image_virt_start;
+virt_addr_t kernel_image_virt_end = (virt_addr_t)__kernel_image_virt_end;
+size_t kernel_image_size = (size_t)__kernel_image_size;
 
 #if CONFIG_DEBUG
 
@@ -43,6 +43,7 @@ phys_addr_t va_to_pa(virt_addr_t va)
 
     return va - KERNEL_VIRT_START;
 }
+
 virt_addr_t pa_to_va(phys_addr_t pa)
 {
     if (pa >= KERNEL_PHYS_END)

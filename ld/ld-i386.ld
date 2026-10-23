@@ -63,14 +63,14 @@ SECTIONS
     }
 
     /* export symbols */
-    _kernel_image_phys_start = KERNEL_IMG_LOAD_BASE;
-    _kernel_image_phys_end = LOADADDR(.reclaimable) + SIZEOF(.reclaimable);
+    __kernel_image_phys_start = KERNEL_IMG_LOAD_BASE;
+    __kernel_image_phys_end = LOADADDR(.reclaimable) + SIZEOF(.reclaimable);
 
-    _kernel_image_virt_start = KERNEL_IMG_VIRT_BASE;
-    _kernel_image_virt_end = ADDR(.reclaimable) + SIZEOF(.reclaimable);
+    __kernel_image_virt_start = KERNEL_IMG_VIRT_BASE;
+    __kernel_image_virt_end = ADDR(.reclaimable) + SIZEOF(.reclaimable);
 
-    _kernel_image_size = _kernel_image_phys_end - _kernel_image_phys_start;
+    __kernel_image_size = __kernel_image_phys_end - __kernel_image_phys_start;
 
-    _reclaimable_phys_start = LOADADDR(.reclaimable);
-    _reclaimable_phys_end = LOADADDR(.reclaimable) + SIZEOF(.reclaimable);
+    __reclaimable_phys_start = LOADADDR(.reclaimable);
+    __reclaimable_phys_end = LOADADDR(.reclaimable) + SIZEOF(.reclaimable);
 }

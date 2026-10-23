@@ -32,8 +32,8 @@
 void bootmain(uint32_t, uint32_t);
 
 /* symbols from ld/ld-i386.ld */
-extern char _reclaimable_phys_start[];
-extern char _reclaimable_phys_end[];
+extern char __reclaimable_phys_start[];
+extern char __reclaimable_phys_end[];
 
 static void memmap_parse(const struct multiboot_tag_mmap *mmap)
 {
@@ -176,8 +176,8 @@ void bootmain(uint32_t magic, uint32_t mbi)
         panic_error(err, "failed to reserve kernel image memory");
 
     /* reclaim the memory region from temporary boot data section */
-    if ((err = memmap_punch_region((phys_addr_t)_reclaimable_phys_start,
-                                   (phys_addr_t)_reclaimable_phys_end,
+    if ((err = memmap_punch_region((phys_addr_t)__reclaimable_phys_start,
+                                   (phys_addr_t)__reclaimable_phys_end,
                                    MEM_AVAILABLE)))
         panic_error(err, "failed to punch reclaimable memory");
 
