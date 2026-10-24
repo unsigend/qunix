@@ -31,5 +31,8 @@
 extern volatile unsigned long jiffies;
 
 CONTRACT extern void clock_init(void);
+extern void clock_tick(void);
+
+extern void ksleep(unsigned long ticks);
 
 #endif /* _QUNIX_CLOCK_H_ */

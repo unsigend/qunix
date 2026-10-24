@@ -27,6 +27,8 @@ extern char __kernel_image_virt_start[];
 extern char __kernel_image_virt_end[];
 extern char __kernel_image_size[];
 
+extern char __boot_stack_top[];
+
 phys_addr_t kernel_image_phys_start = (phys_addr_t)__kernel_image_phys_start;
 phys_addr_t kernel_image_phys_end = (phys_addr_t)__kernel_image_phys_end;
 virt_addr_t kernel_image_virt_start = (virt_addr_t)__kernel_image_virt_start;
@@ -59,3 +61,5 @@ phys_addr_t va_to_pa(virt_addr_t va) { return va - KERNEL_VIRT_START; }
 virt_addr_t pa_to_va(phys_addr_t pa) { return pa + KERNEL_VIRT_START; }
 
 #endif /* CONFIG_DEBUG */
+
+virt_addr_t boot_task_stack_top(void) { return (virt_addr_t)__boot_stack_top; }

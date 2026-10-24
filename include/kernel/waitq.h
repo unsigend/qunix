@@ -31,6 +31,8 @@ typedef struct wait_queue wait_queue_t;
 
 extern void waitq_init(wait_queue_t *wq);
 extern void waitq_sleep(wait_queue_t *wq, struct spinlock *lock);
+extern void waitq_sleep_irq(wait_queue_t *wq, struct spinlock *lock,
+                            unsigned long *irqflags);
 extern void waitq_wakeup(wait_queue_t *wq);
 extern void waitq_wakeup_all(wait_queue_t *wq);
 

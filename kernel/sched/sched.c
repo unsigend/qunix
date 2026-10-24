@@ -23,6 +23,7 @@
 #include <kernel/cpu.h>
 #include <kernel/interrupt.h>
 #include <kernel/kmalloc.h>
+#include <kernel/mm/memlayout.h>
 #include <kernel/mm/page.h>
 #include <kernel/mm/pmm.h>
 #include <kernel/panic.h>
@@ -33,12 +34,7 @@
 #include <kernel/task.h>
 
 #define ROOT_TASK_PID 0
-#define IDLE_TASK_PID 1
-
 #define ROOT_SLICE 10
-#define IDLE_SLICE 1
-
-extern char kernel_stack_top[]; /* the stack top of the root task */
 
 struct sched {
     struct spinlock lock;
@@ -74,17 +70,9 @@ static void sched_check(void)
         panic("sched: in interrupt");
 }
 
-static void do_idle(void *arg)
-{
-    UNUSED(arg);
-    cpu_idle();
-}
-
 void sched_init(void)
 {
-    struct pmm_page *page;
-    struct task *root, *idle;
-    virt_addr_t stack_va;
+    struct task *root;
 
     /* initialize the root task */
     root = kmalloc(sizeof(struct task));
@@ -94,7 +82,7 @@ void sched_init(void)
     root->pid = ROOT_TASK_PID;
     root->name = "root";
     root->state = TASK_RUNNING;
-    root->kstack = (uintptr_t)kernel_stack_top;
+    root->kstack = (uintptr_t)boot_task_stack_top();
     root->context = kmalloc(sizeof(struct task_context));
     if (!root->context)
         panic("sched: failed to allocate memory for root task context");
@@ -104,33 +92,15 @@ void sched_init(void)
     completion_init(&root->completion);
     atomic_store(&root->joined, 0);
 
-    /* initialize the idle task */
-    idle = kmalloc(sizeof(struct task));
-    if (!idle)
-        panic("sched: failed to allocate memory for idle task");
-    page = pmm_alloc_page();
-    if (!page)
-        panic("sched: failed to allocate page for idle task stack");
-    stack_va = pmm_page_to_va(page);
-    memset((void *)stack_va, 0, PAGE_SIZE);
-
-    idle->pid = IDLE_TASK_PID;
-    idle->name = "idle";
-    idle->state = TASK_RUNNING; /* always running */
-    idle->kstack = (uintptr_t)stack_va;
-    task_context_init(idle, do_idle, NULL);
-    list_init(&idle->node);
-    idle->slice = IDLE_SLICE;
-    idle->exit = 0;
-    completion_init(&idle->completion);
-    atomic_store(&idle->joined, 0);
-
     spinlock_init(&sched_core.lock, "sched_core");
 
     init_policy();
 
+    /* init the cpu's scheduler data */
     cpu_current()->task_cur = root;
-    cpu_current()->task_idle = idle;
+    cpu_current()->task_idle = root;
+    list_init(&cpu_current()->rq.ready_queue);
+    cpu_current()->rq.nr_running = 0;
 
     LOGM_INFO("SCHED", "Scheduler initialized successfully");
 }
@@ -157,12 +127,12 @@ void schedule(void)
                                          to the ready queue */
     {
         cur->state = TASK_READY;
-        sched_core.policy->enqueue(cur);
+        sched_core.policy->enqueue(&cpu_current()->rq, cur);
     }
 
     cpu_current()->need_resched = 0;
 
-    next = sched_core.policy->pick_next();
+    next = sched_core.policy->pick_next(&cpu_current()->rq);
     if (!next)
         next = cpu_current()->task_idle;
 
@@ -178,37 +148,7 @@ void schedule(void)
     cpu_current()->in_sched = false;
 }
 
-void sched_yield(void)
-{
-    struct task *cur, *next;
-    unsigned long irqflags;
-
-    sched_check();
-
-    cur = task_current();
-
-    if (cur == cpu_current()->task_idle)
-        return;
-
-    irqflags = spinlock_lock_irqsave(&sched_core.lock);
-
-    cur->state = TASK_READY;
-    sched_core.policy->enqueue(cur);
-
-    next = sched_core.policy->pick_next();
-    if (next == cur) {
-        cur->state = TASK_RUNNING;
-        spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
-    } else {
-        next->state = TASK_RUNNING;
-        cpu_current()->task_cur = next;
-
-        cpu_current()->in_sched = true;
-        spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
-        task_context_switch(cur, next);
-        cpu_current()->in_sched = false;
-    }
-}
+void sched_yield(void) { schedule(); }
 
 void sched_tick(void)
 {
@@ -222,7 +162,7 @@ void sched_tick(void)
     }
 
     irqflags = spinlock_lock_irqsave(&sched_core.lock);
-    if (sched_core.policy->tick())
+    if (sched_core.policy->tick(&cpu_current()->rq))
         cpu_current()->need_resched = 1;
     spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
 }
@@ -233,7 +173,7 @@ void sched_enqueue(struct task *task)
 
     irqflags = spinlock_lock_irqsave(&sched_core.lock);
     task->slice = sched_core.policy->slice;
-    sched_core.policy->enqueue(task);
+    sched_core.policy->enqueue(&cpu_current()->rq, task);
     spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
 }
 
@@ -255,6 +195,6 @@ void sched_wakeup(struct task *task)
     }
 
     task->state = TASK_READY;
-    sched_core.policy->enqueue(task);
+    sched_core.policy->enqueue(&cpu_current()->rq, task);
     spinlock_unlock_irqrestore(&sched_core.lock, irqflags);
 }

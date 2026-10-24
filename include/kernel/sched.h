@@ -18,18 +18,24 @@
 #ifndef _QUNIX_SCHED_H_
 #define _QUNIX_SCHED_H_
 
+#include <kernel/list.h>
 #include <kernel/stdbool.h>
 
 struct task;
+
+struct sched_rq {
+    struct list_head ready_queue;
+    size_t nr_running;
+};
 
 struct sched_class {
     const char *name;
     unsigned int slice; /* initial slice */
 
-    void (*dequeue)(struct task *task);
-    void (*enqueue)(struct task *task);
-    struct task *(*pick_next)(void);
-    bool (*tick)(void); /* tick, return true if need resched */
+    void (*dequeue)(struct sched_rq *rq, struct task *task);
+    void (*enqueue)(struct sched_rq *rq, struct task *task);
+    struct task *(*pick_next)(struct sched_rq *rq);
+    bool (*tick)(struct sched_rq *rq); /* tick, return true if need resched */
 };
 
 extern bool need_resched(void);

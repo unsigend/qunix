@@ -35,8 +35,8 @@ struct task {
     pid_t pid;
     const char *name;
     enum task_state state;
-    uintptr_t kstack;             /* stack top (start address ) */
-    struct task_context *context; /* context struct store on the kernel stack */
+    uintptr_t kstack;
+    struct task_context *context;
     struct list_head node;
     unsigned int slice;
     int exit;

@@ -203,8 +203,12 @@ void irq_exit(void)
     if (cpu_current()->irq_depth == 0)
         panic("unbalance irq exit");
     cpu_current()->irq_depth--;
-    if (!in_interrupt() && preemptible() && need_resched())
+    if (!in_interrupt() && preemptible() && need_resched()) {
+        /* make sure the new scheduled task always keep interrupt enabled */
+        interrupt_enable();
         schedule();
+        interrupt_disable();
+    }
 }
 
 irqreturn_t irq_handle(unsigned int irq)

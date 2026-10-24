@@ -19,6 +19,7 @@
 #define _QUNIX_CPU_H_
 
 #include <kernel/compiler.h>
+#include <kernel/sched.h>
 #include <kernel/stdbool.h>
 
 struct task;
@@ -30,6 +31,7 @@ struct cpu {
     struct task *task_idle;
     volatile unsigned int need_resched;
     bool in_sched;
+    struct sched_rq rq;
 };
 
 CONTRACT extern void cpu_halt(void) __noreturn;

@@ -36,6 +36,22 @@ void waitq_sleep(wait_queue_t *wq, struct spinlock *lock)
     spinlock_lock(lock);
 }
 
+void waitq_sleep_irq(wait_queue_t *wq, struct spinlock *lock,
+                     unsigned long *irqflags)
+{
+    struct task *cur;
+
+    cur = task_current();
+    cur->state = TASK_BLOCKED;
+    list_add_tail(&wq->waiter, &cur->node);
+
+    spinlock_unlock_irqrestore(lock, *irqflags);
+
+    schedule();
+
+    *irqflags = spinlock_lock_irqsave(lock);
+}
+
 void waitq_wakeup(wait_queue_t *wq)
 {
     struct task *task;

@@ -61,8 +61,7 @@ static irqreturn_t pit_tick(unsigned int irq, void *dev)
 {
     UNUSED(irq);
     UNUSED(dev);
-    jiffies++;
-    sched_tick();
+    clock_tick();
     return IRQ_HANDLED;
 }
 

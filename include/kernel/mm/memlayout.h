@@ -38,4 +38,6 @@ CONTRACT extern phys_addr_t va_to_pa(virt_addr_t va);
  */
 CONTRACT extern virt_addr_t pa_to_va(phys_addr_t pa);
 
+CONTRACT extern virt_addr_t boot_task_stack_top(void);
+
 #endif /* _QUNIX_MM_MEMLAYOUT_H_ */
