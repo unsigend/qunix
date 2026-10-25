@@ -39,12 +39,12 @@ static void clear_lines(unsigned int line, unsigned int n);
 static void clear_screen(void);
 static void scrollup(unsigned int lines);
 
-static void putchar(char c);
+static void putc(char c);
 
 static struct vga_state vga_device;
 
 static struct tty_ops ops = {
-    .putchar = putchar,
+    .putc = putc,
     .clear = clear_screen,
 };
 
@@ -169,7 +169,7 @@ static void clear_screen(void)
     cursor_sync();
 }
 
-static void putchar(char c)
+static void putc(char c)
 {
     uint16_t entry;
 
@@ -184,7 +184,7 @@ static void putchar(char c)
         if (vga_device.cursor.col + tabstop >= VGA_TEXT_WIDTH)
             tabstop = VGA_TEXT_WIDTH - vga_device.cursor.col;
         for (uint8_t i = 0; i < tabstop; i++)
-            putchar(' ');
+            putc(' ');
 
     } else if (c == '\r')
         vga_device.cursor.col = 0;

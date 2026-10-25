@@ -26,7 +26,7 @@ void tty_register(struct tty_ops *ops)
 {
     if (dev)
         panic("tty already registered");
-    if (!ops->putchar)
+    if (!ops->putc)
         panic("tty ops missing functions");
 
     dev = ops;
@@ -39,7 +39,7 @@ void tty_putc(char c)
         return;
 
     irqflags = spinlock_lock_irqsave(&tty_lock);
-    dev->putchar(c);
+    dev->putc(c);
     spinlock_unlock_irqrestore(&tty_lock, irqflags);
 }
 
@@ -52,7 +52,7 @@ void tty_write(const char *s, size_t len)
 
     irqflags = spinlock_lock_irqsave(&tty_lock);
     while (len--)
-        dev->putchar(*s++);
+        dev->putc(*s++);
     spinlock_unlock_irqrestore(&tty_lock, irqflags);
 }
 
@@ -73,5 +73,5 @@ void tty_write_raw(const char *s, size_t len)
     if (!dev)
         return;
     while (len--)
-        dev->putchar(*s++);
+        dev->putc(*s++);
 }

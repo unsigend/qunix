@@ -24,7 +24,7 @@
 #include <kernel/stddef.h>
 
 struct tty_ops {
-    void (*putchar)(char c);
+    void (*putc)(char c);
     void (*clear)(void);
 };
 

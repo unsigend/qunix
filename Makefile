@@ -134,16 +134,17 @@ iso: elf
 run: qemu
 
 qemu: iso
-	@$(QEMU) -cdrom $(KERNEL_ISO) -no-reboot -no-shutdown
+	@$(QEMU) -cdrom $(KERNEL_ISO) -serial stdio -no-reboot -no-shutdown
 
 qemu-gdb: iso
-	@$(QEMU) -cdrom $(KERNEL_ISO) -no-reboot -no-shutdown -s -S
+	@$(QEMU) -cdrom $(KERNEL_ISO) -serial stdio -no-reboot -no-shutdown -s -S
 
 ifeq ($(RUN_KTEST),1)
 test: iso
 	@echo "  TEST  $(KERNEL_ISO)"
 	@set +e; \
 	$(QEMU) -cdrom $(KERNEL_ISO) \
+		-serial stdio \
 		-device isa-debug-exit,iobase=$(QEMU_DEBUG_PORT),iosize=0x04 \
 		-no-reboot; \
 	status=$$?; \
