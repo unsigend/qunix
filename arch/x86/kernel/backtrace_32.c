@@ -51,7 +51,7 @@ void backtrace(void)
         sym = ksym_lookup(frame->ret);
 
         if (sym)
-            snprintf(buf, sizeof(buf), "%-13s +%.8lx %c\n", sym->name,
+            snprintf(buf, sizeof(buf), "%-18s +%.8lx %c\n", sym->name,
                      (unsigned long)(frame->ret - sym->addr), sym->type);
         else
             snprintf(buf, sizeof(buf), "0x%.8lx\n", (unsigned long)frame->ret);

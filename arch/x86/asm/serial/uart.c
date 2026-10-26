@@ -17,15 +17,69 @@
 
 #include "uart.h"
 
+#include <kernel/irq.h>
+#include <kernel/panic.h>
 #include <kernel/printk.h>
+#include <kernel/spinlock.h>
+#include <kernel/stddef.h>
 #include <kernel/stdint.h>
+#include <kernel/string.h>
+#include <kernel/waitq.h>
 
 #include <asm/io.h>
+#include <asm/irq.h>
 #include <asm/uart.h>
 
 #define UART_8N1                                                               \
     (LCR_DATA_8 | LCR_STOP_1 |                                                 \
      LCR_PARITY_NONE) /* 8 data bits, 1 stop bit, no parity */
+
+#define RINGBUF_SIZE 128
+
+struct uart_ringbuf {
+    char buf[RINGBUF_SIZE];
+    size_t head;
+    size_t tail;
+    size_t size;
+};
+
+struct uart_core {
+    struct spinlock lock;
+    struct wait_queue waitq;
+    struct uart_ringbuf ringbuf;
+};
+
+static struct uart_core uart_core;
+
+static inline void ringbuf_init(struct uart_ringbuf *buf)
+{
+    memset(buf, 0, sizeof(*buf));
+}
+
+static inline int ringbuf_is_empty(struct uart_ringbuf *buf)
+{
+    return buf->size == 0;
+}
+
+static inline int ringbuf_is_full(struct uart_ringbuf *buf)
+{
+    return buf->size == RINGBUF_SIZE;
+}
+
+static inline void ringbuf_push(struct uart_ringbuf *buf, char c)
+{
+    buf->buf[buf->tail] = c;
+    buf->tail = (buf->tail + 1) % RINGBUF_SIZE;
+    buf->size++;
+}
+
+static inline char ringbuf_pop(struct uart_ringbuf *buf)
+{
+    char c = buf->buf[buf->head];
+    buf->head = (buf->head + 1) % RINGBUF_SIZE;
+    buf->size--;
+    return c;
+}
 
 static inline void set_baud_rate(uint16_t port, unsigned long rate)
 {
@@ -41,18 +95,73 @@ static inline void set_baud_rate(uint16_t port, unsigned long rate)
     outb(port + UART_LCR, old_lcr & ~(1 << LCR_DLAB));
 }
 
+static irqreturn_t uart_handle_read(unsigned int irq, void *dev)
+{
+    UNUSED(irq);
+    UNUSED(dev);
+
+    unsigned long irqflags;
+    char c;
+
+    irqflags = spinlock_lock_irqsave(&uart_core.lock);
+
+    while (inb(UART_COM1 + UART_LSR) & LSR_DR_MASK) {
+        c = inb(UART_COM1 + UART_RBR);
+        if (!ringbuf_is_full(&uart_core.ringbuf)) {
+            ringbuf_push(&uart_core.ringbuf, c);
+            waitq_wakeup(&uart_core.waitq);
+        }
+    }
+
+    spinlock_unlock_irqrestore(&uart_core.lock, irqflags);
+
+    return IRQ_HANDLED;
+}
+
 void uart_init(void)
 {
     set_baud_rate(UART_COM1, UART_BAUD_RATE);
-    outb(UART_COM1 + UART_IER, 0); /* No uart IRQ */
+    outb(UART_COM1 + UART_IER, 0);
     outb(UART_COM1 + UART_LCR, UART_8N1);
 
     LOGM_INFO("UART", "16550a UART initialized");
 }
 
+void uart_init_irq(void)
+{
+    int err;
+
+    outb(UART_COM1 + UART_MCR, MCR_OUT2_MASK);
+    outb(UART_COM1 + UART_IER, IER_RDA_MASK);
+
+    spinlock_init(&uart_core.lock, "uart_core");
+    waitq_init(&uart_core.waitq);
+    ringbuf_init(&uart_core.ringbuf);
+
+    if ((err = irq_register(IRQ_COM1, uart_handle_read, 0, "16550 UART", NULL)))
+        panic_error(err, "failed to register UART IRQ handler");
+}
+
 void uart_putc(char c)
 {
+    /* sync write */
     while (!(inb(UART_COM1 + UART_LSR) & LSR_THRE_MASK))
         ;
     outb(UART_COM1 + UART_THR, c);
+}
+
+char uart_getc(void)
+{
+    unsigned long irqflags;
+    char c;
+
+    irqflags = spinlock_lock_irqsave(&uart_core.lock);
+
+    while (ringbuf_is_empty(&uart_core.ringbuf))
+        waitq_sleep_irq(&uart_core.waitq, &uart_core.lock, &irqflags);
+    c = ringbuf_pop(&uart_core.ringbuf);
+
+    spinlock_unlock_irqrestore(&uart_core.lock, irqflags);
+
+    return c;
 }

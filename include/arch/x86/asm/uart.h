@@ -19,6 +19,8 @@
 #define _X86_ASM_UART_H_
 
 extern void uart_init(void);
+extern void uart_init_irq(void);
 extern void uart_putc(char c);
+extern char uart_getc(void);
 
 #endif /* _X86_ASM_UART_H_ */

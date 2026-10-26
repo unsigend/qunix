@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/cdev.h>
 #include <kernel/clock.h>
 #include <kernel/cpu.h>
 #include <kernel/init.h>
@@ -28,7 +29,9 @@
 #include <kernel/task.h>
 #include <kernel/tty.h>
 
-__unused static void welcome(void)
+#include <driver/uart.h>
+
+__used static void welcome(void)
 {
     char buf[64];
 
@@ -50,6 +53,8 @@ void kernel_main(void)
     irq_init();
     sched_init();
     clock_init();
+
+    uart_cdev_init();
 
     interrupt_enable();
 

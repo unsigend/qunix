@@ -16,6 +16,7 @@
  */
 
 #include <asm/pic.h>
+#include <asm/uart.h>
 
 #include <kernel/irq.h>
 #include <kernel/printk.h>
@@ -24,4 +25,6 @@ void irq_init(void)
 {
     pic_init();
     LOGM_INFO("IRQ", "IRQ initialized successfully");
+
+    uart_init_irq();
 }
