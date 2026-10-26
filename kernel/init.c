@@ -55,8 +55,8 @@ void kernel_main(void)
     sched_init();
     clock_init();
 
-    uart_cdev_init();
-    kbd_cdev_init();
+    uart_driver_init();
+    kbd_driver_init();
 
     interrupt_enable();
 

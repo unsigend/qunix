@@ -18,6 +18,6 @@
 #ifndef _DRIVER_KBD_H_
 #define _DRIVER_KBD_H_
 
-extern void kbd_cdev_init(void);
+extern void kbd_driver_init(void);
 
 #endif /* _DRIVER_KBD_H_ */

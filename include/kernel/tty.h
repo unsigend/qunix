@@ -18,9 +18,6 @@
 #ifndef _KERNEL_TTY_H_
 #define _KERNEL_TTY_H_
 
-/* A simple tty layer, supports only one tty device. Later will refactor the tty
- * layer to me more robust and POSIX compliant. */
-
 #include <kernel/stddef.h>
 
 struct tty_ops {
@@ -28,16 +25,12 @@ struct tty_ops {
     void (*clear)(void);
 };
 
-/*
- * tty_register - install the console driver.
- *
- * A second registration panics.
- */
-extern void tty_register(struct tty_ops *ops);
-
+extern int tty_register(struct tty_ops *ops);
 extern void tty_putc(char c);
 extern void tty_write(const char *s, size_t len);
 extern void tty_write_raw(const char *s, size_t len); /* no lock */
 extern void tty_clear(void);
+extern void tty_read(char *buf, size_t len);
+extern void tty_input(char c);
 
 #endif /* _KERNEL_TTY_H_ */

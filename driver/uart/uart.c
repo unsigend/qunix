@@ -19,6 +19,7 @@
 
 #include <kernel/cdev.h>
 #include <kernel/panic.h>
+#include <kernel/tty.h>
 #include <kernel/types.h>
 
 #include <driver/uart.h>
@@ -47,10 +48,8 @@ static ssize_t uart_cdev_write(struct cdev *cdev, const void *buf, size_t count)
 }
 
 static const struct cdev_ops uart_cdev_ops = {
-    .ioctl = NULL,
     .read = uart_cdev_read,
     .write = uart_cdev_write,
-    .open = NULL,
 };
 
 static struct cdev uart_cdev = {
@@ -59,10 +58,16 @@ static struct cdev uart_cdev = {
     .ops = &uart_cdev_ops,
 };
 
-void uart_cdev_init(void)
+static struct tty_ops uart_tty_ops = {
+    .putc = uart_putc,
+};
+
+void uart_driver_init(void)
 {
     int err;
 
     if ((err = cdev_register(&uart_cdev)))
         panic_error(err, "failed to register UART cdev");
+    if ((err = tty_register(&uart_tty_ops)))
+        panic_error(err, "failed to register UART tty");
 }

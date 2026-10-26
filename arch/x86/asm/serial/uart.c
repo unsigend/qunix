@@ -24,6 +24,7 @@
 #include <kernel/stddef.h>
 #include <kernel/stdint.h>
 #include <kernel/string.h>
+#include <kernel/tty.h>
 #include <kernel/waitq.h>
 
 #include <asm/io.h>
@@ -111,6 +112,7 @@ static irqreturn_t uart_handle_read(unsigned int irq, void *dev)
             ringbuf_push(&uart_core.ringbuf, c);
             waitq_wakeup(&uart_core.waitq);
         }
+        tty_input(c);
     }
 
     spinlock_unlock_irqrestore(&uart_core.lock, irqflags);

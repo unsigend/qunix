@@ -20,6 +20,7 @@
 #include <asm/io.h>
 
 #include <kernel/mm/memlayout.h>
+#include <kernel/panic.h>
 #include <kernel/printk.h>
 #include <kernel/stdint.h>
 #include <kernel/string.h>
@@ -50,6 +51,8 @@ static struct tty_ops ops = {
 
 void vga_init(void)
 {
+    int err;
+
     vga_device.buf = (uint16_t *)pa_to_va(VGA_TEXT_BUFBASE);
     vga_device.cursor.row = 0;
     vga_device.cursor.col = 0;
@@ -59,7 +62,8 @@ void vga_init(void)
     cursor_update(0, 0);
 
     clear_screen();
-    tty_register(&ops);
+    if ((err = tty_register(&ops)))
+        panic_error(err, "failed to register vga tty");
 
     LOGM_INFO("VGA", "VGA text console initialized");
 }

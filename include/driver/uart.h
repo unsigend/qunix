@@ -18,6 +18,6 @@
 #ifndef _DRIVER_UART_H_
 #define _DRIVER_UART_H_
 
-extern void uart_cdev_init(void);
+extern void uart_driver_init(void);
 
 #endif

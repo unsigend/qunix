@@ -46,7 +46,7 @@ static struct cdev kbd_cdev = {
     .ops = &kbd_cdev_ops,
 };
 
-void kbd_cdev_init(void)
+void kbd_driver_init(void)
 {
     int err;
 

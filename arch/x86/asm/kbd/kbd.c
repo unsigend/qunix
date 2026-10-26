@@ -28,6 +28,7 @@
 #include <kernel/stddef.h>
 #include <kernel/stdint.h>
 #include <kernel/string.h>
+#include <kernel/tty.h>
 #include <kernel/waitq.h>
 
 #define RINGBUF_SIZE 128
@@ -131,6 +132,9 @@ static irqreturn_t kdb_handler(unsigned int irq, void *dev)
         ringbuf_push(&kbd_core.ringbuf, c);
         waitq_wakeup(&kbd_core.waitq);
     }
+
+    if (c)
+        tty_input(c);
 
     spinlock_unlock_irqrestore(&kbd_core.lock, irqflags);
 
