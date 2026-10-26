@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <asm/kbd.h>
 #include <asm/pic.h>
 #include <asm/uart.h>
 
@@ -27,4 +28,5 @@ void irq_init(void)
     LOGM_INFO("IRQ", "IRQ initialized successfully");
 
     uart_init_irq();
+    kbd_init();
 }

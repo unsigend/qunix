@@ -36,7 +36,7 @@
 
 #define RINGBUF_SIZE 128
 
-struct uart_ringbuf {
+struct ringbuf {
     char buf[RINGBUF_SIZE];
     size_t head;
     size_t tail;
@@ -46,34 +46,34 @@ struct uart_ringbuf {
 struct uart_core {
     struct spinlock lock;
     struct wait_queue waitq;
-    struct uart_ringbuf ringbuf;
+    struct ringbuf ringbuf;
 };
 
 static struct uart_core uart_core;
 
-static inline void ringbuf_init(struct uart_ringbuf *buf)
+static inline void ringbuf_init(struct ringbuf *buf)
 {
     memset(buf, 0, sizeof(*buf));
 }
 
-static inline int ringbuf_is_empty(struct uart_ringbuf *buf)
+static inline int ringbuf_is_empty(struct ringbuf *buf)
 {
     return buf->size == 0;
 }
 
-static inline int ringbuf_is_full(struct uart_ringbuf *buf)
+static inline int ringbuf_is_full(struct ringbuf *buf)
 {
     return buf->size == RINGBUF_SIZE;
 }
 
-static inline void ringbuf_push(struct uart_ringbuf *buf, char c)
+static inline void ringbuf_push(struct ringbuf *buf, char c)
 {
     buf->buf[buf->tail] = c;
     buf->tail = (buf->tail + 1) % RINGBUF_SIZE;
     buf->size++;
 }
 
-static inline char ringbuf_pop(struct uart_ringbuf *buf)
+static inline char ringbuf_pop(struct ringbuf *buf)
 {
     char c = buf->buf[buf->head];
     buf->head = (buf->head + 1) % RINGBUF_SIZE;

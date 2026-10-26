@@ -29,6 +29,7 @@
 #include <kernel/task.h>
 #include <kernel/tty.h>
 
+#include <driver/kbd.h>
 #include <driver/uart.h>
 
 __used static void welcome(void)
@@ -55,6 +56,7 @@ void kernel_main(void)
     clock_init();
 
     uart_cdev_init();
+    kbd_cdev_init();
 
     interrupt_enable();
 
