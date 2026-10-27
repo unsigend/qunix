@@ -3,7 +3,7 @@
 qunix is a clean, minimal Unix-like kernel for learning and research, aiming at POSIX compatibility. It is written from scratch in C and assembly, with a arch layer at the edge and a portable generic kernel in the middle.
 
 
-Current version: `v0.1.1`
+Current version: `v0.2.0`
 
 For copyright information, see the file `LICENSE` in this directory.
 
@@ -104,6 +104,28 @@ Complete re-write based on v0.1.0
 - 8259 as an `irq_chip`, 8253/PIT still drives `jiffies`
 - irqsave locks on PMM, `kmalloc`, memmap, sched, IRQ lines, and tty
 - Interrupts enabled only after core init
+
+----
+
+### [qunix v0.2.0](https://github.com/unsigend/qunix/tree/v0.2.0)
+
+#### Sleep and TTY
+
+**Features**
+- `assert` / `BUG_ON`; frame-pointer build; symbolized `panic` backtrace (embedded `nm` table)
+- Command line `key=value` lookup (`cmdline_get` / `cmdline_set`)
+- KTEST: linker-section tests, `CONFIG_TEST`, QEMU `isa-debug-exit`, `make test`; suites for sync primitives, `ksleep`, `cdev`
+- Ordered `ksleep`; the tick wakes expired heads only
+- Character devices: major/minor table, `open` / `read` / `write` / `ioctl` ops
+- CMOS RTC, PS/2 keyboard (scancode set 1), 16550 UART (serial console, IRQ RX)
+- TTY: one input queue fed by keyboard and UART; registered as a character device
+- Generic ring buffer
+
+**Refactor**
+- `tty_ops` list: VGA and serial register as consoles; `printk` writes to all of them
+- Per-CPU `sched_rq`; boot thread is idle; `sched_yield` is `schedule()`
+- `waitq_sleep` / `sched_wakeup` are the only entry and exit of `TASK_BLOCKED`
+- Nested `panic` halts without a second print
 
 ## Contribution and Copyright
 
