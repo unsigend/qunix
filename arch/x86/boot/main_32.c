@@ -26,8 +26,7 @@
 
 #include <asm/mb2.h>
 #include <asm/memlayout.h>
-#include <asm/uart.h>
-
+#include <driver/uart.h>
 #include <driver/vga.h>
 
 void bootmain(uint32_t, uint32_t);
@@ -146,7 +145,7 @@ void bootmain(uint32_t magic, uint32_t mbi)
     vga_init(); /* initialize the VGA text mode driver first,
                    everything else depends on it */
 
-    uart_init(); /* initialize the UART driver */
+    uart_early_init(); /* initialize the UART driver */
 
     mb2_validate(magic, mbi);
 

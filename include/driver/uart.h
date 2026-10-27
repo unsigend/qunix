@@ -18,6 +18,19 @@
 #ifndef _DRIVER_UART_H_
 #define _DRIVER_UART_H_
 
-extern void uart_driver_init(void);
+/*
+ * uart_early_init - set up COM1 for polled transmit and register it as a
+ * console.
+ *
+ * Called at early boot, before irq_init.
+ */
+extern void uart_early_init(void);
 
-#endif
+/*
+ * uart_init - enable COM1 receive interrupts input goes to the tty.
+ *
+ * Called after irq_init.
+ */
+extern void uart_init(void);
+
+#endif /* _DRIVER_UART_H_ */

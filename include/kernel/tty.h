@@ -25,6 +25,7 @@ struct tty_ops {
     void (*clear)(void);
 };
 
+extern void tty_init(void);
 extern int tty_register(struct tty_ops *ops);
 extern void tty_putc(char c);
 extern void tty_write(const char *s, size_t len);

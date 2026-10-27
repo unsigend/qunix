@@ -22,10 +22,10 @@
 
 #define CONFIG_MAX_CPUS 1
 #define CONFIG_SMP 0
-#define CONFIG_DEBUG 0
+#define CONFIG_DEBUG 1
 #define CONFIG_DEBUG_SPINLOCK 0
 #ifndef CONFIG_TEST
-#define CONFIG_TEST 1
+#define CONFIG_TEST 0
 #endif
 #ifndef CONFIG_TEST_QEMU_EXIT
 #define CONFIG_TEST_QEMU_EXIT 0

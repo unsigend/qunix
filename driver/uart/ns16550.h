@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SERIAL_UART_H_
-#define _SERIAL_UART_H_
+#ifndef _UART_NS16550_H_
+#define _UART_NS16550_H_
 
 #define UART_BAUD_RATE 115200U
 
@@ -170,4 +170,4 @@
 #define MSR_RI_MASK (1 << MSR_RI)
 #define MSR_DCD_MASK (1 << MSR_DCD)
 
-#endif /* _SERIAL_UART_H_ */
+#endif /* _UART_NS16550_H_ */
