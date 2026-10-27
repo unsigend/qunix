@@ -100,7 +100,7 @@ endif
 
 # include paths
 CFLAGS_INC := -I include
-CFLAGS_INC += -I include/arch/$(ARCH_FAMILY)
+CFLAGS_INC += -I arch/$(ARCH_FAMILY)/include
 
 # arch src paths
 ARCH_SRC_DIRS := arch/$(ARCH_FAMILY)

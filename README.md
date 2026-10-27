@@ -54,7 +54,7 @@ Build output goes to `build/`
 | `driver` | Hardware drivers. |
 | `lib` | Kernel libraries. |
 | `lib\libc` | Kernel freestanding libc. |
-| `include/arch/$ARCH` | Low-level hardware headers. |
+| `arch/$ARCH/include` | Architecture headers (`<asm/...>`). |
 | `include/driver` | Driver headers. |
 | `include/kernel` | Kernel headers. |
 | `config` | Build and emulator configuration. |
