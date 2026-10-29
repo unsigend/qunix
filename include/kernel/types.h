@@ -25,6 +25,7 @@
 typedef __PTRDIFF_TYPE__ ssize_t;
 
 typedef int pid_t;
+typedef unsigned int cpuid_t;
 
 typedef uintptr_t phys_addr_t;
 typedef uintptr_t virt_addr_t;

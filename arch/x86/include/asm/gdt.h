@@ -19,36 +19,38 @@
 #define _X86_ASM_GDT_H_
 
 #include <kernel/stdint.h>
+#include <kernel/types.h>
 
 #define GDT_SIZE_MAX UINT16_MAX
 #define GDT_LIMIT_MAX 0xFFFFF
 
-#define GDT_CODE (1u << 3) /* code segment */
-#define GDT_DATA 0         /* data segment */
+#define GDT_P (1u << 7)                  /* present */
+#define GDT_DPL(dpl) (((dpl) & 3u) << 5) /* descriptor privilege level */
+#define GDT_S_CD (1u << 4)               /* code or data segment */
+#define GDT_S_SYS 0                      /* system segment */
+#define GDT_LONG (1u << 9)               /* 64-bit code segment */
+#define GDT_DB_16 0                      /* 16-bit segment */
+#define GDT_DB_32 (1u << 10)             /* 32-bit segment */
+#define GDT_G_4K (1u << 11)              /* 4KB granularity */
+#define GDT_G_1B 0                       /* byte granularity */
 
+/* Code/Data segment flags */
+#define GDT_EXEC (1u << 3) /* executable */
+#define GDT_DC (1u << 2)   /* direction/conforming */
+#define GDT_RW (1u << 1)   /* readable/writable */
+#define GDT_AC (1u << 0)   /* accessed */
+
+/* System segment flags */
 #define GDT_LDT 0x02 /* local descriptor table */
 #define GDT_TSS 0x09 /* task state segment */
 
-#define GDT_DPL(dpl) (((dpl) & 3u) << 5) /* descriptor privilege level */
-
-extern void gdt_init(void);
+extern void gdt_init_cpu(cpuid_t cpuid);
 extern void gdtr_read(unsigned short *size, unsigned long *base);
 extern void gdtr_write(unsigned short size, unsigned long base);
-
-/*
- * gdt_set_entry - write a code or data descriptor at @index.
- *
- * An out-of-range @index or @limit panics.
- */
-extern void gdt_set_entry(unsigned int index, unsigned long base,
+extern void gdt_set_entry(cpuid_t cpuid, unsigned int index, unsigned long base,
                           unsigned long limit, unsigned int flags);
-
-/*
- * gdt_set_sys_entry - write a system descriptor at @index.
- *
- * Used for a TSS or an LDT. An out-of-range @index or @limit panics.
- */
-extern void gdt_set_sys_entry(unsigned int index, unsigned long base,
-                              unsigned long limit, unsigned int flags);
+extern void gdt_set_sys_entry(cpuid_t cpuid, unsigned int index,
+                              unsigned long base, unsigned long limit,
+                              unsigned int flags);
 
 #endif /* _X86_ASM_GDT_H_ */

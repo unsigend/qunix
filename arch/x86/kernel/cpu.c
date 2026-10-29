@@ -36,7 +36,7 @@ void cpu_idle(void)
 
 void cpu_init(void)
 {
-    gdt_init();
+    gdt_init_cpu(0);
     idt_init();
 
     LOGM_INFO("CPU", "CPU initialized successfully");

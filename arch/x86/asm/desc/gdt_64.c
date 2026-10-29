@@ -18,23 +18,27 @@
 #include "gdt_desc.h"
 
 #include <asm/gdt.h>
+#include <asm/segment.h>
 
+#include <kernel/cpu.h>
 #include <kernel/panic.h>
 #include <kernel/string.h>
-
-#define ACCESS_MASK 0x92
-#define ACCESS_SYS_MASK 0x80
-#define FLAGS 0b1100
-#define FLAGS_MASK (FLAGS << 4)
-#define FLAGS_CODE64 0b1010 /* 64-bit code segment long mode */
-#define FLAGS_CODE64_MASK (FLAGS_CODE64 << 4)
-
-static struct gdt_entry gdt[GDT_NR];
 
 struct gdtr {
     uint16_t size;
     uint64_t base;
 } __packed;
+
+struct gdt_cpu_table {
+    struct gdt_entry entries[GDT_NR];
+};
+
+static struct gdt_cpu_table gdt_cpu_tables[CPU_NR];
+
+static inline struct gdt_cpu_table *get_cpu_table(cpuid_t cpuid)
+{
+    return &gdt_cpu_tables[cpuid];
+}
 
 void gdtr_read(unsigned short *size, unsigned long *base)
 {
@@ -50,49 +54,107 @@ void gdtr_write(unsigned short size, unsigned long base)
     asm volatile("lgdt %0" : : "m"(gdtr));
 }
 
-void gdt_set_entry(unsigned int index, unsigned long base, unsigned long limit,
-                   unsigned int flags)
+void gdt_set_entry(cpuid_t cpuid, unsigned int index, unsigned long base,
+                   unsigned long limit, unsigned int flags)
 {
     struct gdt_entry *entry;
+    uint8_t flag, access;
 
     if (index >= GDT_NR)
         panic("GDT index out of bounds: %u", index);
     if (limit > GDT_LIMIT_MAX)
         panic("GDT limit out of bounds: %lu", limit);
+    if (cpuid >= CPU_NR)
+        panic("CPU ID out of bounds: %u", cpuid);
 
-    entry = &gdt[index];
-
-    if (flags & GDT_CODE)
-        entry->flags = FLAGS_CODE64_MASK | ((limit >> 16) & 0xf);
-    else
-        entry->flags = FLAGS_MASK | ((limit >> 16) & 0xf);
+    entry = &get_cpu_table(cpuid)->entries[index];
+    flag = (flags >> 8) & 0xf;
+    access = flags & 0xff;
 
     entry->limit_low = limit & 0xffff;
-    entry->access = ACCESS_MASK | flags;
+    entry->flags = ((limit >> 16) & 0xf) | (flag << 4);
+    entry->access = access;
     entry->base_low = base & 0xffff;
     entry->base_middle = (base >> 16) & 0xff;
     entry->base_high = (base >> 24) & 0xff;
 }
 
-void gdt_set_sys_entry(unsigned int index, unsigned long base,
+void gdt_set_sys_entry(cpuid_t cpuid, unsigned int index, unsigned long base,
                        unsigned long limit, unsigned int flags)
 {
     struct gdt_sys_entry entry;
+    uint8_t flag, access;
+    void *p;
 
-    if (index + 1 >= GDT_NR) /* system segment takes two slots */
+    if (index >= GDT_NR - 1)
         panic("GDT index out of bounds: %u", index);
     if (limit > GDT_LIMIT_MAX)
         panic("GDT limit out of bounds: %lu", limit);
+    if (cpuid >= CPU_NR)
+        panic("CPU ID out of bounds: %u", cpuid);
+
+    p = (void *)&get_cpu_table(cpuid)->entries[index];
+    flag = (flags >> 8) & 0xf;
+    access = flags & 0xff;
 
     entry.limit_low = limit & 0xffff;
-    entry.flags = (limit >> 16) & 0xf;
-
-    entry.access = ACCESS_SYS_MASK | flags;
+    entry.flags = ((limit >> 16) & 0xf) | (flag << 4);
+    entry.access = access;
     entry.base_low = base & 0xffff;
     entry.base_middle1 = (base >> 16) & 0xff;
     entry.base_middle2 = (base >> 24) & 0xff;
-    entry.base_high = base >> 32;
+    entry.base_high = (base >> 32) & 0xffffffff;
     entry.reserved = 0;
 
-    memcpy((void *)&gdt[index], &entry, sizeof(struct gdt_sys_entry));
+    memcpy(p, &entry, sizeof(entry));
+}
+
+static void flush_segments(uint16_t code, uint16_t data)
+{
+    unsigned long rip;
+
+    asm volatile("pushq %1\n\t"
+                 "leaq 1f(%%rip), %0\n\t"
+                 "pushq %0\n\t"
+                 "lretq\n\t"
+                 "1:\n\t"
+                 "movw %w2, %%ds\n\t"
+                 "movw %w2, %%es\n\t"
+                 "movw %w2, %%fs\n\t"
+                 "movw %w2, %%gs\n\t"
+                 "movw %w2, %%ss\n\t"
+                 : "=&r"(rip)
+                 : "r"((unsigned long)code), "r"((unsigned long)data)
+                 : "memory");
+}
+
+void gdt_init_cpu(cpuid_t cpuid)
+{
+    struct gdt_cpu_table *table;
+    struct gdtr gdtr;
+
+    if (cpuid >= CPU_NR)
+        panic("CPU ID out of bounds: %u", cpuid);
+
+    table = get_cpu_table(cpuid);
+
+    gdt_set_entry(cpuid, 0, 0, 0, 0);
+    gdt_set_entry(cpuid, SEG_KCODE_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_P | GDT_DPL(CPU_RING0) | GDT_S_CD | GDT_LONG | GDT_G_4K |
+                      GDT_EXEC | GDT_RW);
+    gdt_set_entry(cpuid, SEG_KDATA_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_P | GDT_DPL(CPU_RING0) | GDT_S_CD | GDT_DB_32 | GDT_G_4K |
+                      GDT_RW);
+    gdt_set_entry(cpuid, SEG_UCODE_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_P | GDT_DPL(CPU_RING3) | GDT_S_CD | GDT_LONG | GDT_G_4K |
+                      GDT_EXEC | GDT_RW);
+    gdt_set_entry(cpuid, SEG_UDATA_IDX, 0, GDT_LIMIT_MAX,
+                  GDT_P | GDT_DPL(CPU_RING3) | GDT_S_CD | GDT_DB_32 | GDT_G_4K |
+                      GDT_RW);
+
+    gdtr.size = sizeof(table->entries) - 1;
+    gdtr.base = (uint64_t)table->entries;
+    gdtr_write(gdtr.size, gdtr.base);
+
+    flush_segments(SEGSEL_KCODE, SEGSEL_KDATA);
 }

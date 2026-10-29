@@ -19,8 +19,16 @@
 #define _QUNIX_CPU_H_
 
 #include <kernel/compiler.h>
+#include <kernel/config.h>
 #include <kernel/sched.h>
 #include <kernel/stdbool.h>
+
+#define DEFAULT_CPU_NR 1
+#ifndef CONFIG_MAX_CPUS
+#define CPU_NR CONFIG_MAX_CPUS
+#else
+#define CPU_NR DEFAULT_CPU_NR
+#endif
 
 struct task;
 

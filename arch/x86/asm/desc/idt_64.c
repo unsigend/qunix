@@ -21,7 +21,7 @@
 
 #include <kernel/panic.h>
 
-#define MASK (1u << 15)
+#define IDT_PRESENT (1u << 15)
 
 static struct idt_entry idt[IDT_NR];
 
@@ -44,8 +44,8 @@ void idtr_write(unsigned short size, unsigned long base)
     asm volatile("lidt %0" : : "m"(idtr));
 }
 
-void idt_set_entry(unsigned int index, unsigned short selector,
-                   unsigned long addr, unsigned int flags)
+void idt_set_entry(unsigned int index, unsigned short sel, unsigned long addr,
+                   unsigned int flags)
 {
     struct idt_entry *entry;
 
@@ -57,7 +57,7 @@ void idt_set_entry(unsigned int index, unsigned short selector,
     entry->offset_low = addr & 0xFFFF;
     entry->offset_middle = (addr >> 16) & 0xFFFF;
     entry->offset_high = (addr >> 32) & 0xFFFFFFFF;
-    entry->selector = selector;
+    entry->selector = sel;
     entry->reserved = 0;
-    entry->flags = flags | MASK;
+    entry->flags = flags | IDT_PRESENT;
 }

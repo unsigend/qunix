@@ -37,13 +37,7 @@
 extern void idt_init(void);
 extern void idtr_read(unsigned short *size, unsigned long *base);
 extern void idtr_write(unsigned short size, unsigned long base);
-
-/*
- * idt_set_entry - write the gate at @index.
- *
- * An out-of-range @index panics.
- */
-extern void idt_set_entry(unsigned int index, unsigned short selector,
+extern void idt_set_entry(unsigned int index, unsigned short sel,
                           unsigned long addr, unsigned int flags);
 
 #endif /* __ASSEMBLER__ */
