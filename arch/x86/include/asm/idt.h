@@ -34,9 +34,10 @@
 
 #ifndef __ASSEMBLER__
 
-extern void idt_init(void);
 extern void idtr_read(unsigned short *size, unsigned long *base);
 extern void idtr_write(unsigned short size, unsigned long base);
+
+extern void idt_init(void);
 extern void idt_set_entry(unsigned int index, unsigned short sel,
                           unsigned long addr, unsigned int flags);
 

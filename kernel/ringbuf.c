@@ -1,5 +1,5 @@
-/* qunix - A minimal Unix-like Kernel
- * Copyright (C) 2026 - 2027 Yixiang Qiu. All rights reserved.
+/* collection - A high-performance C data structure library
+ * Copyright (C) 2026-2027 Yixiang Qiu
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,51 +15,85 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <kernel/assert.h>
 #include <kernel/errno.h>
 #include <kernel/ringbuf.h>
 #include <kernel/string.h>
 
-void ringbuf_init(struct ringbuf *rb, void *buf, size_t count, size_t elesz)
+int ringbuf_init(struct ringbuf *rb, void *buf, size_t cap, size_t elesz)
 {
-    assert(rb && buf && count && elesz);
+    if (elesz == 0 || cap == 0)
+        return -EINVAL;
 
     rb->buf = buf;
-    rb->cap = count;
-    rb->size = 0;
-    rb->esize = elesz;
+    rb->cap = cap;
+    rb->len = 0;
+    rb->head = 0;
+    rb->tail = 0;
+    rb->elesz = elesz;
+
+    return 0;
+}
+
+void ringbuf_clear(struct ringbuf *rb)
+{
+    rb->len = 0;
     rb->head = 0;
     rb->tail = 0;
 }
 
 int ringbuf_push(struct ringbuf *rb, const void *data)
 {
-    if (ringbuf_is_full(rb))
+    if (ringbuf_full(rb))
         return -ENOSPC;
 
-    if (rb->esize == 1)
-        ((unsigned char *)rb->buf)[rb->tail] = *(unsigned char *)data;
+    if (rb->elesz == 1)
+        ((unsigned char *)rb->buf)[rb->tail] = ((unsigned char *)data)[0];
     else
-        memcpy(rb->buf + rb->tail * rb->esize, data, rb->esize);
+        memcpy(((unsigned char *)rb->buf) + rb->tail * rb->elesz, data,
+               rb->elesz);
 
     rb->tail = (rb->tail + 1) % rb->cap;
-    rb->size++;
-
+    rb->len++;
     return 0;
 }
 
 int ringbuf_pop(struct ringbuf *rb, void *data)
 {
-    if (ringbuf_is_empty(rb))
+    if (ringbuf_empty(rb))
         return -EAGAIN;
 
-    if (rb->esize == 1 && data)
-        *((unsigned char *)data) = ((unsigned char *)rb->buf)[rb->head];
-    else if (data)
-        memcpy(data, rb->buf + rb->head * rb->esize, rb->esize);
+    if (rb->elesz == 1)
+        ((unsigned char *)data)[0] = ((unsigned char *)rb->buf)[rb->head];
+    else
+        memcpy(data, ((unsigned char *)rb->buf) + rb->head * rb->elesz,
+               rb->elesz);
 
     rb->head = (rb->head + 1) % rb->cap;
-    rb->size--;
-
+    rb->len--;
     return 0;
+}
+
+int ringbuf_peek(struct ringbuf *rb, void *data)
+{
+    if (ringbuf_empty(rb))
+        return -EAGAIN;
+
+    if (rb->elesz == 1)
+        ((unsigned char *)data)[0] = ((unsigned char *)rb->buf)[rb->head];
+    else
+        memcpy(data, ((unsigned char *)rb->buf) + rb->head * rb->elesz,
+               rb->elesz);
+    return 0;
+}
+
+void ringbuf_drop(struct ringbuf *rb, size_t n)
+{
+    if (n == 0 || ringbuf_empty(rb))
+        return;
+
+    if (n > ringbuf_len(rb))
+        n = ringbuf_len(rb);
+
+    rb->head = (rb->head + n) % rb->cap;
+    rb->len -= n;
 }

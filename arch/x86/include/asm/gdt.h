@@ -44,9 +44,10 @@
 #define GDT_LDT 0x02 /* local descriptor table */
 #define GDT_TSS 0x09 /* task state segment */
 
-extern void gdt_init_cpu(cpuid_t cpuid);
 extern void gdtr_read(unsigned short *size, unsigned long *base);
 extern void gdtr_write(unsigned short size, unsigned long base);
+
+extern void gdt_init_cpu(cpuid_t cpuid);
 extern void gdt_set_entry(cpuid_t cpuid, unsigned int index, unsigned long base,
                           unsigned long limit, unsigned int flags);
 extern void gdt_set_sys_entry(cpuid_t cpuid, unsigned int index,
