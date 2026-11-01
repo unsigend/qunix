@@ -49,53 +49,27 @@
 #define page_clear(page) memset((void *)(page), 0, PAGE_SIZE)
 #define page_copy(dest, src) memcpy((void *)(dest), (void *)(src), PAGE_SIZE)
 
-/* virtual address of the page table */
-typedef uintptr_t pagetable_t;
+typedef uintptr_t pagetable_t; /* virtual address of the page table */
 
-/*
- * page_map - map the page at @va to the frame at @pa.
- *
- * @va and @pa must be page-aligned. A missing intermediate page table is
- * allocated. An existing mapping at @va is replaced. If @root is the active
- * page table, the TLB entry for @va is flushed.
- *
- * Returns 0 on success, -EINVAL if @root is NULL or an address is
- * misaligned, -ENOMEM if a page table cannot be allocated.
- */
+CONTRACT extern pagetable_t kernel_pagetable;
+
 CONTRACT extern int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
                              unsigned int flags);
-
-/*
- * page_unmap - unmap the page at @va.
- *
- * A NULL @root, a misaligned @va, or an absent mapping is ignored. If @root
- * is the active page table, the TLB entry for @va is flushed.
- */
 CONTRACT extern void page_unmap(pagetable_t root, virt_addr_t va);
 
-/*
- * page_map_range - map @n contiguous pages starting at @pa to @va.
- *
- * If mapping one page fails, every page mapped by this call is unmapped.
- *
- * Returns 0 on success, or the error from page_map().
- */
 extern int page_map_range(pagetable_t root, phys_addr_t pa, virt_addr_t va,
                           size_t n, unsigned int flags);
 extern void page_unmap_range(pagetable_t root, virt_addr_t va, size_t n);
 
-/*
- * page_lookup - store the physical address mapped at @va in @pa.
- *
- * The page tables are not modified.
- *
- * Returns 0 on success, -EINVAL if @root is NULL or @va is misaligned,
- * -ENOENT if @va is not mapped.
- */
 CONTRACT extern int page_lookup(pagetable_t root, virt_addr_t va,
                                 phys_addr_t *pa);
 
 CONTRACT extern void page_init(void);
+
+CONTRACT extern pagetable_t pagetable_create(void);
+CONTRACT extern void pagetable_free(pagetable_t root);
+CONTRACT extern int pagetable_copy(pagetable_t dest, pagetable_t src);
+CONTRACT extern void pagetable_switch(pagetable_t root);
 
 #endif /* __ASSEMBLER__ */
 

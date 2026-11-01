@@ -62,4 +62,11 @@ virt_addr_t pa_to_va(phys_addr_t pa) { return pa + KERNEL_VIRT_START; }
 
 #endif /* CONFIG_DEBUG */
 
+bool in_kernel_space(virt_addr_t va)
+{
+    return va >= (virt_addr_t)KERNEL_VIRT_START;
+}
+
+bool in_user_space(virt_addr_t va) { return va < (virt_addr_t)USER_VIRT_END; }
+
 virt_addr_t boot_task_stack_top(void) { return (virt_addr_t)__boot_stack_top; }

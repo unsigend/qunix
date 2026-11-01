@@ -45,8 +45,8 @@ static __always_inline void page_enable_pae(void);
 static __always_inline void page_disable_pae(void);
 
 /* Flush TLB (Translation Lookaside Buffer) */
-static __always_inline void page_flush_tlb(virt_addr_t addr);
-static __always_inline void page_flush_tlb_all(void);
+static __always_inline void page_tlb_flush(virt_addr_t addr);
+static __always_inline void page_tlb_flush_all(void);
 
 #ifdef __x86_64__
 #include <asm/page_64.h>
@@ -98,12 +98,12 @@ static __always_inline void page_disable_pae(void)
     cr4_write(cr4);
 }
 
-static __always_inline void page_flush_tlb(virt_addr_t addr)
+static __always_inline void page_tlb_flush(virt_addr_t addr)
 {
     asm volatile("invlpg (%0)" : : "r"(addr) : "memory");
 }
 
-static __always_inline void page_flush_tlb_all(void)
+static __always_inline void page_tlb_flush_all(void)
 {
     pageroot_write(pageroot_read()); /* simply re-write cr3 */
 }

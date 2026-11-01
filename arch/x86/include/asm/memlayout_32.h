@@ -29,15 +29,12 @@
 #define USER_VIRT_START 0x0
 #define USER_VIRT_END GB_N(3)
 
-/* kernel image physical addresses */
+#define USER_STACK_TOP USER_VIRT_END
+
 #define KERNEL_IMAGE_PHYS_START kernel_image_phys_start
 #define KERNEL_IMAGE_PHYS_END kernel_image_phys_end
-
-/* kernel image virtual addresses */
 #define KERNEL_IMAGE_VIRT_START kernel_image_virt_start
 #define KERNEL_IMAGE_VIRT_END kernel_image_virt_end
-
-/* kernel image size */
 #define KERNEL_IMAGE_SIZE kernel_image_size
 
 #ifndef __ASSEMBLER__

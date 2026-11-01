@@ -18,6 +18,7 @@
 #include <asm/memlayout.h>
 #include <asm/page.h>
 
+#include <kernel/assert.h>
 #include <kernel/errno.h>
 #include <kernel/macros.h>
 #include <kernel/mm/memlayout.h>
@@ -27,16 +28,59 @@
 #include <kernel/panic.h>
 #include <kernel/printk.h>
 
-int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
-             unsigned int flags)
+/* Map generic kernel flags to x86 page flags */
+static inline unsigned int mapflags(unsigned int flags)
+{
+    unsigned int pageflags = PG_P;
+    if (flags & PAGEF_WRITE)
+        pageflags |= PG_WR;
+    if (flags & PAGEF_USER)
+        pageflags |= PG_USER;
+    return pageflags;
+}
+
+/* Page walk for 32-bit paging, walk the page table and allocated page table if
+ * alloc is set. Return the PTE pointer if found, otherwise return NULL. */
+static pte_t *page_walk(pagetable_t root, virt_addr_t va, unsigned int flags,
+                        bool alloc)
 {
     pde_t *pde;
     pte_t *pte;
     unsigned int pageflags;
-    struct pmm_page *page;
-    phys_addr_t page_pa;
-    virt_addr_t page_va, pt_va;
-    pagetable_t cpu_pagetable;
+
+    pageflags = mapflags(flags);
+
+    pde = (pde_t *)root + pde_index(va);
+
+    if (!(*pde & PG_P)) {
+        if (alloc) {
+            struct pmm_page *page = pmm_alloc_page();
+            if (!page)
+                return NULL;
+            page_clear(pmm_page_to_va(page));
+            pde_make(pde, pa_to_pn(pmm_page_to_pa(page)), pageflags);
+            return (pte_t *)pmm_page_to_va(page) + pte_index(va);
+        }
+        return NULL;
+    } else if (alloc)
+        *pde |= pageflags;
+
+    pte = (pte_t *)pde_get_pt_va(pde) + pte_index(va);
+    return pte;
+}
+
+static inline void copy_kernel_pgtbl(pagetable_t root)
+{
+    memcpy((pde_t *)root + pde_index(KERNEL_VIRT_START),
+           (pde_t *)kernel_pagetable + pde_index(KERNEL_VIRT_START),
+           (1024 - pde_index(KERNEL_VIRT_START)) * sizeof(pde_t));
+}
+
+int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
+             unsigned int flags)
+{
+    pte_t *pte;
+    unsigned int pageflags;
 
     if (!root || !IS_ALIGNED(va, PAGE_SIZE) || !IS_ALIGNED(pa, PAGE_SIZE))
         return -EINVAL;
@@ -47,75 +91,93 @@ int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
     if (flags & PAGEF_USER)
         pageflags |= PG_USER;
 
-    pde = (pde_t *)root + pde_index(va);
-    if (!(*pde & PG_P)) {
-        page = pmm_alloc_page();
-        if (!page)
-            return -ENOMEM;
-        page_pa = pmm_page_to_pa(page);
-        page_va = pmm_page_to_va(page);
-        page_clear(page_va);
-        pde_make(pde, pa_to_pn(page_pa), pageflags);
-    } else if ((flags & PAGEF_WRITE) || (flags & PAGEF_USER))
-        *pde |= pageflags;
-
-    pt_va = pde_get_pt_va(pde);
-    pte = (pte_t *)pt_va + pte_index(va);
+    pte = page_walk(root, va, flags, true);
+    if (!pte)
+        return -ENOMEM;
     pte_make(pte, pa_to_pn(pa), pageflags);
 
-    cpu_pagetable = pa_to_va(pageroot_read());
-    if (cpu_pagetable == root)
-        page_flush_tlb(va); /* flush TLB for the page */
+    if (pa_to_va(pageroot_read()) == root || in_kernel_space(va))
+        page_tlb_flush(va);
 
     return 0;
 }
 
 void page_unmap(pagetable_t root, virt_addr_t va)
 {
-    pde_t *pde;
     pte_t *pte;
-    virt_addr_t pt_va;
 
     if (!root || !IS_ALIGNED(va, PAGE_SIZE))
         return;
 
-    pde = (pde_t *)root + pde_index(va);
-
-    if (!(*pde & PG_P))
+    pte = page_walk(root, va, 0, false);
+    if (!pte)
         return;
-
-    pt_va = pde_get_pt_va(pde);
-    pte = (pte_t *)pt_va + pte_index(va);
-
-    if (!(*pte & PG_P))
-        return;
-
     *pte = 0;
-    if (pa_to_va(pageroot_read()) == root)
-        page_flush_tlb(va);
+
+    if (pa_to_va(pageroot_read()) == root || in_kernel_space(va))
+        page_tlb_flush(va);
 }
 
 int page_lookup(pagetable_t root, virt_addr_t va, phys_addr_t *pa)
 {
-    pde_t *pde;
     pte_t *pte;
-    virt_addr_t pt_va;
 
     if (!root || !IS_ALIGNED(va, PAGE_SIZE))
         return -EINVAL;
 
-    pde = (pde_t *)root + pde_index(va);
-    if (!(*pde & PG_P))
-        return -ENOENT;
-
-    pt_va = pde_get_pt_va(pde);
-    pte = (pte_t *)pt_va + pte_index(va);
-    if (!(*pte & PG_P))
+    pte = page_walk(root, va, 0, false);
+    if (!pte || !(*pte & PG_P))
         return -ENOENT;
 
     *pa = pn_to_pa(pte_get_pn(pte));
+
     return 0;
 }
+
+pagetable_t pagetable_create(void)
+{
+    struct pmm_page *page;
+    virt_addr_t va;
+
+    page = pmm_alloc_page();
+    if (!page)
+        return 0;
+    va = pmm_page_to_va(page);
+    page_clear(va);
+    copy_kernel_pgtbl(va);
+    return va;
+}
+
+void pagetable_free(pagetable_t root)
+{
+    pde_t *pde;
+    pte_t *pte;
+    size_t i, j;
+
+    if (!root)
+        return;
+    assert(root != kernel_pagetable);
+
+    for (i = 0; i < pde_index(USER_VIRT_END); i++) {
+        pde = (pde_t *)root + i;
+        if (!(*pde & PG_P))
+            continue;
+
+        pte = (pte_t *)pde_get_pt_va(pde);
+        for (j = 0; j < 1024; j++) {
+            if (pte[j] & PG_P)
+                pmm_free_page(pmm_pa_to_page(pn_to_pa(pte_get_pn(&pte[j]))));
+        }
+        pmm_free_page(pmm_va_to_page((virt_addr_t)pte));
+    }
+
+    pmm_free_page(pmm_va_to_page(root));
+}
+
+int pagetable_copy(pagetable_t dest, pagetable_t src);
+void pagetable_switch(pagetable_t root);
+
+pagetable_t kernel_pagetable;
 
 void page_init(void)
 {
@@ -137,10 +199,18 @@ void page_init(void)
     pagetable_va = pmm_page_to_va(page);
     page_clear(pagetable_va);
 
+    kernel_pagetable = pagetable_va;
+
     if ((err =
              page_map_range(pagetable_va, KERNEL_PHYS_START, KERNEL_VIRT_START,
                             npages, PAGEF_WRITE | PAGEF_EXEC)))
         panic_error(err, "failed to map kernel page table");
+
+    for (uint64_t va = KERNEL_VIRT_START + PAGE_SIZE * npages;
+         va < KERNEL_VIRT_END; va += PAGE_SIZE) {
+        if (!page_walk(pagetable_va, va, PAGEF_WRITE | PAGEF_EXEC, true))
+            panic("failed to pre-allocate page table for kernel");
+    }
 
     pageroot_write(va_to_pa(pagetable_va));
 
