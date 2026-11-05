@@ -18,7 +18,6 @@
 #ifndef _QUNIX_COMPILER_H_
 #define _QUNIX_COMPILER_H_
 
-#define CONTRACT
 #define UNUSED(x) (void)(x)
 #define STATIC_ASSERT(expr) _Static_assert(expr, #expr " check failed")
 

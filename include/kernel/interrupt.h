@@ -18,7 +18,6 @@
 #ifndef _QUNIX_INTERRUPT_H_
 #define _QUNIX_INTERRUPT_H_
 
-#include <kernel/compiler.h>
 #include <kernel/stdbool.h>
 
 enum irqreturn {
@@ -31,12 +30,12 @@ enum irqreturn {
 typedef enum irqreturn irqreturn_t;
 typedef irqreturn_t (*irq_handler_t)(unsigned int irq, void *dev);
 
-CONTRACT extern void interrupt_enable(void);
-CONTRACT extern void interrupt_disable(void);
-CONTRACT extern bool interrupt_is_disabled(void);
+extern void interrupt_enable(void);
+extern void interrupt_disable(void);
+extern bool interrupt_is_disabled(void);
 
-CONTRACT extern unsigned long interrupt_save(void);
-CONTRACT extern void interrupt_restore(unsigned long flags);
+extern unsigned long interrupt_save(void);
+extern void interrupt_restore(unsigned long flags);
 
 extern int irq_register(unsigned int irq, irq_handler_t handler,
                         unsigned int flags, const char *name, void *dev);

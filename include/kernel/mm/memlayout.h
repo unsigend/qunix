@@ -21,12 +21,12 @@
 #include <kernel/stdbool.h>
 #include <kernel/types.h>
 
-CONTRACT extern phys_addr_t va_to_pa(virt_addr_t va);
-CONTRACT extern virt_addr_t pa_to_va(phys_addr_t pa);
+extern phys_addr_t va_to_pa(virt_addr_t va);
+extern virt_addr_t pa_to_va(phys_addr_t pa);
 
-CONTRACT extern bool in_kernel_space(virt_addr_t va);
-CONTRACT extern bool in_user_space(virt_addr_t va);
+extern bool in_kernel_space(virt_addr_t va);
+extern bool in_user_space(virt_addr_t va);
 
-CONTRACT extern virt_addr_t boot_task_stack_top(void);
+extern virt_addr_t boot_task_stack_top(void);
 
 #endif /* _QUNIX_MM_MEMLAYOUT_H_ */

@@ -42,7 +42,6 @@
 
 #ifndef __ASSEMBLER__
 
-#include <kernel/compiler.h>
 #include <kernel/string.h>
 #include <kernel/types.h>
 
@@ -51,25 +50,21 @@
 
 typedef uintptr_t pagetable_t; /* virtual address of the page table */
 
-CONTRACT extern pagetable_t kernel_pagetable;
+extern pagetable_t kernel_pagetable;
 
-CONTRACT extern int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
-                             unsigned int flags);
-CONTRACT extern void page_unmap(pagetable_t root, virt_addr_t va);
-
+extern int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
+                    unsigned int flags);
+extern void page_unmap(pagetable_t root, virt_addr_t va);
 extern int page_map_range(pagetable_t root, phys_addr_t pa, virt_addr_t va,
                           size_t n, unsigned int flags);
 extern void page_unmap_range(pagetable_t root, virt_addr_t va, size_t n);
+extern int page_lookup(pagetable_t root, virt_addr_t va, phys_addr_t *pa);
+extern pagetable_t pagetable_create(void);
+extern void pagetable_free(pagetable_t root);
+extern int pagetable_copy(pagetable_t dest, pagetable_t src);
+extern void pagetable_switch(pagetable_t root);
 
-CONTRACT extern int page_lookup(pagetable_t root, virt_addr_t va,
-                                phys_addr_t *pa);
-
-CONTRACT extern void page_init(void);
-
-CONTRACT extern pagetable_t pagetable_create(void);
-CONTRACT extern void pagetable_free(pagetable_t root);
-CONTRACT extern int pagetable_copy(pagetable_t dest, pagetable_t src);
-CONTRACT extern void pagetable_switch(pagetable_t root);
+extern void page_init(void);
 
 #endif /* __ASSEMBLER__ */
 

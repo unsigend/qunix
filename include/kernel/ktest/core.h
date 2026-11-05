@@ -45,16 +45,16 @@ struct ktest_case {
     struct ktest_suite *suite;
 } __aligned(sizeof(void *));
 
-CONTRACT extern struct ktest_suite *ktest_suites(void);
-CONTRACT extern size_t ktest_nsuites(void);
+extern struct ktest_suite *ktest_suites(void);
+extern size_t ktest_nsuites(void);
 
-CONTRACT extern struct ktest_case *ktest_cases(void);
-CONTRACT extern size_t ktest_ncases(void);
+extern struct ktest_case *ktest_cases(void);
+extern size_t ktest_ncases(void);
 
 extern void ktest_failed(struct ktest_case *self, const char *fmt, ...)
     __printf(2, 3);
 
-CONTRACT extern void ktest_isa_exit(int status);
+extern void ktest_isa_exit(int status);
 
 #define __KTEST_PREFIX __ktest_
 #define __KTEST_SUITE_SECTION ".ktest_suites"

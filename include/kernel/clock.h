@@ -18,7 +18,6 @@
 #ifndef _QUNIX_CLOCK_H_
 #define _QUNIX_CLOCK_H_
 
-#include <kernel/compiler.h>
 #include <kernel/config.h>
 
 #define DEFAULT_CLOCK_HZ 1000
@@ -30,7 +29,7 @@
 
 extern volatile unsigned long jiffies;
 
-CONTRACT extern void clock_init(void);
+extern void clock_init(void);
 extern void clock_tick(void);
 
 extern void ksleep(unsigned long ticks);

@@ -89,8 +89,7 @@ extern int task_join(struct task *task);
  * Called by schedule() only. @saved's context is stored and @restored's
  * is loaded. Returns in @restored, as if its own switch had returned.
  */
-CONTRACT extern void task_context_switch(struct task *saved,
-                                         struct task *restored);
+extern void task_context_switch(struct task *saved, struct task *restored);
 
 /*
  * task_context_init - build @task's initial kernel stack.
@@ -98,6 +97,6 @@ CONTRACT extern void task_context_switch(struct task *saved,
  * The stack is already allocated. The first switch to @task enters @func(@arg)
  * with interrupts enabled. If @func returns, the trampoline calls task_exit(0).
  */
-CONTRACT extern void task_context_init(struct task *task, void (*func)(void *),
-                                       void *arg);
+extern void task_context_init(struct task *task, void (*func)(void *),
+                              void *arg);
 #endif /* _QUNIX_TASK_H_ */

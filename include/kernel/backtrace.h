@@ -18,11 +18,10 @@
 #ifndef _QUNIX_BACKTRACE_H_
 #define _QUNIX_BACKTRACE_H_
 
-#include <kernel/compiler.h>
 #include <kernel/types.h>
 
 #define BT_MAX_DEPTH 32
 
-CONTRACT void backtrace(void);
+extern void backtrace(void);
 
 #endif /* _QUNIX_BACKTRACE_H_ */

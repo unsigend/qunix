@@ -55,6 +55,6 @@ extern int irq_set_chip(unsigned int irq, const struct irq_chip *chip);
 extern void irq_enter(void);
 extern void irq_exit(void);
 
-CONTRACT extern void irq_init(void);
+extern void irq_init(void);
 
 #endif /* _QUNIX_IRQ_H_ */

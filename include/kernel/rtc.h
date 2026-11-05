@@ -18,7 +18,6 @@
 #ifndef _QUNIX_RTC_H_
 #define _QUNIX_RTC_H_
 
-#include <kernel/compiler.h>
 #include <kernel/stddef.h>
 
 #define RTC_TIMEBUF_SIZE 32
@@ -33,7 +32,7 @@ struct rtc_time {
     unsigned int year;
 };
 
-CONTRACT extern int rtc_gettime(struct rtc_time *time);
+extern int rtc_gettime(struct rtc_time *time);
 extern int rtc_fmttime(struct rtc_time *time, char *buf, size_t size);
 
 extern const char *rtc_month_name(int month);

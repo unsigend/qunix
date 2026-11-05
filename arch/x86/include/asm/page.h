@@ -20,9 +20,8 @@
 
 #include <asm/cpu.h>
 
+#include <kernel/compiler.h>
 #include <kernel/types.h>
-
-/* Page Fault Flags */
 
 #define PF_P (1u << 0)    /* present */
 #define PF_WR (1u << 1)   /* write */
@@ -33,79 +32,4 @@
 #define PF_SS (1u << 6)   /* shadow stack */
 #define PF_SGX (1u << 15) /* SGX */
 
-static __always_inline phys_addr_t pageroot_read(void);
-static __always_inline void pageroot_write(phys_addr_t root);
-
-/* Disable and enable paging */
-static __always_inline void page_enable_paging(void);
-static __always_inline void page_disable_paging(void);
-
-/* Disable and enable PAE (Physical Address Extension) */
-static __always_inline void page_enable_pae(void);
-static __always_inline void page_disable_pae(void);
-
-/* Flush TLB (Translation Lookaside Buffer) */
-static __always_inline void page_tlb_flush(virt_addr_t addr);
-static __always_inline void page_tlb_flush_all(void);
-
-#ifdef __x86_64__
-#include <asm/page_64.h>
-#else
-#include <asm/page_32.h>
-#endif /* __x86_64__ */
-
-static __always_inline phys_addr_t pageroot_read(void)
-{
-    return (phys_addr_t)cr3_read() & CR3_PDBR_MASK;
-}
-
-static __always_inline void pageroot_write(phys_addr_t root)
-{
-    unsigned long cr3;
-    cr3 = (cr3_read() & ~CR3_PDBR_MASK) | ((unsigned long)root & CR3_PDBR_MASK);
-    cr3_write(cr3);
-}
-
-static __always_inline void page_enable_paging(void)
-{
-    unsigned long cr0;
-    cr0 = cr0_read();
-    cr0 |= CR0_PG_MASK;
-    cr0_write(cr0);
-}
-
-static __always_inline void page_disable_paging(void)
-{
-    unsigned long cr0;
-    cr0 = cr0_read();
-    cr0 &= ~CR0_PG_MASK;
-    cr0_write(cr0);
-}
-
-static __always_inline void page_enable_pae(void)
-{
-    unsigned long cr4;
-    cr4 = cr4_read();
-    cr4 |= CR4_PAE_MASK;
-    cr4_write(cr4);
-}
-
-static __always_inline void page_disable_pae(void)
-{
-    unsigned long cr4;
-    cr4 = cr4_read();
-    cr4 &= ~CR4_PAE_MASK;
-    cr4_write(cr4);
-}
-
-static __always_inline void page_tlb_flush(virt_addr_t addr)
-{
-    asm volatile("invlpg (%0)" : : "r"(addr) : "memory");
-}
-
-static __always_inline void page_tlb_flush_all(void)
-{
-    pageroot_write(pageroot_read()); /* simply re-write cr3 */
-}
-
-#endif
+#endif /* _X86_ASM_PAGE_H_ */
