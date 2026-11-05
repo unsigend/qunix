@@ -37,7 +37,6 @@
 
 /* page mapping flags */
 #define PAGEF_WRITE (1u << 0)
-#define PAGEF_USER (1u << 1)
 #define PAGEF_EXEC (1u << 2)
 
 #ifndef __ASSEMBLER__
@@ -48,21 +47,30 @@
 #define page_clear(page) memset((void *)(page), 0, PAGE_SIZE)
 #define page_copy(dest, src) memcpy((void *)(dest), (void *)(src), PAGE_SIZE)
 
-typedef uintptr_t pagetable_t; /* virtual address of the page table */
+/*
+ * A pagetable_t is one process address space. page_map / unmap / lookup
+ * and the range wrappers act on its user half only.
+ *
+ * The kernel page table is private to the arch. page_init builds it once
+ * and preallocates every kernel-half page table. Those entries are copied
+ * into each process table and never changed after boot.
+ */
 
-extern pagetable_t kernel_pagetable;
+typedef uintptr_t pagetable_t; /* virtual address of the page table */
 
 extern int page_map(pagetable_t root, phys_addr_t pa, virt_addr_t va,
                     unsigned int flags);
-extern void page_unmap(pagetable_t root, virt_addr_t va);
+extern int page_unmap(pagetable_t root, virt_addr_t va);
 extern int page_map_range(pagetable_t root, phys_addr_t pa, virt_addr_t va,
                           size_t n, unsigned int flags);
-extern void page_unmap_range(pagetable_t root, virt_addr_t va, size_t n);
+extern int page_unmap_range(pagetable_t root, virt_addr_t va, size_t n);
 extern int page_lookup(pagetable_t root, virt_addr_t va, phys_addr_t *pa);
+
 extern pagetable_t pagetable_create(void);
 extern void pagetable_free(pagetable_t root);
 extern int pagetable_copy(pagetable_t dest, pagetable_t src);
 extern void pagetable_switch(pagetable_t root);
+extern void pagetable_switch_kernel(void);
 
 extern void page_init(void);
 

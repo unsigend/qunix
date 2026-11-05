@@ -23,6 +23,7 @@
 #include <kernel/compiler.h>
 #include <kernel/types.h>
 
+/* Page fault error code bits */
 #define PF_P (1u << 0)    /* present */
 #define PF_WR (1u << 1)   /* write */
 #define PF_USER (1u << 2) /* user */
@@ -31,5 +32,39 @@
 #define PF_PK (1u << 5)   /* protection key */
 #define PF_SS (1u << 6)   /* shadow stack */
 #define PF_SGX (1u << 15) /* SGX */
+
+static inline void page_tlb_flush_all(void);
+static inline void page_tlb_flush(virt_addr_t va);
+
+static inline phys_addr_t pageroot_read(void);
+static inline void pageroot_write(phys_addr_t addr);
+
+#ifdef __x86_64__
+#include <asm/page_64.h>
+#else
+#include <asm/page_32.h>
+#endif /* __x86_64__ */
+
+static inline void page_tlb_flush_all(void)
+{
+    unsigned long cr3 = cr3_read();
+    cr3_write(cr3);
+}
+
+static inline void page_tlb_flush(virt_addr_t va)
+{
+    asm volatile("invlpg (%0)" : : "r"(va) : "memory");
+}
+
+static inline phys_addr_t pageroot_read(void)
+{
+    unsigned long cr3 = cr3_read();
+    return cr3 & CR3_PDBR_MASK;
+}
+
+static inline void pageroot_write(phys_addr_t addr)
+{
+    cr3_write(addr & CR3_PDBR_MASK);
+}
 
 #endif /* _X86_ASM_PAGE_H_ */

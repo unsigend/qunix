@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <kernel/errno.h>
 #include <kernel/mm/page.h>
 
 int page_map_range(pagetable_t root, phys_addr_t pa, virt_addr_t va, size_t n,
@@ -33,9 +34,15 @@ int page_map_range(pagetable_t root, phys_addr_t pa, virt_addr_t va, size_t n,
     return 0;
 }
 
-void page_unmap_range(pagetable_t root, virt_addr_t va, size_t n)
+int page_unmap_range(pagetable_t root, virt_addr_t va, size_t n)
 {
     size_t nunmap;
-    for (nunmap = 0; nunmap < n; nunmap++)
-        page_unmap(root, va + nunmap * PAGE_SIZE);
+    int err;
+    for (nunmap = 0; nunmap < n; nunmap++) {
+        if ((err = page_unmap(root, va + nunmap * PAGE_SIZE))) {
+            if (err != -ENOENT)
+                return err;
+        }
+    }
+    return 0;
 }
