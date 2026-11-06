@@ -36,6 +36,7 @@
 extern void cpu_read(struct arch_cpu *cpu);
 
 static __always_inline unsigned long flags_read(void);
+static __always_inline void flags_write(unsigned long flags);
 
 static __always_inline unsigned long cr0_read(void);
 static __always_inline unsigned long cr2_read(void);
@@ -60,8 +61,17 @@ static __always_inline unsigned long flags_read(void)
                  "pop %0\n\t"
                  : "=r"(flags)
                  :
-                 : "memory");
+                 : "memory", "cc");
     return flags;
+}
+
+static __always_inline void flags_write(unsigned long flags)
+{
+    asm volatile("push %0\n\t"
+                 "popf\n\t"
+                 :
+                 : "r"(flags)
+                 : "memory", "cc");
 }
 
 static __always_inline unsigned long cr0_read(void)
