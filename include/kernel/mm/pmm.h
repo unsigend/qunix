@@ -44,12 +44,6 @@ struct pmm_ops {
 };
 
 extern struct pmm_page *pmm_alloc_page(void);
-
-/*
- * pmm_alloc_pages - allocate 2^@order contiguous page frames.
- *
- * Returns the first page, or NULL if no block of that order is free.
- */
 extern struct pmm_page *pmm_alloc_pages(unsigned int order);
 
 extern void pmm_free_page(struct pmm_page *page);
@@ -62,11 +56,6 @@ extern virt_addr_t pmm_page_to_va(struct pmm_page *page);
 extern struct pmm_page *pmm_pa_to_page(phys_addr_t pa);
 extern struct pmm_page *pmm_va_to_page(virt_addr_t va);
 
-/*
- * pmm_register - install the PMM backend.
- *
- * Only the backend provider calls this. A second registration panics.
- */
 extern void pmm_register(const struct pmm_ops *ops);
 
 extern void pmm_init(void);

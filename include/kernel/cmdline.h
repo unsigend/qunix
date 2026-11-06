@@ -18,23 +18,7 @@
 #ifndef _QUNIX_CMDLINE_H_
 #define _QUNIX_CMDLINE_H_
 
-/*
- * cmdline_set - store one command-line key/value pair.
- *
- * Boot-only. Copies @key and @value into static storage. NULL @value
- * stores "". A second set of the same key overwrites the value.
- *
- * Returns 0 on success, -EINVAL if key is NULL or empty,
- * -ENOSPC if the table is full, -ENAMETOOLONG if a copy does not fit.
- */
 extern int cmdline_set(const char *key, const char *value);
-
-/*
- * cmdline_get - look up a command-line key.
- *
- * Returns the stored value, or NULL if the key is absent.
- * The pointer remains valid for the life of the kernel.
- */
 extern const char *cmdline_get(const char *key);
 
 #endif /* _QUNIX_CMDLINE_H_ */

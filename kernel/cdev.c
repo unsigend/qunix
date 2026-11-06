@@ -34,6 +34,15 @@ static struct cdev_table cdev_table = {
     .lock = SPINLOCK_INIT("cdev_table"),
 };
 
+/*
+ * cdev_register - add @dev at (major, minor).
+ *
+ * @dev must stay valid until the kernel stops using it. A NULL method
+ * is treated as -ENOTTY.
+ *
+ * Returns 0 on success, -EINVAL if @dev or ops is NULL, -EEXIST if
+ * that pair is already registered, -ENOMEM if the table is full.
+ */
 int cdev_register(struct cdev *dev)
 {
     if (!dev || !dev->ops)
@@ -61,6 +70,11 @@ int cdev_register(struct cdev *dev)
     return 0;
 }
 
+/*
+ * cdev_get - look up a registered device.
+ *
+ * Returns the device, or NULL if none matches.
+ */
 struct cdev *cdev_get(unsigned int major, unsigned int minor)
 {
     spinlock_lock(&cdev_table.lock);

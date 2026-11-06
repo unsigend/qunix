@@ -69,6 +69,12 @@ static irqreturn_t uart_handler(unsigned int irq, void *dev)
     return IRQ_HANDLED;
 }
 
+/*
+ * uart_early_init - set up COM1 for polled transmit and register it as a
+ * console.
+ *
+ * Called at early boot, before irq_init.
+ */
 void uart_early_init(void)
 {
     int err;
@@ -83,6 +89,11 @@ void uart_early_init(void)
     LOGM_INFO("UART", "16550a UART initialized");
 }
 
+/*
+ * uart_init - enable COM1 receive interrupts input goes to the tty.
+ *
+ * Called after irq_init.
+ */
 void uart_init(void)
 {
     int err;

@@ -32,6 +32,15 @@ struct cmdline_entry {
 static struct cmdline_entry cmdtable[CMDLINE_MAX];
 static size_t cmdtable_sz = 0;
 
+/*
+ * cmdline_set - store one command-line key/value pair.
+ *
+ * Boot-only. Copies @key and @value into static storage. NULL @value
+ * stores "". A second set of the same key overwrites the value.
+ *
+ * Returns 0 on success, -EINVAL if key is NULL or empty,
+ * -ENOSPC if the table is full, -ENAMETOOLONG if a copy does not fit.
+ */
 int cmdline_set(const char *key, const char *value)
 {
     if (key == NULL || key[0] == '\0')
@@ -62,6 +71,12 @@ int cmdline_set(const char *key, const char *value)
     return 0;
 }
 
+/*
+ * cmdline_get - look up a command-line key.
+ *
+ * Returns the stored value, or NULL if the key is absent.
+ * The pointer remains valid for the life of the kernel.
+ */
 const char *cmdline_get(const char *key)
 {
     size_t i;

@@ -32,6 +32,11 @@
 
 static const struct pmm_ops *backend;
 
+/*
+ * pmm_register - install the PMM backend.
+ *
+ * Only the backend provider calls this. A second registration panics.
+ */
 void pmm_register(const struct pmm_ops *ops)
 {
     if (backend)
@@ -73,6 +78,11 @@ struct pmm_page *pmm_alloc_page(void)
     return backend->alloc(0);
 }
 
+/*
+ * pmm_alloc_pages - allocate 2^@order contiguous page frames.
+ *
+ * Returns the first page, or NULL if no block of that order is free.
+ */
 struct pmm_page *pmm_alloc_pages(unsigned int order)
 {
     if (!backend)

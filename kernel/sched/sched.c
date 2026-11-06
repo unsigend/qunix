@@ -105,7 +105,6 @@ void sched_init(void)
     LOGM_INFO("SCHED", "Scheduler initialized successfully");
 }
 
-struct task *task_current(void) { return cpu_current()->task_cur; }
 bool need_resched(void) { return cpu_current()->need_resched; }
 
 void schedule(void)

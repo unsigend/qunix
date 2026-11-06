@@ -44,59 +44,12 @@ struct task {
     atomic_t joined;
 };
 
-/*
- * task_current - the task running on this CPU.
- *
- * Valid once scheduling has started.
- *
- * Returns the current task.
- */
 extern struct task *task_current(void);
-
-/*
- * task_create - create a kernel thread that runs @func(@arg).
- *
- * The thread is left READY. Its first switch enables interrupts and calls
- * @func. If @func returns, the thread exits with status 0. @name must remain
- * valid for the life of the task.
- *
- * Returns the task, or NULL if the task or its stack cannot be allocated.
- */
 extern struct task *task_create(void (*func)(void *), void *arg,
                                 const char *name);
-
-/*
- * task_exit - terminate the current task with @status.
- *
- * Marks the task TASK_ZOMBIE and schedules away. The joiner frees the stack
- * and the task. Does not return.
- */
 extern void task_exit(int status) __noreturn;
-
-/*
- * task_join - wait until @task is a zombie, then free it.
- *
- * May sleep. Must not be called from interrupt context or while preemption
- * is disabled. @task is freed before this returns.
- *
- * Returns @task's exit status.
- */
 extern int task_join(struct task *task);
-
-/*
- * task_context_switch - switch from @saved to @restored.
- *
- * Called by schedule() only. @saved's context is stored and @restored's
- * is loaded. Returns in @restored, as if its own switch had returned.
- */
 extern void task_context_switch(struct task *saved, struct task *restored);
-
-/*
- * task_context_init - build @task's initial kernel stack.
- *
- * The stack is already allocated. The first switch to @task enters @func(@arg)
- * with interrupts enabled. If @func returns, the trampoline calls task_exit(0).
- */
 extern void task_context_init(struct task *task, void (*func)(void *),
                               void *arg);
 #endif /* _QUNIX_TASK_H_ */

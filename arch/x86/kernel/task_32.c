@@ -31,11 +31,23 @@ static void trampoline(void (*func)(void *), void *arg)
     task_exit(0);
 }
 
+/*
+ * task_context_switch - switch from @saved to @restored.
+ *
+ * Called by schedule() only. @saved's context is stored and @restored's
+ * is loaded. Returns in @restored, as if its own switch had returned.
+ */
 void task_context_switch(struct task *saved, struct task *restored)
 {
     context_switch(saved->context, restored->context);
 }
 
+/*
+ * task_context_init - build @task's initial kernel stack.
+ *
+ * The stack is already allocated. The first switch to @task enters @func(@arg)
+ * with interrupts enabled. If @func returns, the trampoline calls task_exit(0).
+ */
 void task_context_init(struct task *task, void (*func)(void *), void *arg)
 {
     unsigned char *stack_btm;

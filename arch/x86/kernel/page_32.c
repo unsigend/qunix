@@ -40,7 +40,7 @@
 
 static pagetable_t kernel_pgtable;
 
-static unsigned int mapflags(unsigned int flags)
+static inline unsigned int mapflags(unsigned int flags)
 {
     unsigned int flag = PG_P | PG_USER;
 
@@ -55,7 +55,7 @@ static unsigned int mapflags(unsigned int flags)
  *
  * User-half entries are not touched. Kernel PTs are shared, not duplicated.
  */
-static void copy_kernel_pgtable(pagetable_t root)
+static inline void copy_kernel_pgtable(pagetable_t root)
 {
     size_t npages;
     virt_addr_t va;
@@ -230,6 +230,9 @@ int pagetable_copy(pagetable_t dest, pagetable_t src)
     virt_addr_t va, vpage;
     pde_t *pde;
     pte_t *destpte, *srcpte;
+
+    if (!dest || !src)
+        return -EINVAL;
 
     npages = (size_t)(USER_VIRT_END - USER_VIRT_START) >> PAGE_SHIFT;
     while (i < npages) {

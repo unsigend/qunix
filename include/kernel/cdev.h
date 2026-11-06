@@ -36,22 +36,7 @@ struct cdev {
     const struct cdev_ops *ops;
 };
 
-/*
- * cdev_register - add @dev at (major, minor).
- *
- * @dev must stay valid until the kernel stops using it. A NULL method
- * is treated as -ENOTTY.
- *
- * Returns 0 on success, -EINVAL if @dev or ops is NULL, -EEXIST if
- * that pair is already registered, -ENOMEM if the table is full.
- */
 extern int cdev_register(struct cdev *dev);
-
-/*
- * cdev_get - look up a registered device.
- *
- * Returns the device, or NULL if none matches.
- */
 extern struct cdev *cdev_get(unsigned int major, unsigned int minor);
 
 #endif /* _QUNIX_CDEV_H_ */
