@@ -16,6 +16,7 @@
  */
 
 #include <asm/task.h>
+#include <asm/tss.h>
 
 #include <kernel/cpu.h>
 #include <kernel/interrupt.h>
@@ -39,6 +40,7 @@ static void trampoline(void (*func)(void *), void *arg)
  */
 void task_context_switch(struct task *saved, struct task *restored)
 {
+    tss_set_kstack(cpu_id(), restored->kstack + PAGE_SIZE);
     context_switch(saved->context, restored->context);
 }
 
@@ -50,22 +52,22 @@ void task_context_switch(struct task *saved, struct task *restored)
  */
 void task_context_init(struct task *task, void (*func)(void *), void *arg)
 {
-    unsigned char *stack_btm;
+    unsigned char *stackbase;
 
-    stack_btm = (unsigned char *)task->kstack + PAGE_SIZE;
-    stack_btm -= sizeof(struct task_context);
-    task->context = (struct task_context *)stack_btm;
+    stackbase = (unsigned char *)task->kstack + PAGE_SIZE;
+    stackbase -= sizeof(struct task_context);
+    task->context = (struct task_context *)stackbase;
 
     memset(task->context, 0, sizeof(struct task_context));
 
-    stack_btm -= 4;
-    *(uint32_t *)stack_btm = (uint32_t)arg;
-    stack_btm -= 4;
-    *(uint32_t *)stack_btm = (uint32_t)func;
-    stack_btm -= 4;
-    *(uint32_t *)stack_btm = 0; /* fake return address */
-    stack_btm -= 4;
-    *(uint32_t *)stack_btm = (uint32_t)trampoline;
+    stackbase -= 4;
+    *(uint32_t *)stackbase = (uint32_t)arg;
+    stackbase -= 4;
+    *(uint32_t *)stackbase = (uint32_t)func;
+    stackbase -= 4;
+    *(uint32_t *)stackbase = 0; /* fake return address */
+    stackbase -= 4;
+    *(uint32_t *)stackbase = (uint32_t)trampoline;
 
-    task->context->esp = (uint32_t)stack_btm;
+    task->context->esp = (uint32_t)stackbase;
 }

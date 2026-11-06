@@ -22,12 +22,13 @@
 #include <kernel/config.h>
 #include <kernel/sched.h>
 #include <kernel/stdbool.h>
+#include <kernel/types.h>
 
 #define DEFAULT_CPU_NR 1
 #ifndef CONFIG_MAX_CPUS
-#define CPU_NR CONFIG_MAX_CPUS
+#define MAX_CPU CONFIG_MAX_CPUS
 #else
-#define CPU_NR DEFAULT_CPU_NR
+#define MAX_CPU DEFAULT_CPU_NR
 #endif
 
 struct task;
@@ -45,6 +46,7 @@ struct cpu {
 extern void cpu_halt(void) __noreturn;
 extern void cpu_idle(void) __noreturn;
 extern void cpu_init(void);
+extern cpuid_t cpu_id(void);
 
 extern struct cpu *cpu_current(void);
 

@@ -15,11 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "asm/cpu.h"
 #include "trap.h"
 
 #include <asm/idt.h>
 #include <asm/page.h>
+#include <asm/segment.h>
 #include <asm/trap.h>
 #include <asm/vector.h>
 
@@ -35,6 +35,11 @@ unsigned long trap_stubs(unsigned int nr)
         panic("trap_stubs: invalid trap number");
 
     return (unsigned long)__trap_stubs + nr * TRAP_STUB_SIZE;
+}
+
+int trap_from_user(struct trap_frame *frame)
+{
+    return (frame->cs & 3) == CPU_RING3;
 }
 
 void trap_handle(struct trap_frame *frame)

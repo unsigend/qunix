@@ -17,6 +17,7 @@
 
 #include <asm/gdt.h>
 #include <asm/idt.h>
+#include <asm/tss.h>
 
 #include <kernel/cpu.h>
 #include <kernel/printk.h>
@@ -36,8 +37,15 @@ void cpu_idle(void)
 
 void cpu_init(void)
 {
-    gdt_init_cpu(0);
+    cpuid_t id;
+
+    id = cpu_id();
+
+    gdt_init_cpu(id);
     idt_init();
+    tss_init_cpu(id);
 
     LOGM_INFO("CPU", "CPU initialized successfully");
 }
+
+cpuid_t cpu_id(void) { return 0; }

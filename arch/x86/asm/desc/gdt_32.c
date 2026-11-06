@@ -35,7 +35,7 @@ struct gdt_cpu_table {
     struct gdt_entry entries[GDT_NR];
 };
 
-static struct gdt_cpu_table gdt_cpu_tables[CPU_NR];
+static struct gdt_cpu_table gdt_cpu_tables[MAX_CPU];
 
 static inline struct gdt_cpu_table *get_cpu_table(cpuid_t cpuid)
 {
@@ -66,7 +66,7 @@ void gdt_set_entry(cpuid_t cpuid, unsigned int index, unsigned long base,
         panic("GDT index out of bounds: %u", index);
     if (limit > GDT_LIMIT_MAX)
         panic("GDT limit out of bounds: %lu", limit);
-    if (cpuid >= CPU_NR)
+    if (cpuid >= MAX_CPU)
         panic("CPU ID out of bounds: %u", cpuid);
 
     entry = &get_cpu_table(cpuid)->entries[index];
@@ -108,7 +108,7 @@ void gdt_init_cpu(cpuid_t cpuid)
     struct gdt_cpu_table *table;
     struct gdtr gdtr;
 
-    if (cpuid >= CPU_NR)
+    if (cpuid >= MAX_CPU)
         panic("CPU ID out of bounds: %u", cpuid);
 
     table = get_cpu_table(cpuid);
@@ -133,5 +133,5 @@ void gdt_init_cpu(cpuid_t cpuid)
 
     flush_segments(SEGSEL_KCODE, SEGSEL_KDATA);
 
-    LOGM_INFO("GDT", "GDT initialized successfully");
+    LOGM_INFO("GDT", "GDT initialized successfully for CPU %u", cpuid);
 }

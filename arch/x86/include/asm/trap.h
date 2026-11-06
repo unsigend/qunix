@@ -28,6 +28,7 @@
 #ifndef __ASSEMBLER__
 
 extern void trap_entry(void);
+extern int trap_from_user(struct trap_frame *frame);
 extern void trap_handle(struct trap_frame *frame);
 extern unsigned long trap_stubs(unsigned int nr);
 

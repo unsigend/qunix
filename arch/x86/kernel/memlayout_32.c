@@ -27,7 +27,7 @@ extern char __kernel_image_virt_start[];
 extern char __kernel_image_virt_end[];
 extern char __kernel_image_size[];
 
-extern char __boot_stack_top[];
+extern char __boot_stack_bottom[];
 
 phys_addr_t kernel_image_phys_start = (phys_addr_t)__kernel_image_phys_start;
 phys_addr_t kernel_image_phys_end = (phys_addr_t)__kernel_image_phys_end;
@@ -69,4 +69,7 @@ bool in_kernel_space(virt_addr_t va)
 
 bool in_user_space(virt_addr_t va) { return va < (virt_addr_t)USER_VIRT_END; }
 
-virt_addr_t boot_task_stack_top(void) { return (virt_addr_t)__boot_stack_top; }
+virt_addr_t boot_task_stackbase(void)
+{
+    return (virt_addr_t)__boot_stack_bottom;
+}

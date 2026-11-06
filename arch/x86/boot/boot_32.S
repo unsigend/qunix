@@ -39,11 +39,11 @@
 #define HUGE_PAGE_MAKE(pa) (((pa) & ~0x3fffff) | HUGE_PAGE_MASK)
 
 .section .bss
-.global __boot_stack_top
+.global __boot_stack_bottom
 .align STACK_ALIGN
-__boot_stack_top:
-    .skip STACK_SIZE
 __boot_stack_bottom:
+    .skip STACK_SIZE
+__boot_stack_top:
 
 # temporary data section, the kernel future will reclaim this section.
 .section .reclaimable, "aw", @nobits
@@ -131,7 +131,7 @@ map_higher_half:
 
 flush:
     # set stack pointer
-    movl $__boot_stack_bottom, %esp
+    movl $__boot_stack_top, %esp
 
     # call bootmain(uint32_t magic, uint32_t mbi)
     pushl %ebx

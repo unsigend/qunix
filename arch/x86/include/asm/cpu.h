@@ -18,13 +18,20 @@
 #ifndef _X86_ASM_CPU_H_
 #define _X86_ASM_CPU_H_
 
+#include <asm/cpu_flags.h>
+
+#define CPU_RING0 0
+#define CPU_RING1 1
+#define CPU_RING2 2
+#define CPU_RING3 3
+
+#ifndef __ASSEMBLER__
+
 #ifdef __x86_64__
 #include <asm/cpu_64.h>
 #else
 #include <asm/cpu_32.h>
 #endif
-
-#include <asm/cpu_flags.h>
 
 extern void cpu_read(struct arch_cpu *cpu);
 
@@ -45,11 +52,6 @@ static __always_inline void cr4_write(unsigned long value);
 #ifdef __x86_64__
 static __always_inline void cr8_write(unsigned long value);
 #endif
-
-#define CPU_RING0 0
-#define CPU_RING1 1
-#define CPU_RING2 2
-#define CPU_RING3 3
 
 static __always_inline unsigned long flags_read(void)
 {
@@ -125,5 +127,7 @@ static __always_inline void cr8_write(unsigned long value)
     asm volatile("mov %0, %%cr8" : : "r"(value) : "memory");
 }
 #endif
+
+#endif /* __ASSEMBLER__ */
 
 #endif /* _X86_ASM_CPU_H_ */

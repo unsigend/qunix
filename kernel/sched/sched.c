@@ -82,7 +82,7 @@ void sched_init(void)
     root->pid = ROOT_TASK_PID;
     root->name = "root";
     root->state = TASK_RUNNING;
-    root->kstack = (uintptr_t)boot_task_stack_top();
+    root->kstack = (uintptr_t)boot_task_stackbase();
     root->context = kmalloc(sizeof(struct task_context));
     if (!root->context)
         panic("sched: failed to allocate memory for root task context");

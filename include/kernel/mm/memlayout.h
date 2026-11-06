@@ -27,6 +27,6 @@ extern virt_addr_t pa_to_va(phys_addr_t pa);
 extern bool in_kernel_space(virt_addr_t va);
 extern bool in_user_space(virt_addr_t va);
 
-extern virt_addr_t boot_task_stack_top(void);
+extern virt_addr_t boot_task_stackbase(void);
 
 #endif /* _QUNIX_MM_MEMLAYOUT_H_ */

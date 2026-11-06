@@ -16,6 +16,7 @@
 
 #include <asm/trap.h>
 #include <asm/idt.h>
+#include <asm/segment.h>
 
 #define PADDING 0x00
 #define ERRCODE 0x00
@@ -56,6 +57,14 @@ trap_entry:
     pushal
 
     pushl %esp # struct trap_frame *frame
+
+    # load kernel segment selector
+    movl $SEGSEL_KDATA, %eax 
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+
     call trap_handle
     addl $4, %esp
 
