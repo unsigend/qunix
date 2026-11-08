@@ -19,57 +19,56 @@
 #define _QUNIX_BITOPS_H_
 
 #include <kernel/bits.h>
-#include <kernel/compiler.h>
 #include <kernel/stdbool.h>
 
-static __always_inline bool bit_load(void *addr, int nr);
-static __always_inline void bit_set(void *addr, int nr);
-static __always_inline void bit_clear(void *addr, int nr);
-static __always_inline void bit_flip(void *addr, int nr);
-static __always_inline bool bit_fetch_set(void *addr, int nr);
-static __always_inline bool bit_fetch_clear(void *addr, int nr);
-static __always_inline bool bit_fetch_flip(void *addr, int nr);
+static inline bool bit_load(void *addr, int nr);
+static inline void bit_set(void *addr, int nr);
+static inline void bit_clear(void *addr, int nr);
+static inline void bit_flip(void *addr, int nr);
+static inline bool bit_fetch_set(void *addr, int nr);
+static inline bool bit_fetch_clear(void *addr, int nr);
+static inline bool bit_fetch_flip(void *addr, int nr);
 
-static __always_inline bool atomic_bit_load(void *addr, int nr);
-static __always_inline void atomic_bit_set(void *addr, int nr);
-static __always_inline void atomic_bit_clear(void *addr, int nr);
-static __always_inline void atomic_bit_flip(void *addr, int nr);
-static __always_inline bool atomic_bit_fetch_set(void *addr, int nr);
-static __always_inline bool atomic_bit_fetch_clear(void *addr, int nr);
-static __always_inline bool atomic_bit_fetch_flip(void *addr, int nr);
+static inline bool atomic_bit_load(void *addr, int nr);
+static inline void atomic_bit_set(void *addr, int nr);
+static inline void atomic_bit_clear(void *addr, int nr);
+static inline void atomic_bit_flip(void *addr, int nr);
+static inline bool atomic_bit_fetch_set(void *addr, int nr);
+static inline bool atomic_bit_fetch_clear(void *addr, int nr);
+static inline bool atomic_bit_fetch_flip(void *addr, int nr);
 
 #define _WORD_BASE(addr, nr) ((unsigned long *)(addr) + (nr) / WORD_BITS)
 #define _WORD_MASK(nr) (1UL << ((nr) % WORD_BITS))
 
-static __always_inline bool bit_load(void *addr, int nr)
+static inline bool bit_load(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     return !!(*word & mask);
 }
 
-static __always_inline void bit_set(void *addr, int nr)
+static inline void bit_set(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     *word |= mask;
 }
 
-static __always_inline void bit_clear(void *addr, int nr)
+static inline void bit_clear(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     *word &= ~mask;
 }
 
-static __always_inline void bit_flip(void *addr, int nr)
+static inline void bit_flip(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     *word ^= mask;
 }
 
-static __always_inline bool bit_fetch_set(void *addr, int nr)
+static inline bool bit_fetch_set(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
@@ -78,7 +77,7 @@ static __always_inline bool bit_fetch_set(void *addr, int nr)
     return old;
 }
 
-static __always_inline bool bit_fetch_clear(void *addr, int nr)
+static inline bool bit_fetch_clear(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
@@ -87,7 +86,7 @@ static __always_inline bool bit_fetch_clear(void *addr, int nr)
     return old;
 }
 
-static __always_inline bool bit_fetch_flip(void *addr, int nr)
+static inline bool bit_fetch_flip(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
@@ -96,49 +95,49 @@ static __always_inline bool bit_fetch_flip(void *addr, int nr)
     return old;
 }
 
-static __always_inline bool atomic_bit_load(void *addr, int nr)
+static inline bool atomic_bit_load(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     return !!(__atomic_load_n(word, __ATOMIC_RELAXED) & mask);
 }
 
-static __always_inline void atomic_bit_set(void *addr, int nr)
+static inline void atomic_bit_set(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     __atomic_fetch_or(word, mask, __ATOMIC_RELAXED);
 }
 
-static __always_inline void atomic_bit_clear(void *addr, int nr)
+static inline void atomic_bit_clear(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     __atomic_fetch_and(word, ~mask, __ATOMIC_RELAXED);
 }
 
-static __always_inline void atomic_bit_flip(void *addr, int nr)
+static inline void atomic_bit_flip(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     __atomic_fetch_xor(word, mask, __ATOMIC_RELAXED);
 }
 
-static __always_inline bool atomic_bit_fetch_set(void *addr, int nr)
+static inline bool atomic_bit_fetch_set(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     return !!(__atomic_fetch_or(word, mask, __ATOMIC_RELAXED) & mask);
 }
 
-static __always_inline bool atomic_bit_fetch_clear(void *addr, int nr)
+static inline bool atomic_bit_fetch_clear(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);
     return !!(__atomic_fetch_and(word, ~mask, __ATOMIC_RELAXED) & mask);
 }
 
-static __always_inline bool atomic_bit_fetch_flip(void *addr, int nr)
+static inline bool atomic_bit_fetch_flip(void *addr, int nr)
 {
     unsigned long *word = _WORD_BASE(addr, nr);
     unsigned long mask = _WORD_MASK(nr);

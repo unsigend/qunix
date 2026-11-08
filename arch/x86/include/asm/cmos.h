@@ -20,7 +20,6 @@
 
 #include <asm/io.h>
 
-#include <kernel/compiler.h>
 #include <kernel/stdint.h>
 
 #define CMOS_REG_ADDR 0x70
@@ -71,15 +70,15 @@
 /* Status D (0x0D), read-only */
 #define CMOS_STD_VRT (1 << 7) /* 1 = battery/RAM valid; 0 = battery dead */
 
-static __always_inline void cmos_select_reg(uint8_t reg);
-static __always_inline uint8_t cmos_read(uint8_t reg);
+static inline void cmos_select_reg(uint8_t reg);
+static inline uint8_t cmos_read(uint8_t reg);
 
-static __always_inline void cmos_select_reg(uint8_t reg)
+static inline void cmos_select_reg(uint8_t reg)
 {
     outb(CMOS_REG_ADDR, reg | NMI_DISABLE);
 }
 
-static __always_inline uint8_t cmos_read(uint8_t reg)
+static inline uint8_t cmos_read(uint8_t reg)
 {
     cmos_select_reg(reg);
     return inb(CMOS_REG_DATA);

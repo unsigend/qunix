@@ -18,57 +18,56 @@
 #ifndef _X86_ASM_IO_H_
 #define _X86_ASM_IO_H_
 
-#include <kernel/compiler.h>
 #include <kernel/stdint.h>
 
-static __always_inline void outb(uint16_t port, uint8_t value);
-static __always_inline void outw(uint16_t port, uint16_t value);
-static __always_inline void outl(uint16_t port, uint32_t value);
-static __always_inline uint8_t inb(uint16_t port);
-static __always_inline uint16_t inw(uint16_t port);
-static __always_inline uint32_t inl(uint16_t port);
+static inline void outb(uint16_t port, uint8_t value);
+static inline void outw(uint16_t port, uint16_t value);
+static inline void outl(uint16_t port, uint32_t value);
+static inline uint8_t inb(uint16_t port);
+static inline uint16_t inw(uint16_t port);
+static inline uint32_t inl(uint16_t port);
 
 /*
  * io_wait - pause briefly so slow hardware can catch the previous I/O.
  */
-static __always_inline void io_wait(void);
+static inline void io_wait(void);
 
-static __always_inline void outb(uint16_t port, uint8_t value)
+static inline void outb(uint16_t port, uint8_t value)
 {
     asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
-static __always_inline void outw(uint16_t port, uint16_t value)
+static inline void outw(uint16_t port, uint16_t value)
 {
     asm volatile("outw %0, %1" : : "a"(value), "Nd"(port));
 }
 
-static __always_inline void outl(uint16_t port, uint32_t value)
+static inline void outl(uint16_t port, uint32_t value)
 {
     asm volatile("outl %0, %1" : : "a"(value), "Nd"(port));
 }
 
-static __always_inline uint8_t inb(uint16_t port)
+static inline uint8_t inb(uint16_t port)
 {
     uint8_t value;
     asm volatile("inb %1, %0" : "=a"(value) : "Nd"(port));
     return value;
 }
 
-static __always_inline uint16_t inw(uint16_t port)
+static inline uint16_t inw(uint16_t port)
 {
     uint16_t value;
     asm volatile("inw %1, %0" : "=a"(value) : "Nd"(port));
     return value;
 }
 
-static __always_inline uint32_t inl(uint16_t port)
+static inline uint32_t inl(uint16_t port)
 {
     uint32_t value;
     asm volatile("inl %1, %0" : "=a"(value) : "Nd"(port));
     return value;
 }
 
-static __always_inline void io_wait(void) { outb(0x80, 0); }
+static inline void io_wait(void) { outb(0x80, 0); }
 
 #endif /* _X86_ASM_IO_H_ */

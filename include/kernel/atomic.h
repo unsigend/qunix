@@ -18,7 +18,6 @@
 #ifndef _QUNIX_ATOMIC_H_
 #define _QUNIX_ATOMIC_H_
 
-#include <kernel/compiler.h>
 #include <kernel/stdbool.h>
 #include <kernel/types.h>
 
@@ -27,81 +26,81 @@
 #define ATOMIC64_INIT(i) {(i)}
 #endif /* WORD_SIZE == 8 */
 
-static __always_inline int atomic_load(atomic_t *v);
-static __always_inline void atomic_store(atomic_t *v, int i);
-static __always_inline void atomic_add(atomic_t *v, int i);
-static __always_inline void atomic_sub(atomic_t *v, int i);
-static __always_inline void atomic_inc(atomic_t *v);
-static __always_inline void atomic_dec(atomic_t *v);
-static __always_inline int atomic_fetch_add(atomic_t *v, int i);
-static __always_inline int atomic_fetch_sub(atomic_t *v, int i);
-static __always_inline int atomic_fetch_inc(atomic_t *v);
-static __always_inline int atomic_fetch_dec(atomic_t *v);
-static __always_inline int atomic_xchg(atomic_t *v, int i);
-static __always_inline int atomic_cmpxchg(atomic_t *v, int expect, int new);
+static inline int atomic_load(atomic_t *v);
+static inline void atomic_store(atomic_t *v, int i);
+static inline void atomic_add(atomic_t *v, int i);
+static inline void atomic_sub(atomic_t *v, int i);
+static inline void atomic_inc(atomic_t *v);
+static inline void atomic_dec(atomic_t *v);
+static inline int atomic_fetch_add(atomic_t *v, int i);
+static inline int atomic_fetch_sub(atomic_t *v, int i);
+static inline int atomic_fetch_inc(atomic_t *v);
+static inline int atomic_fetch_dec(atomic_t *v);
+static inline int atomic_xchg(atomic_t *v, int i);
+static inline int atomic_cmpxchg(atomic_t *v, int expect, int new);
 
 #if WORD_SIZE == 8
-static __always_inline long long atomic64_load(atomic64_t *v);
-static __always_inline void atomic64_store(atomic64_t *v, long long i);
-static __always_inline void atomic64_add(atomic64_t *v, long long i);
-static __always_inline void atomic64_sub(atomic64_t *v, long long i);
-static __always_inline void atomic64_inc(atomic64_t *v);
-static __always_inline void atomic64_dec(atomic64_t *v);
-static __always_inline long long atomic64_fetch_add(atomic64_t *v, long long i);
-static __always_inline long long atomic64_fetch_sub(atomic64_t *v, long long i);
-static __always_inline long long atomic64_fetch_inc(atomic64_t *v);
-static __always_inline long long atomic64_fetch_dec(atomic64_t *v);
-static __always_inline long long atomic64_xchg(atomic64_t *v, long long i);
-static __always_inline long long
+static inline long long atomic64_load(atomic64_t *v);
+static inline void atomic64_store(atomic64_t *v, long long i);
+static inline void atomic64_add(atomic64_t *v, long long i);
+static inline void atomic64_sub(atomic64_t *v, long long i);
+static inline void atomic64_inc(atomic64_t *v);
+static inline void atomic64_dec(atomic64_t *v);
+static inline long long atomic64_fetch_add(atomic64_t *v, long long i);
+static inline long long atomic64_fetch_sub(atomic64_t *v, long long i);
+static inline long long atomic64_fetch_inc(atomic64_t *v);
+static inline long long atomic64_fetch_dec(atomic64_t *v);
+static inline long long atomic64_xchg(atomic64_t *v, long long i);
+static inline long long
 atomic64_cmpxchg(atomic64_t *v, long long expect, long long new);
 
 #endif /* WORD_SIZE == 8 */
 
-static __always_inline int atomic_load(atomic_t *v)
+static inline int atomic_load(atomic_t *v)
 {
     return __atomic_load_n(&v->value, __ATOMIC_RELAXED);
 }
-static __always_inline void atomic_store(atomic_t *v, int i)
+static inline void atomic_store(atomic_t *v, int i)
 {
     __atomic_store_n(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline int atomic_fetch_add(atomic_t *v, int i)
+static inline int atomic_fetch_add(atomic_t *v, int i)
 {
     return __atomic_fetch_add(&v->value, i, __ATOMIC_RELAXED);
 }
-static __always_inline int atomic_fetch_sub(atomic_t *v, int i)
+static inline int atomic_fetch_sub(atomic_t *v, int i)
 {
     return __atomic_fetch_sub(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline void atomic_add(atomic_t *v, int i)
+static inline void atomic_add(atomic_t *v, int i)
 {
     atomic_fetch_add(v, i);
 }
-static __always_inline void atomic_sub(atomic_t *v, int i)
+static inline void atomic_sub(atomic_t *v, int i)
 {
     atomic_fetch_sub(v, i);
 }
 
-static __always_inline int atomic_fetch_inc(atomic_t *v)
+static inline int atomic_fetch_inc(atomic_t *v)
 {
     return atomic_fetch_add(v, 1);
 }
-static __always_inline int atomic_fetch_dec(atomic_t *v)
+static inline int atomic_fetch_dec(atomic_t *v)
 {
     return atomic_fetch_sub(v, 1);
 }
 
-static __always_inline void atomic_inc(atomic_t *v) { atomic_add(v, 1); }
-static __always_inline void atomic_dec(atomic_t *v) { atomic_sub(v, 1); }
+static inline void atomic_inc(atomic_t *v) { atomic_add(v, 1); }
+static inline void atomic_dec(atomic_t *v) { atomic_sub(v, 1); }
 
-static __always_inline int atomic_xchg(atomic_t *v, int i)
+static inline int atomic_xchg(atomic_t *v, int i)
 {
     return __atomic_exchange_n(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline int atomic_cmpxchg(atomic_t *v, int expect, int new)
+static inline int atomic_cmpxchg(atomic_t *v, int expect, int new)
 {
     atomic_t old = ATOMIC_INIT(expect);
     __atomic_compare_exchange_n(&v->value, (int *)&old.value, new, false,
@@ -110,51 +109,51 @@ static __always_inline int atomic_cmpxchg(atomic_t *v, int expect, int new)
 }
 
 #if WORD_SIZE == 8
-static __always_inline long long atomic64_load(atomic64_t *v)
+static inline long long atomic64_load(atomic64_t *v)
 {
     return __atomic_load_n(&v->value, __ATOMIC_RELAXED);
 }
-static __always_inline void atomic64_store(atomic64_t *v, long long i)
+static inline void atomic64_store(atomic64_t *v, long long i)
 {
     __atomic_store_n(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline long long atomic64_fetch_add(atomic64_t *v, long long i)
+static inline long long atomic64_fetch_add(atomic64_t *v, long long i)
 {
     return __atomic_fetch_add(&v->value, i, __ATOMIC_RELAXED);
 }
-static __always_inline long long atomic64_fetch_sub(atomic64_t *v, long long i)
+static inline long long atomic64_fetch_sub(atomic64_t *v, long long i)
 {
     return __atomic_fetch_sub(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline void atomic64_add(atomic64_t *v, long long i)
+static inline void atomic64_add(atomic64_t *v, long long i)
 {
     atomic64_fetch_add(v, i);
 }
-static __always_inline void atomic64_sub(atomic64_t *v, long long i)
+static inline void atomic64_sub(atomic64_t *v, long long i)
 {
     atomic64_fetch_sub(v, i);
 }
 
-static __always_inline long long atomic64_fetch_inc(atomic64_t *v)
+static inline long long atomic64_fetch_inc(atomic64_t *v)
 {
     return atomic64_fetch_add(v, 1);
 }
-static __always_inline long long atomic64_fetch_dec(atomic64_t *v)
+static inline long long atomic64_fetch_dec(atomic64_t *v)
 {
     return atomic64_fetch_sub(v, 1);
 }
 
-static __always_inline void atomic64_inc(atomic64_t *v) { atomic64_add(v, 1); }
-static __always_inline void atomic64_dec(atomic64_t *v) { atomic64_sub(v, 1); }
+static inline void atomic64_inc(atomic64_t *v) { atomic64_add(v, 1); }
+static inline void atomic64_dec(atomic64_t *v) { atomic64_sub(v, 1); }
 
-static __always_inline long long atomic64_xchg(atomic64_t *v, long long i)
+static inline long long atomic64_xchg(atomic64_t *v, long long i)
 {
     return __atomic_exchange_n(&v->value, i, __ATOMIC_RELAXED);
 }
 
-static __always_inline long long
+static inline long long
 atomic64_cmpxchg(atomic64_t *v, long long expect, long long new)
 {
     atomic64_t old = ATOMIC64_INIT(expect);

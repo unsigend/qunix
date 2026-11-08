@@ -20,7 +20,6 @@
 
 #include <asm/io.h>
 
-#include <kernel/compiler.h>
 
 #define PS2_REG_DATA 0x60
 #define PS2_REG_STATUS 0x64
@@ -47,15 +46,15 @@
 #define PS2_ST_TIMEOUT_MASK (1u << PS2_ST_TIMEOUT)
 #define PS2_ST_PARITY_MASK (1u << PS2_ST_PARITY)
 
-static __always_inline int ps2_outbuf_empty(void);
-static __always_inline int ps2_inbuf_empty(void);
+static inline int ps2_outbuf_empty(void);
+static inline int ps2_inbuf_empty(void);
 
-static __always_inline int ps2_outbuf_empty(void)
+static inline int ps2_outbuf_empty(void)
 {
     return !(inb(PS2_REG_STATUS) & PS2_ST_OUT_MASK);
 }
 
-static __always_inline int ps2_inbuf_empty(void)
+static inline int ps2_inbuf_empty(void)
 {
     return !(inb(PS2_REG_STATUS) & PS2_ST_IN_MASK);
 }
