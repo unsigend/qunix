@@ -15,13 +15,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <asm/cpu.h>
+#include <asm/fpu.h>
 #include <asm/gdt.h>
 #include <asm/idt.h>
 #include <asm/tss.h>
 
 #include <kernel/cpu.h>
 #include <kernel/cpuinfo.h>
+#include <kernel/panic.h>
 #include <kernel/printk.h>
+
+static void cpu_feat_init(void)
+{
+    unsigned long cr0, cr4;
+
+    if (!cpuinfo_has(CPUINFO_FXSR))
+        panic("CPU does not support FXSR");
+
+    cr0 = cr0_read();
+    cr0 |= CR0_MP_MASK;  /* Enable Monitor Co-Processor */
+    cr0 &= ~CR0_EM_MASK; /* Disable Emulation */
+    cr0 |= CR0_NE_MASK;  /* Enable Numeric Error */
+
+    cr4 = cr4_read();
+    cr4 |= CR4_OSFXSR_MASK;     /* Enable OS support for fxsave and fxrstor
+                                   instructions */
+    cr4 |= CR4_OSXMMEXCPT_MASK; /* Enable OS support for unmasked SIMD floating
+                                  point exceptions */
+
+    cr0_write(cr0);
+    cr4_write(cr4);
+
+    fpu_init();
+}
 
 void cpu_halt(void)
 {
@@ -41,9 +68,9 @@ void cpu_init(void)
     cpuid_t id;
 
     cpuinfo_init();
+    cpu_feat_init();
 
     id = cpu_id();
-
     gdt_init_cpu(id);
     idt_init();
     tss_init_cpu(id);

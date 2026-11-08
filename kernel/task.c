@@ -63,6 +63,13 @@ struct task *task_create(void (*func)(void *), void *arg, const char *name)
     task->exit = 0;
     completion_init(&task->completion);
     atomic_store(&task->joined, 0);
+    task->fpu_state = NULL;
+
+    if (task_fpu_init(task)) {
+        kfree(task);
+        pmm_free_page(page);
+        return NULL;
+    }
 
     sched_enqueue(task);
 
@@ -117,6 +124,7 @@ int task_join(struct task *task)
     if (atomic_xchg(&task->joined, 1) == 1)
         return status;
     page = pmm_va_to_page((virt_addr_t)task->kstack);
+    task_fpu_free(task);
     pmm_free_page(page);
     kfree(task);
 

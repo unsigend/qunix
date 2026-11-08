@@ -15,15 +15,62 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <asm/fpu.h>
 #include <asm/task.h>
 #include <asm/tss.h>
 
 #include <kernel/cpu.h>
+#include <kernel/errno.h>
 #include <kernel/interrupt.h>
+#include <kernel/kmalloc.h>
 #include <kernel/mm/page.h>
 #include <kernel/string.h>
 #include <kernel/task.h>
 
+/*
+ * task_fpu_init - allocate an aligned FXSAVE image for @task.
+ *
+ * kmalloc is not 16-byte aligned. The extra FPU_STATE_ALIGN bytes let
+ * the image start at the next 16-byte boundary after a stored raw
+ * pointer. ROUND_UP(raw + sizeof(void *)) keeps that pointer inside
+ * the block even when raw is already aligned.
+ *
+ * Returns 0 on success, -ENOMEM if the buffer cannot be allocated.
+ */
+int task_fpu_init(struct task *task)
+{
+    void *raw;
+    uintptr_t aligned;
+
+    raw = kmalloc(FPU_STATE_SIZE + FPU_STATE_ALIGN);
+    if (!raw)
+        return -ENOMEM;
+
+    aligned = ROUND_UP((uintptr_t)raw + sizeof(void *), FPU_STATE_ALIGN);
+    ((void **)aligned)[-1] = raw;
+    task->fpu_state = (void *)aligned;
+    fpu_state_init(task->fpu_state);
+    return 0;
+}
+
+void task_fpu_free(struct task *task)
+{
+    void *raw;
+    if (!task->fpu_state)
+        return;
+
+    raw = ((void **)task->fpu_state)[-1];
+    kfree(raw);
+    task->fpu_state = NULL;
+}
+
+/*
+ * trampoline - first user of a new kernel thread.
+ *
+ * context_switch lands here with @func and @arg already on the stack.
+ * Schedule left in_sched set and IRQs off. Clear that and enable
+ * interrupts before @func. If @func returns, exit with status 0.
+ */
 static void trampoline(void (*func)(void *), void *arg)
 {
     cpu_current()->in_sched = false;
@@ -41,6 +88,8 @@ static void trampoline(void (*func)(void *), void *arg)
 void task_context_switch(struct task *saved, struct task *restored)
 {
     tss_set_kstack(cpu_id(), restored->kstack + PAGE_SIZE);
+    fpu_state_save(saved->fpu_state);
+    fpu_state_restore(restored->fpu_state);
     context_switch(saved->context, restored->context);
 }
 

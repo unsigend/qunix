@@ -91,6 +91,9 @@ void sched_init(void)
     root->exit = 0;
     completion_init(&root->completion);
     atomic_store(&root->joined, 0);
+    root->fpu_state = NULL;
+    if (task_fpu_init(root))
+        panic("sched: failed to initialize FPU for root task");
 
     spinlock_init(&sched_core.lock, "sched_core");
 

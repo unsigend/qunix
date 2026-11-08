@@ -42,6 +42,7 @@ struct task {
     int exit;
     struct completion completion;
     atomic_t joined;
+    void *fpu_state;
 };
 
 extern struct task *task_current(void);
@@ -52,4 +53,7 @@ extern int task_join(struct task *task);
 extern void task_context_switch(struct task *saved, struct task *restored);
 extern void task_context_init(struct task *task, void (*func)(void *),
                               void *arg);
+
+extern int task_fpu_init(struct task *task);
+extern void task_fpu_free(struct task *task);
 #endif /* _QUNIX_TASK_H_ */
