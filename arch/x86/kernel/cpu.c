@@ -20,6 +20,7 @@
 #include <asm/tss.h>
 
 #include <kernel/cpu.h>
+#include <kernel/cpuinfo.h>
 #include <kernel/printk.h>
 
 void cpu_halt(void)
@@ -38,6 +39,8 @@ void cpu_idle(void)
 void cpu_init(void)
 {
     cpuid_t id;
+
+    cpuinfo_init();
 
     id = cpu_id();
 
