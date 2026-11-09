@@ -29,6 +29,7 @@
 #define USER_VIRT_START 0x0
 #define USER_VIRT_END GB_N(3)
 
+#define USER_BASE MB_N(4)
 #define USER_STACK_TOP USER_VIRT_END
 
 #define KERNEL_IMAGE_PHYS_START kernel_image_phys_start
@@ -36,6 +37,9 @@
 #define KERNEL_IMAGE_VIRT_START kernel_image_virt_start
 #define KERNEL_IMAGE_VIRT_END kernel_image_virt_end
 #define KERNEL_IMAGE_SIZE kernel_image_size
+
+#define USER_IMAGE_START user_image_start
+#define USER_IMAGE_END user_image_end
 
 #ifndef __ASSEMBLER__
 #include <kernel/types.h>
@@ -45,6 +49,9 @@ extern phys_addr_t kernel_image_phys_end;
 extern virt_addr_t kernel_image_virt_start;
 extern virt_addr_t kernel_image_virt_end;
 extern size_t kernel_image_size;
+
+extern virt_addr_t user_image_start;
+extern virt_addr_t user_image_end;
 
 #endif /* __ASSEMBLER__ */
 

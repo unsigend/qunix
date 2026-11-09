@@ -16,6 +16,7 @@
  */
 
 #include <kernel/kmalloc.h>
+#include <kernel/list.h>
 #include <kernel/panic.h>
 #include <kernel/printk.h>
 #include <kernel/proc.h>
@@ -151,4 +152,37 @@ void proc_init(void)
         panic("proc: failed to create proc reaper");
 
     LOGM_INFO("PROC", "Process module initialized successfully");
+}
+
+struct proc *proc_create_init(uintptr_t image, size_t size, const char *name)
+{
+    struct proc *proc;
+    UNUSED(image);
+    UNUSED(size);
+
+    proc = kmalloc(sizeof(struct proc));
+    if (!proc)
+        return NULL;
+
+    proc->pid = pid_alloc();
+    proc->name = name;
+    proc->parent = NULL;
+    list_init(&proc->children);
+    list_init(&proc->siblings);
+    proc->pagetable = pagetable_create();
+    if (!proc->pagetable) {
+        kfree(proc);
+        return NULL;
+    }
+    proc->exit_status = 0;
+    proc->state = PROC_RUNNING;
+    proc->task = NULL;
+    list_init(&proc->node);
+    proc->trace = 0;
+
+    spinlock_lock(&proc_lock);
+    list_add_tail(&proc_list, &proc->node);
+    spinlock_unlock(&proc_lock);
+
+    return proc;
 }

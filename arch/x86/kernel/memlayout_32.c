@@ -28,12 +28,17 @@ extern char __kernel_image_virt_end[];
 extern char __kernel_image_size[];
 
 extern char __boot_stack_bottom[];
+extern char __user_image_start[];
+extern char __user_image_end[];
 
 phys_addr_t kernel_image_phys_start = (phys_addr_t)__kernel_image_phys_start;
 phys_addr_t kernel_image_phys_end = (phys_addr_t)__kernel_image_phys_end;
 virt_addr_t kernel_image_virt_start = (virt_addr_t)__kernel_image_virt_start;
 virt_addr_t kernel_image_virt_end = (virt_addr_t)__kernel_image_virt_end;
 size_t kernel_image_size = (size_t)__kernel_image_size;
+
+virt_addr_t user_image_start = (virt_addr_t)__user_image_start;
+virt_addr_t user_image_end = (virt_addr_t)__user_image_end;
 
 #if CONFIG_DEBUG
 

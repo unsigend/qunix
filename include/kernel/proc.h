@@ -49,5 +49,7 @@ extern struct proc *proc_find(pid_t pid);
 extern void proc_destroy(struct proc *proc);
 extern void proc_exit(int status) __noreturn;
 extern void proc_init(void);
+extern struct proc *proc_create_init(uintptr_t image, size_t size,
+                                     const char *name);
 
 #endif /* _QUNIX_PROC_H_ */
