@@ -24,6 +24,7 @@
 #include <kernel/ktest.h>
 #include <kernel/mm/mm.h>
 #include <kernel/printk.h>
+#include <kernel/proc.h>
 #include <kernel/qunix.h>
 #include <kernel/sched.h>
 #include <kernel/task.h>
@@ -32,7 +33,8 @@
 #include <driver/kbd.h>
 #include <driver/uart.h>
 
-__used static void welcome(void)
+#if !CONFIG_TEST
+static void welcome(void)
 {
     char buf[64];
 
@@ -44,6 +46,7 @@ __used static void welcome(void)
     printk("%s\n", "All rights reserved.");
     printk("qunix kernel version: %s\n", buf);
 }
+#endif /* !CONFIG_TEST */
 
 void kernel_main(void)
 {
@@ -53,6 +56,7 @@ void kernel_main(void)
     mm_init();
     irq_init();
     sched_init();
+    proc_init();
     clock_init();
 
     tty_init();

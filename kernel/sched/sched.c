@@ -29,6 +29,7 @@
 #include <kernel/panic.h>
 #include <kernel/preempt.h>
 #include <kernel/printk.h>
+#include <kernel/proc.h>
 #include <kernel/sched.h>
 #include <kernel/string.h>
 #include <kernel/task.h>
@@ -79,7 +80,7 @@ void sched_init(void)
     if (!root)
         panic("sched: failed to allocate memory for root task");
 
-    root->pid = ROOT_TASK_PID;
+    root->tid = ROOT_TASK_PID;
     root->name = "root";
     root->state = TASK_RUNNING;
     root->kstack = (uintptr_t)boot_task_stackbase();
@@ -88,12 +89,13 @@ void sched_init(void)
         panic("sched: failed to allocate memory for root task context");
     list_init(&root->node);
     root->slice = ROOT_SLICE;
-    root->exit = 0;
+    root->exit_status = 0;
     completion_init(&root->completion);
     atomic_store(&root->joined, 0);
     root->fpu_state = NULL;
     if (task_fpu_init(root))
         panic("sched: failed to initialize FPU for root task");
+    root->proc = NULL;
 
     spinlock_init(&sched_core.lock, "sched_core");
 
@@ -145,6 +147,11 @@ void schedule(void)
 
     /* Per-CPU data, SMP safe */
     cpu_current()->task_cur = next;
+
+    /* If the current task and the next task are in different processes, switch
+     * the pagetable. */
+    if (next->proc && cur->proc != next->proc)
+        pagetable_switch(next->proc->pagetable);
 
     task_context_switch(cur, next);
     cpu_current()->in_sched = false;

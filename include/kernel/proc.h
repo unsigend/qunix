@@ -18,4 +18,36 @@
 #ifndef _QUNIX_PROC_H_
 #define _QUNIX_PROC_H_
 
+#include <kernel/list.h>
+#include <kernel/mm/page.h>
+#include <kernel/types.h>
+
+struct task;
+
+enum proc_state {
+    PROC_RUNNING,
+    PROC_ZOMBIE,
+};
+
+struct proc {
+    pid_t pid;
+    const char *name;
+    struct proc *parent;
+    struct list_head children;
+    struct list_head siblings;
+    pagetable_t pagetable;
+    int exit_status;
+    enum proc_state state;
+    struct task *task;
+    struct list_head node;
+    unsigned int trace;
+};
+
+extern pid_t pid_alloc(void);
+
+extern struct proc *proc_find(pid_t pid);
+extern void proc_destroy(struct proc *proc);
+extern void proc_exit(int status) __noreturn;
+extern void proc_init(void);
+
 #endif /* _QUNIX_PROC_H_ */

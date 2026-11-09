@@ -23,6 +23,7 @@
 #include <kernel/list.h>
 
 struct task_context;
+struct proc;
 
 enum task_state {
     TASK_RUNNING,
@@ -32,19 +33,22 @@ enum task_state {
 };
 
 struct task {
-    pid_t pid;
+    pid_t tid;
     const char *name;
     enum task_state state;
     uintptr_t kstack;
     struct task_context *context;
     struct list_head node;
     unsigned int slice;
-    int exit;
+    int exit_status;
     struct completion completion;
     atomic_t joined;
     void *fpu_state;
+    struct proc *proc;
 };
 
+static inline int task_is_kernel(struct task *task);
+static inline int task_is_user(struct task *task);
 extern struct task *task_current(void);
 extern struct task *task_create(void (*func)(void *), void *arg,
                                 const char *name);
@@ -56,4 +60,14 @@ extern void task_context_init(struct task *task, void (*func)(void *),
 
 extern int task_fpu_init(struct task *task);
 extern void task_fpu_free(struct task *task);
+
+static inline int task_is_kernel(struct task *task)
+{
+    return task->proc == NULL;
+}
+static inline int task_is_user(struct task *task)
+{
+    return !task_is_kernel(task);
+}
+
 #endif /* _QUNIX_TASK_H_ */

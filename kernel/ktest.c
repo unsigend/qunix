@@ -52,7 +52,7 @@ static void run_one(struct ktest_suite *s)
     struct ktest_case *c;
 
     task = task_current();
-    s->pid = task->pid;
+    s->tid = task->tid;
     s->npassed = 0;
     s->nfailed = 0;
 

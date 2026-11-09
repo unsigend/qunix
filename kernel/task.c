@@ -23,9 +23,9 @@
 #include <kernel/sched.h>
 #include <kernel/task.h>
 
-static pid_t next_pid = 2; /* improve later, use a better PID allocation method
-                              to track the next available PID */
-static struct spinlock pid_lock = SPINLOCK_INIT("pid");
+static pid_t next_tid = 2; /* improve later, use a better TID allocation method
+                              to track the next available TID */
+static struct spinlock tid_lock = SPINLOCK_INIT("tid");
 
 /*
  * task_create - create a kernel thread that runs @func(@arg).
@@ -51,16 +51,16 @@ struct task *task_create(void (*func)(void *), void *arg, const char *name)
         return NULL;
     }
 
-    spinlock_lock(&pid_lock);
-    task->pid = next_pid++;
-    spinlock_unlock(&pid_lock);
+    spinlock_lock(&tid_lock);
+    task->tid = next_tid++;
+    spinlock_unlock(&tid_lock);
 
     task->name = name;
     task->state = TASK_READY;
     task->kstack = (uintptr_t)pmm_page_to_va(page);
     task_context_init(task, func, arg);
     list_init(&task->node);
-    task->exit = 0;
+    task->exit_status = 0;
     completion_init(&task->completion);
     atomic_store(&task->joined, 0);
     task->fpu_state = NULL;
@@ -70,6 +70,7 @@ struct task *task_create(void (*func)(void *), void *arg, const char *name)
         pmm_free_page(page);
         return NULL;
     }
+    task->proc = NULL;
 
     sched_enqueue(task);
 
@@ -89,7 +90,7 @@ void task_exit(int status)
     preempt_disable();
     task = task_current();
     task->state = TASK_ZOMBIE;
-    task->exit = status;
+    task->exit_status = status;
 
     complete_all(&task->completion);
     preempt_enable();
@@ -119,7 +120,7 @@ int task_join(struct task *task)
         panic("task_join: join idle task");
 
     wait_for_completion(&task->completion);
-    status = task->exit;
+    status = task->exit_status;
 
     if (atomic_xchg(&task->joined, 1) == 1)
         return status;

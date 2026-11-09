@@ -29,7 +29,7 @@ enum ktest_status {
 };
 
 struct ktest_suite {
-    pid_t pid;
+    pid_t tid;
     const char *name;
     size_t ncases;
     struct list_head cases;
@@ -80,7 +80,7 @@ extern void ktest_isa_exit(int status);
 #define KTEST_SUITE(sname)                                                     \
     struct ktest_suite __KTEST_SUITE_NAME(sname)                               \
         __used __section(__KTEST_SUITE_SECTION) = {                            \
-            .pid = 0,                                                          \
+            .tid = 0,                                                          \
             .name = #sname,                                                    \
             .ncases = 0,                                                       \
             .cases = LIST_HEAD_INIT(__KTEST_SUITE_NAME(sname).cases),          \
